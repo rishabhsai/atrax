@@ -1,6 +1,7 @@
+import Image from "next/image";
 import Link from "next/link";
 import { AgentCommand } from "./components/AgentCommand";
-import { AccountPreview, DeployTerminal, ProductMark } from "./components/Visuals";
+import { AccountPreview, ProductMark } from "./components/Visuals";
 import { productOrder, products } from "./lib/content";
 
 export const metadata = {
@@ -29,7 +30,6 @@ export default function Home() {
               <Link href="/docs">Read the quickstart →</Link>
             </p>
           </div>
-          <DeployTerminal />
         </div>
         <div className="hero-rail" aria-label="Current capabilities">
           <span>Apps</span>
@@ -40,28 +40,62 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="section shell proof-section">
-        <div className="section-intro">
-          <p className="eyebrow">The shortest path to useful</p>
-          <h2>From an idea to running software.</h2>
+      <section className="agent-work">
+        <div className="shell agent-work-intro">
+          <p className="eyebrow">Software that keeps moving</p>
+          <h2>Deploy an agent. Let it get the work done.</h2>
           <p>
-            Your agent works against one small contract. Tarantula handles the
-            provider details and leaves every result inspectable.
+            Ship an agent behind the same small contract as any other app.
+            Tarantula keeps the release understandable—then gives the work a
+            place to continue.
           </p>
         </div>
-        <div className="proof-flow">
-          {[
-            ["01", "Scaffold", "Write the complete app and agent instructions."],
-            ["02", "Run", "Apply migrations and keep local D1 state."],
-            ["03", "Deploy", "Provision remote D1 and publish the Worker."],
-            ["04", "Inspect", "Read deployment and database state as JSON."],
-          ].map(([number, title, copy]) => (
-            <article key={number}>
-              <span>{number}</span>
-              <h3>{title}</h3>
-              <p>{copy}</p>
-            </article>
-          ))}
+        <div className="shell agent-work-stories">
+          <article className="agent-work-story">
+            <div className="agent-work-art">
+              <Image
+                alt="An orange continuous loop carrying three work nodes around a black platform"
+                height={800}
+                src="/loops-agents.png"
+                width={1600}
+              />
+            </div>
+            <div className="agent-work-copy">
+              <span>01 / Loops</span>
+              <h3>Your agent can keep working after the tab closes.</h3>
+              <p>
+                Deploy the agent with Launchpad today. Loops adds the
+                long-running layer for schedules, webhooks, queues, retries,
+                approvals, and traces—so useful work can finish on its own.
+              </p>
+              <Link href="/products/loops">
+                Explore Loops <span aria-hidden="true">↗</span>
+              </Link>
+            </div>
+          </article>
+
+          <article className="agent-work-story agent-work-story-reverse">
+            <div className="agent-work-art">
+              <Image
+                alt="Three black app planes joined through one orange connection layer"
+                height={800}
+                src="/switchboard-apps.png"
+                width={1600}
+              />
+            </div>
+            <div className="agent-work-copy">
+              <span>02 / Switchboard</span>
+              <h3>Then let your apps work together automatically.</h3>
+              <p>
+                One app exposes a typed action; another receives a narrow
+                grant. Switchboard connects them without copying credentials,
+                while every automatic action stays scoped and inspectable.
+              </p>
+              <Link href="/products/switchboard">
+                Explore Switchboard <span aria-hidden="true">↗</span>
+              </Link>
+            </div>
+          </article>
         </div>
       </section>
 
@@ -104,45 +138,6 @@ export default function Home() {
               );
             })}
           </div>
-        </div>
-      </section>
-
-      <section className="section shell boundaries">
-        <div className="section-intro">
-          <p className="eyebrow">Designed to stay understandable</p>
-          <h2>Six products. Six responsibilities.</h2>
-        </div>
-        <div className="boundary-lines">
-          <article>
-            <span>Launchpad</span>
-            <h3>How software ships</h3>
-            <p>Runtime, releases, URLs, rollback, inspection, and logs.</p>
-          </article>
-          <article>
-            <span>Tables</span>
-            <h3>What state it keeps</h3>
-            <p>Structured data, migrations, queries, backup, and restore.</p>
-          </article>
-          <article>
-            <span>Door</span>
-            <h3>Who may enter</h3>
-            <p>Identity, sessions, invitations, teams, sharing, and roles.</p>
-          </article>
-          <article>
-            <span>Library</span>
-            <h3>What the company knows</h3>
-            <p>Files, policies, notes, search, provenance, and freshness.</p>
-          </article>
-          <article>
-            <span>Switchboard</span>
-            <h3>What an app may do</h3>
-            <p>Vaulted credentials, typed tools, scoped grants, and an action ledger.</p>
-          </article>
-          <article>
-            <span>Loops</span>
-            <h3>What keeps running</h3>
-            <p>Jobs, schedules, queues, agents, retries, approvals, and traces.</p>
-          </article>
         </div>
       </section>
 

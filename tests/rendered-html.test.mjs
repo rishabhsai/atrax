@@ -27,6 +27,14 @@ test("exports the six-product Tarantula site", async () => {
   assert.doesNotMatch(html, />Spark</);
   assert.match(html, /\/products\/loops/);
   assert.match(html, /\/products\/switchboard/);
+  assert.match(html, /Deploy an agent\. Let it get the work done\./);
+  assert.match(html, /Your agent can keep working after the tab closes\./);
+  assert.match(html, /let your apps work together automatically\./);
+  assert.match(html, /loops-agents\.png/);
+  assert.match(html, /switchboard-apps\.png/);
+  assert.doesNotMatch(html, /deploy \/ production/);
+  assert.doesNotMatch(html, /From an idea to running software\./);
+  assert.doesNotMatch(html, /Six products\. Six responsibilities\./);
   assert.match(html, /\/docs/);
   assert.match(html, /\/docs\.json/);
   assert.match(html, /\/llms\.txt/);
@@ -52,6 +60,8 @@ test("exports the six-product Tarantula site", async () => {
   await access(new URL("../out/og.png", import.meta.url));
   await access(new URL("../out/icon.svg", import.meta.url));
   await access(new URL("../out/agent", import.meta.url));
+  await access(new URL("../out/loops-agents.png", import.meta.url));
+  await access(new URL("../out/switchboard-apps.png", import.meta.url));
 });
 
 test("exports canonical product detail routes", async () => {
