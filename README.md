@@ -20,6 +20,12 @@ npm test
 npm run lint
 ```
 
-The application uses Next.js-compatible routes through
-[vinext](https://github.com/cloudflare/vinext) and produces a
-Cloudflare Worker-compatible build.
+The application exports a static Next.js site to `out/`.
+
+## Deploy
+
+The production site is a Cloudflare Pages Direct Upload project:
+
+```bash
+npm run deploy
+```

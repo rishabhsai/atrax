@@ -1,34 +1,15 @@
 import assert from "node:assert/strict";
-import { access } from "node:fs/promises";
+import { access, readFile } from "node:fs/promises";
 import test from "node:test";
 
-async function render(pathname = "/") {
-  const workerUrl = new URL("../dist/server/index.js", import.meta.url);
-  workerUrl.searchParams.set("test", `${process.pid}-${Date.now()}`);
-  const { default: worker } = await import(workerUrl.href);
-
-  return worker.fetch(
-    new Request(new URL(pathname, "http://localhost"), {
-      headers: { accept: "text/html" },
-    }),
-    {
-      ASSETS: {
-        fetch: async () => new Response("Not found", { status: 404 }),
-      },
-    },
-    {
-      waitUntil() {},
-      passThroughOnException() {},
-    },
-  );
+async function readExportedPage(pathname = "/") {
+  const relativePath =
+    pathname === "/" ? "../out/index.html" : `../out${pathname}/index.html`;
+  return readFile(new URL(relativePath, import.meta.url), "utf8");
 }
 
-test("server-renders the Tarantula product site", async () => {
-  const response = await render();
-  assert.equal(response.status, 200);
-  assert.match(response.headers.get("content-type") ?? "", /^text\/html\b/i);
-
-  const html = await response.text();
+test("exports the Tarantula product site", async () => {
+  const html = await readExportedPage();
   assert.match(html, /<title>Tarantula — Software that keeps working/);
   assert.match(html, /The agent-native application platform/);
   assert.match(html, /Software that/);
@@ -43,11 +24,8 @@ test("server-renders the Tarantula product site", async () => {
   await access(new URL("../public/og.png", import.meta.url));
 });
 
-test("server-renders product detail routes", async () => {
-  const response = await render("/products/vault");
-  assert.equal(response.status, 200);
-
-  const html = await response.text();
+test("exports product detail routes", async () => {
+  const html = await readExportedPage("/products/vault");
   assert.match(html, /Vault/);
   assert.match(html, /The company owns access\. Apps borrow capability\./);
   assert.match(html, /Apps receive short-lived authority/);
