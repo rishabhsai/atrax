@@ -3,6 +3,7 @@
 import {
   access,
   cp,
+  lstat,
   mkdir,
   readFile,
   readdir,
@@ -11,7 +12,7 @@ import {
 } from "node:fs/promises";
 import { createHash } from "node:crypto";
 import { spawn } from "node:child_process";
-import { dirname, join, relative, resolve, sep } from "node:path";
+import { dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const packageRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -66,7 +67,7 @@ function positionals() {
   const values = [];
   for (let index = 0; index < commandArgs.length; index += 1) {
     const value = commandArgs[index];
-    if (value === "--json" || value === "--dry-run" || value === "--no-git") {
+    if (value === "--json" || value === "--dry-run") {
       continue;
     }
     if (value === "--template" || value === "--port") {
@@ -76,6 +77,46 @@ function positionals() {
     if (!value.startsWith("-")) values.push(value);
   }
   return values;
+}
+
+function validateCommandArgs() {
+  const specs = {
+    new: { flags: ["--json"], values: ["--template"], positionals: 1 },
+    dev: { flags: [], values: ["--port"], positionals: 0 },
+    deploy: { flags: ["--json", "--dry-run"], values: [], positionals: 0 },
+    inspect: { flags: ["--json"], values: [], positionals: 0 },
+    logs: { flags: ["--json"], values: [], positionals: 0 },
+    doctor: { flags: ["--json"], values: [], positionals: 0 },
+    help: { flags: [], values: [], positionals: 0 },
+    "--help": { flags: [], values: [], positionals: 0 },
+    "-h": { flags: [], values: [], positionals: 0 },
+    "--version": { flags: [], values: [], positionals: 0 },
+    "-v": { flags: [], values: [], positionals: 0 },
+  };
+  const spec = specs[command];
+  if (!spec) return;
+  let positionalCount = 0;
+  for (let index = 0; index < commandArgs.length; index += 1) {
+    const value = commandArgs[index];
+    if (spec.flags.includes(value)) continue;
+    if (spec.values.includes(value)) {
+      const option = commandArgs[index + 1];
+      if (!option || option.startsWith("-")) {
+        throw new CliError(`${value} needs a value`);
+      }
+      index += 1;
+      continue;
+    }
+    if (value.startsWith("-")) {
+      throw new CliError(`Unknown option for ${command}: ${value}`);
+    }
+    positionalCount += 1;
+  }
+  if (positionalCount !== spec.positionals) {
+    throw new CliError(
+      `${command} expects ${spec.positionals} positional argument${spec.positionals === 1 ? "" : "s"}`,
+    );
+  }
 }
 
 async function pathExists(pathname) {
@@ -124,7 +165,27 @@ function validateName(name) {
   }
 }
 
+function assertObject(value, label) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    throw new CliError(`${label} must be an object`);
+  }
+}
+
+function rejectUnknownKeys(value, allowed, label) {
+  for (const key of Object.keys(value)) {
+    if (!allowed.includes(key)) {
+      throw new CliError(`${label} contains an unknown property: ${key}`);
+    }
+  }
+}
+
 function validateContract(contract) {
+  assertObject(contract, "tarantula.json");
+  rejectUnknownKeys(
+    contract,
+    ["$schema", "version", "name", "visibility", "web", "tables"],
+    "tarantula.json",
+  );
   if (contract.version !== 1) {
     throw new CliError("tarantula.json version must be 1");
   }
@@ -137,8 +198,32 @@ function validateContract(contract) {
   if (!contract.web?.entry || !contract.web?.assets) {
     throw new CliError("tarantula.json needs web.entry and web.assets");
   }
+  assertObject(contract.web, "web");
+  rejectUnknownKeys(contract.web, ["entry", "assets", "health"], "web");
+  if (
+    typeof contract.web.entry !== "string" ||
+    typeof contract.web.assets !== "string"
+  ) {
+    throw new CliError("web.entry and web.assets must be strings");
+  }
+  if (
+    contract.web.health !== undefined &&
+    (typeof contract.web.health !== "string" ||
+      !contract.web.health.startsWith("/") ||
+      contract.web.health.startsWith("//") ||
+      contract.web.health.includes("\\"))
+  ) {
+    throw new CliError(
+      "web.health must be a same-origin absolute path when provided",
+    );
+  }
   if (!contract.tables?.migrations) {
     throw new CliError("tarantula.json needs tables.migrations");
+  }
+  assertObject(contract.tables, "tables");
+  rejectUnknownKeys(contract.tables, ["migrations"], "tables");
+  if (typeof contract.tables.migrations !== "string") {
+    throw new CliError("tables.migrations must be a string");
   }
 }
 
@@ -159,7 +244,91 @@ async function loadApp() {
   const lock = (await pathExists(lockPath))
     ? await readJson(lockPath, "tarantula.lock.json")
     : null;
+  if (lock && lock.worker?.name !== contract.name) {
+    throw new CliError(
+      "tarantula.json name does not match the Worker recorded in tarantula.lock.json.",
+      {
+        contractName: contract.name,
+        lockedWorker: lock.worker?.name ?? null,
+        recovery: "Restore the original app name. Rename is not available in v0.",
+      },
+    );
+  }
   return { root, contract, lock, lockPath };
+}
+
+function resolveContractPath(root, declared, label) {
+  if (isAbsolute(declared) || declared.includes("\\")) {
+    throw new CliError(`${label} must be a portable relative path`);
+  }
+  const pathname = resolve(root, declared);
+  const relation = relative(root, pathname);
+  if (
+    !relation ||
+    relation === ".." ||
+    relation.startsWith(`..${sep}`)
+  ) {
+    throw new CliError(`${label} must point inside the app directory`);
+  }
+  return pathname;
+}
+
+async function rejectSymlinks(pathname, label) {
+  const details = await lstat(pathname);
+  if (details.isSymbolicLink()) {
+    throw new CliError(`${label} cannot contain symbolic links: ${pathname}`);
+  }
+  if (!details.isDirectory()) return;
+  const entries = await readdir(pathname, { withFileTypes: true });
+  for (const entry of entries) {
+    await rejectSymlinks(join(pathname, entry.name), label);
+  }
+}
+
+async function requirePath(pathname, kind, label) {
+  let details;
+  try {
+    details = await stat(pathname);
+  } catch {
+    throw new CliError(`${label} does not exist at ${pathname}`);
+  }
+  const matches = kind === "file" ? details.isFile() : details.isDirectory();
+  if (!matches) {
+    throw new CliError(`${label} must be a ${kind}: ${pathname}`);
+  }
+}
+
+async function validateAppFiles(app) {
+  const entry = resolveContractPath(
+    app.root,
+    app.contract.web.entry,
+    "web.entry",
+  );
+  const assets = resolveContractPath(
+    app.root,
+    app.contract.web.assets,
+    "web.assets",
+  );
+  const migrations = resolveContractPath(
+    app.root,
+    app.contract.tables.migrations,
+    "tables.migrations",
+  );
+  await requirePath(entry, "file", "web.entry");
+  await requirePath(assets, "directory", "web.assets");
+  await requirePath(migrations, "directory", "tables.migrations");
+  await rejectSymlinks(entry, "web.entry");
+  await rejectSymlinks(assets, "web.assets");
+  await rejectSymlinks(migrations, "tables.migrations");
+  const migrationFiles = (await readdir(migrations)).filter((name) =>
+    /^\d+.*\.sql$/.test(name),
+  );
+  if (!migrationFiles.length) {
+    throw new CliError(
+      `tables.migrations needs at least one numbered .sql file: ${migrations}`,
+    );
+  }
+  return { entry, assets, migrations, migrationFiles: migrationFiles.sort() };
 }
 
 async function compileProviderConfig(app, databaseId = null) {
@@ -355,6 +524,18 @@ async function resolveDatabase(app, quiet) {
       )
     : databases.find((item) => item.name === name);
 
+  if (!locked && database) {
+    throw new CliError(
+      `A D1 database named ${name} already exists, but this app has no lockfile proving ownership.`,
+      {
+        name,
+        id: database.uuid ?? database.id,
+        recovery:
+          "Choose a different app name. Explicit resource adoption is not available in v0.",
+      },
+    );
+  }
+
   if (locked && !database) {
     throw new CliError(
       "The D1 database in tarantula.lock.json was not found in this account.",
@@ -378,6 +559,37 @@ async function resolveDatabase(app, quiet) {
   return identity;
 }
 
+async function assertWorkerNameAvailable(app, account) {
+  if (app.lock) return;
+  try {
+    await runWrangler(
+      app.root,
+      ["deployments", "list", "--name", app.contract.name, "--json"],
+      {
+        capture: true,
+        quiet: true,
+        env: { CI: "1", CLOUDFLARE_ACCOUNT_ID: account.id },
+      },
+    );
+  } catch (error) {
+    if (
+      error instanceof CliError &&
+      error.details?.output?.includes("[code: 10007]")
+    ) {
+      return;
+    }
+    throw error;
+  }
+  throw new CliError(
+    `A Worker named ${app.contract.name} already exists, but this app has no lockfile proving ownership.`,
+    {
+      name: app.contract.name,
+      recovery:
+        "Choose a different app name. Explicit resource adoption is not available in v0.",
+    },
+  );
+}
+
 async function deploymentStatus(app, configPath, quiet) {
   const result = await runWrangler(
     app.root,
@@ -390,11 +602,15 @@ async function deploymentStatus(app, configPath, quiet) {
   );
 }
 
-async function waitForLive(url) {
+async function waitForLive(url, healthPath) {
   if (!url) {
     throw new CliError("Wrangler did not return the deployment URL.");
   }
-  const healthUrl = new URL("/api/messages?after=0", url);
+  const baseUrl = new URL(url);
+  const healthUrl = new URL(healthPath, baseUrl);
+  if (healthUrl.origin !== baseUrl.origin) {
+    throw new CliError("web.health must resolve on the deployed app origin.");
+  }
   let lastStatus = null;
   for (let attempt = 0; attempt < 20; attempt += 1) {
     try {
@@ -482,6 +698,7 @@ async function createApp() {
 
 async function develop() {
   const app = await loadApp();
+  await validateAppFiles(app);
   const { configPath } = await compileProviderConfig(app);
   const persistPath = join(app.root, ".tarantula", "state");
   await runWrangler(
@@ -514,6 +731,7 @@ async function develop() {
 
 async function deploy() {
   const app = await loadApp();
+  await validateAppFiles(app);
   const quiet = jsonOutput;
   if (hasFlag("--dry-run")) {
     const { configPath } = await compileProviderConfig(app);
@@ -536,6 +754,7 @@ async function deploy() {
   }
 
   const account = await currentAccount(app, quiet);
+  await assertWorkerNameAvailable(app, account);
   const database = await resolveDatabase(app, quiet);
   app.lock = {
     version: 1,
@@ -582,7 +801,10 @@ async function deploy() {
   const url =
     output.match(/https:\/\/[a-zA-Z0-9.-]+\.workers\.dev/)?.[0] ??
     app.lock.worker.url;
-  await waitForLive(url);
+  await waitForLive(
+    url,
+    app.contract.web.health ?? "/.well-known/tarantula.json",
+  );
   const status = await deploymentStatus(app, configPath, quiet);
   const deploymentId = findFirstValue(status, [
     "deployment_id",
@@ -655,9 +877,13 @@ async function inspectApp() {
 
 async function logs() {
   const app = await loadApp();
+  if (!app.lock) {
+    throw new CliError("This app has not been deployed. Run tarantula deploy.");
+  }
+  await currentAccount(app, jsonOutput);
   const { configPath } = await compileProviderConfig(
     app,
-    app.lock?.resources?.tables?.id,
+    app.lock.resources.tables.id,
   );
   const args = ["tail", app.contract.name, "--config", configPath];
   if (jsonOutput) args.push("--format", "json");
@@ -666,7 +892,19 @@ async function logs() {
 
 async function doctor() {
   const app = await loadApp();
+  const files = await validateAppFiles(app);
   const { configPath } = await compileProviderConfig(app);
+  const quiet = jsonOutput;
+  const account = await currentAccount(app, quiet);
+  await runWrangler(
+    app.root,
+    ["deploy", "--config", configPath, "--dry-run"],
+    {
+      capture: true,
+      quiet,
+      env: { CI: "1", CLOUDFLARE_ACCOUNT_ID: account.id },
+    },
+  );
   const payload = {
     schemaVersion: 1,
     status: "ready",
@@ -674,6 +912,8 @@ async function doctor() {
     node: process.version,
     contract: join(app.root, "tarantula.json"),
     providerConfig: configPath,
+    account,
+    files,
     wrangler: packageJson.devDependencies?.wrangler ?? "installed",
     deployed: Boolean(app.lock),
   };
@@ -681,7 +921,7 @@ async function doctor() {
     process.stdout.write(`${JSON.stringify(payload)}\n`);
   } else {
     process.stdout.write(
-      `Tarantula ${packageJson.version}\nApp: ${app.contract.name}\nNode: ${process.version}\nContract: valid\nWrangler: ready\nDeployed: ${payload.deployed ? "yes" : "no"}\n`,
+      `Tarantula ${packageJson.version}\nApp: ${app.contract.name}\nNode: ${process.version}\nContract: valid\nBundle: valid\nCloudflare: ${account.name}\nDeployed: ${payload.deployed ? "yes" : "no"}\n`,
     );
   }
 }
@@ -702,6 +942,7 @@ The deployer uses your Cloudflare account. Visitors to the chat template do not 
 }
 
 try {
+  validateCommandArgs();
   if (command === "new") await createApp();
   else if (command === "dev") await develop();
   else if (command === "deploy") await deploy();

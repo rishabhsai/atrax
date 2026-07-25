@@ -2,14 +2,18 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ProductConsole, ProductMark } from "../../components/Visuals";
-import { products, type ProductSlug } from "../../lib/content";
+import {
+  productOrder,
+  products,
+  type ProductSlug,
+} from "../../lib/content";
 
 type PageProps = {
   params: Promise<{ slug: string }>;
 };
 
 export function generateStaticParams() {
-  return Object.keys(products).map((slug) => ({ slug }));
+  return productOrder.map((slug) => ({ slug }));
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
@@ -27,51 +31,48 @@ export default async function ProductPage({ params }: PageProps) {
   const product = products[slug as ProductSlug];
   if (!product) notFound();
 
-  const related = product.related.map(
-    (relatedSlug) => products[relatedSlug as ProductSlug],
-  );
-
   return (
     <main>
-      <section className={`product-hero-v2 product-hero-${product.slug}`}>
-        <div className="shell product-hero-v2-grid">
+      <section className="product-hero">
+        <div className="shell product-hero-grid">
           <div>
-            <p className="section-kicker">Product / {product.name}</p>
-            <div className="product-title-lockup">
+            <div className="product-kicker">
               <ProductMark type={product.slug} />
-              <span>{product.eyebrow}</span>
+              <span>{product.number} / {product.name}</span>
+              <small className={`status status-${product.availability}`}>
+                {product.availability}
+              </small>
             </div>
             <h1>{product.title}</h1>
-            <p className="product-hero-summary">{product.intro}</p>
+            <p>{product.summary}</p>
             <div className="button-row">
-              <Link className="button button-primary" href="/company">
-                Join the alpha <span aria-hidden="true">→</span>
+              <Link className="button button-dark" href={`/docs/${product.slug}`}>
+                Read {product.name} docs <span aria-hidden="true">→</span>
               </Link>
-              <Link className="button button-quiet" href="/developers">
-                Read the developer model
+              <Link className="button button-outline-dark" href="/products">
+                All products
               </Link>
             </div>
           </div>
-          <ProductConsole product={product} />
+          <ProductConsole type={product.slug} />
         </div>
       </section>
 
-      <section className="product-proof-bar">
+      <section className="product-boundary">
         <div className="shell">
-          <div>
-            <strong>{product.stat}</strong>
-            <span>{product.statLabel}</span>
-          </div>
-          <p>{product.summary}</p>
+          <span>Responsibility</span>
+          <p>{product.boundary}</p>
         </div>
       </section>
 
-      <section className="section shell product-features-v2">
-        <div className="product-features-intro">
-          <p className="section-kicker">What is included</p>
-          <h2>Useful defaults, ready in production.</h2>
+      <section className="section shell product-capabilities">
+        <div className="section-intro">
+          <p className="eyebrow">
+            {product.availability === "available" ? "Included in v0" : "Planned scope"}
+          </p>
+          <h2>What belongs here.</h2>
         </div>
-        <div className="product-feature-grid-v2">
+        <div className="capability-list">
           {product.features.map(([name, copy], index) => (
             <article key={name}>
               <span>0{index + 1}</span>
@@ -82,70 +83,42 @@ export default async function ProductPage({ params }: PageProps) {
         </div>
       </section>
 
-      <section className="product-code-section">
-        <div className="shell product-code-v2-grid">
+      <section className="code-section">
+        <div className="shell code-section-grid">
           <div>
-            <p className="section-kicker">Declared with the app</p>
-            <h2>{product.codeTitle}</h2>
+            <p className="eyebrow">{product.codeLabel}</p>
+            <h2>
+              {product.availability === "available"
+                ? "Use it from the app folder."
+                : "The target stays explicit."}
+            </h2>
             <p>
-              The coding agent declares the resource beside the app. Local
-              development and production use the same binding and permission
-              contract.
+              {product.availability === "available"
+                ? "This surface is implemented and covered by the reference chat."
+                : "This is roadmap architecture, not an available CLI promise."}
             </p>
           </div>
-          <div className="code-card product-code-card">
-            <div className="code-card-top">
-              <span>tarantula.ts</span>
-              <span>{product.name}</span>
-            </div>
-            <pre><code>{product.code}</code></pre>
-            <div className="code-card-result">
-              <i />
-              <span>Validated locally · ready to deploy</span>
-            </div>
-          </div>
+          <pre><code>{product.code}</code></pre>
         </div>
       </section>
 
-      <section className="product-fit-strip">
-        <div className="shell">
-          <p className="section-kicker">Small-cloud defaults</p>
-          <div>
-            {product.fit.map((item, index) => (
-              <p key={item}><span>0{index + 1}</span><strong>{item}</strong></p>
-            ))}
-          </div>
+      <section className="section shell related-products">
+        <div className="section-intro">
+          <p className="eyebrow">Related products</p>
+          <h2>Clear handoffs.</h2>
         </div>
-      </section>
-
-      <section className="section shell related-products-v2">
-        <div className="section-heading">
-          <p className="section-kicker">Build the whole app</p>
-          <h2>Products designed to work as one small cloud.</h2>
-        </div>
-        <div className="related-products-grid-v2">
-          {related.map((item) => (
-            <Link href={`/products/${item.slug}`} key={item.slug}>
-              <ProductMark type={item.slug} />
-              <div>
-                <h3>{item.name}</h3>
-                <p>{item.cardTitle}</p>
-              </div>
-              <strong aria-hidden="true">↗</strong>
-            </Link>
-          ))}
-        </div>
-      </section>
-
-      <section className="page-final-cta">
-        <div className="shell page-final-cta-grid">
-          <p className="section-kicker">Private alpha</p>
-          <div>
-            <h2>Bring the app idea. Leave the cloud catalog behind.</h2>
-            <Link className="button button-accent" href="/company">
-              Join private alpha <span aria-hidden="true">→</span>
-            </Link>
-          </div>
+        <div>
+          {product.related.map((relatedSlug) => {
+            const related = products[relatedSlug];
+            return (
+              <Link href={`/products/${relatedSlug}`} key={relatedSlug}>
+                <ProductMark type={relatedSlug} />
+                <span>{related.name}</span>
+                <small>{related.eyebrow}</small>
+                <b aria-hidden="true">↗</b>
+              </Link>
+            );
+          })}
         </div>
       </section>
     </main>

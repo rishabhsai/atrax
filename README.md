@@ -23,7 +23,7 @@ tarantula dev
 tarantula deploy --json
 ```
 
-The generated app is public. Visitors do not log in, and anyone with its URL can read and post messages.
+The generated app is public. Visitors do not log in, and anyone with its URL can read and post messages. Posts are capped at 4 KiB and 12 messages per IP per minute; only the latest 500 messages are retained.
 
 After deployment:
 
@@ -32,7 +32,7 @@ tarantula inspect --json
 tarantula logs
 ```
 
-`tarantula.lock.json` stores the Cloudflare account, Worker, database, and URL without storing credentials. Commit it so another checkout updates the same app.
+`tarantula.lock.json` stores stable, non-secret resource identities. Commit it so another checkout updates the same app. It is not the future authoritative infrastructure state; `.tarantula/wrangler.jsonc` is a disposable provider artifact.
 
 ## Product status
 
@@ -49,7 +49,9 @@ Planned:
 - Library: files and company knowledge
 - Switchboard: vaults, connected tools, and scoped app-to-app grants
 - Loops: functions, webhooks, schedules, queues, and operational agents
-- Previews, custom domains, rollback, private apps, backups, and a control panel
+- Named stacks, remote locked state, plan, drift detection, previews, custom domains, rollback, private apps, backups, and a control panel
+
+The provider-neutral product contract and reconciliation model are in [SPEC.md](./SPEC.md).
 
 The proof deployment is [tarantula-chat-demo.rishabhsai-mdbar.workers.dev](https://tarantula-chat-demo.rishabhsai-mdbar.workers.dev).
 

@@ -1,239 +1,164 @@
-import Image from "next/image";
 import Link from "next/link";
-import { ProductMark, SharePanel } from "./components/Visuals";
-import { products, solutions } from "./lib/content";
+import { DeployTerminal, ProductMark } from "./components/Visuals";
+import { productOrder, products } from "./lib/content";
 
 export const metadata = {
-  title: "Tarantula — The tiny cloud for agent-built software",
+  title: "Tarantula | An agent-native cloud for small software",
   description:
-    "Build with an agent, deploy in one command, connect company tools, share knowledge, and invite your team.",
+    "Create, run, deploy, inspect, and debug small full-stack apps from one CLI.",
 };
-
-const productOrder = [
-  products.hosting,
-  products.database,
-  products.auth,
-  products.storage,
-  products.secrets,
-  products.workers,
-  products["agent-runtime"],
-] as const;
 
 export default function Home() {
   return (
-    <main className="simple-home">
-      <section className="simple-hero">
-        <div className="shell simple-hero-grid">
-          <div className="simple-hero-copy">
-            <p className="simple-pill">A tiny cloud for agent-built apps</p>
-            <h1>Build it with an agent. Deploy it in one command.</h1>
-            <p className="simple-hero-summary">
-              Tarantula turns generated code into a private, shareable app—with
-              data, login, files, company tools, and operational agents already
-              attached.
+    <main className="home">
+      <section className="hero">
+        <div className="shell hero-grid">
+          <div className="hero-copy">
+            <p className="eyebrow">Agent-native cloud for small software</p>
+            <h1>A small cloud your coding agent can operate.</h1>
+            <p className="hero-summary">
+              Create, run, deploy, inspect, and debug from one CLI. Launchpad
+              and Tables work today. Door, Library, Switchboard, and Loops are
+              the roadmap.
             </p>
-
-            <div className="hero-command" aria-label="Tarantula deploy command">
-              <div>
-                <span>Give your coding agent this command</span>
-                <small>Works from the app folder</small>
-              </div>
-              <code><b>$</b> npx tarantula deploy</code>
-              <p><i /> Live at renewal-board.tarantula.app</p>
-            </div>
-
             <div className="button-row">
-              <Link className="button button-primary" href="/company">
-                Join the private alpha <span aria-hidden="true">→</span>
+              <Link className="button button-dark" href="/docs">
+                Read the quickstart <span aria-hidden="true">→</span>
               </Link>
-              <Link className="button button-quiet" href="/products">
-                See what is included
-              </Link>
+              <a
+                className="button button-outline-dark"
+                href="https://tarantula-chat-demo.rishabhsai-mdbar.workers.dev"
+              >
+                Use the live chat <span aria-hidden="true">↗</span>
+              </a>
             </div>
+            <p className="hero-note">
+              Alpha install is local. Deployer uses your Cloudflare account.
+              Visitors to the chat do not log in.
+            </p>
           </div>
-
-          <figure className="simple-hero-image">
-            <Image
-              src="/images/tiny-cloud-hero.jpg"
-              alt="A miniature complete cloud with modules for a web app, database, access, files, functions, agents, and connections"
-              fill
-              priority
-              sizes="(max-width: 800px) 100vw, 58vw"
-            />
-          </figure>
+          <DeployTerminal />
         </div>
+        <div className="hero-rail" aria-label="Current capabilities">
+          <span>Worker + static assets</span>
+          <span>D1 + ordered migrations</span>
+          <span>Stable lockfile</span>
+          <span>JSON deploy output</span>
+          <span>Live inspect and logs</span>
+        </div>
+      </section>
 
-        <div className="shell simple-proof">
+      <section className="section shell proof-section">
+        <div className="section-intro">
+          <p className="eyebrow">Available now</p>
+          <h2>From an empty folder to a working link.</h2>
+          <p>
+            The reference chat is public, persistent, and deployed by the same
+            CLI in the docs.
+          </p>
+        </div>
+        <div className="proof-flow">
           {[
-            ["01", "Deploy", "One command"],
-            ["02", "Private", "From the first request"],
-            ["03", "Connect", "Company tools once"],
-            ["04", "Share", "Like a document"],
-          ].map(([index, title, detail]) => (
-            <div key={index}>
-              <span>{index}</span>
-              <strong>{title}</strong>
-              <small>{detail}</small>
-            </div>
+            ["01", "Scaffold", "Write the complete app and agent instructions."],
+            ["02", "Run", "Apply migrations and keep local D1 state."],
+            ["03", "Deploy", "Provision remote D1 and publish the Worker."],
+            ["04", "Inspect", "Read deployment and database state as JSON."],
+          ].map(([number, title, copy]) => (
+            <article key={number}>
+              <span>{number}</span>
+              <h3>{title}</h3>
+              <p>{copy}</p>
+            </article>
           ))}
         </div>
       </section>
 
-      <section className="simple-intro shell">
-        <p className="simple-pill">The whole cloud is already there</p>
-        <div>
-          <h2>Seven friendly building blocks. No cloud scavenger hunt.</h2>
-          <p>
-            Your coding agent declares what the app needs. Tarantula creates,
-            connects, and deploys it as one project.
-          </p>
-        </div>
-      </section>
-
-      <section className="shell fun-products" aria-label="Tarantula products">
-        {productOrder.map((product, index) => (
-          <Link
-            className={`fun-product fun-product-${product.slug}`}
-            href={`/products/${product.slug}`}
-            key={product.slug}
-          >
-            <div className="fun-product-top">
-              <ProductMark type={product.slug} />
-              <span>0{index + 1}</span>
-            </div>
-            <div>
-              <p>{product.eyebrow}</p>
-              <h3>{product.name}</h3>
-              <span>{product.cardTitle}</span>
-            </div>
-            <strong aria-hidden="true">↗</strong>
-          </Link>
-        ))}
-      </section>
-
-      <section className="simple-deploy">
-        <div className="shell simple-deploy-grid">
-          <div>
-            <p className="simple-pill">The easy part should stay easy</p>
-            <h2>From repo to real app before the agent loses context.</h2>
-            <p>
-              Tarantula reads the app contract, previews every change, creates
-              the resources, and gives you one URL to share.
-            </p>
-            <Link className="inline-link" href="/developers">
-              See the three-command workflow <span aria-hidden="true">→</span>
-            </Link>
-          </div>
-          <div className="friendly-terminal">
-            <div><span>terminal</span><i /><i /><i /></div>
-            <code><b>$</b> npx tarantula deploy</code>
-            <p><span>✓</span> Detected Next.js app</p>
-            <p><span>✓</span> Created Tables and Door</p>
-            <p><span>✓</span> Connected Slack through Switchboard</p>
-            <p><span>✓</span> Invited Customer Success</p>
-            <strong>renewal-board.tarantula.app ↗</strong>
-          </div>
-        </div>
-      </section>
-
-      <section className="image-feature shell">
-        <figure>
-          <Image
-            src="/images/company-switchboard.jpg"
-            alt="A simple central switchboard safely connecting company tools and internal apps"
-            fill
-            sizes="(max-width: 800px) 100vw, 50vw"
-          />
-        </figure>
-        <div>
-          <p className="simple-pill">Switchboard</p>
-          <h2>Connect once. Let your apps help each other.</h2>
-          <p>
-            Connect Slack, your CRM, an internal API, or another Tarantula app.
-            Each app receives a small set of approved tools—not the underlying
-            credentials.
-          </p>
-          <ul>
-            <li>One company connection instead of copied keys</li>
-            <li>Typed tools that apps can safely expose to each other</li>
-            <li>One ledger for every person, app, tool, and action</li>
-          </ul>
-          <Link className="button button-primary" href="/products/secrets">
-            Explore Switchboard <span aria-hidden="true">→</span>
-          </Link>
-        </div>
-      </section>
-
-      <section className="image-feature image-feature-reverse shell">
-        <figure>
-          <Image
-            src="/images/company-library.jpg"
-            alt="A shared company knowledge library feeding approved information to apps and an operational agent"
-            fill
-            sizes="(max-width: 800px) 100vw, 50vw"
-          />
-        </figure>
-        <div>
-          <p className="simple-pill">Library</p>
-          <h2>Give every app the same trusted company knowledge.</h2>
-          <p>
-            Store policies, playbooks, notes, files, and generated reports once.
-            Apps and agents retrieve only what the current person is allowed to
-            see.
-          </p>
-          <ul>
-            <li>Permission-aware search across company knowledge</li>
-            <li>Sources, owners, freshness, and retention built in</li>
-            <li>No copied folders or one-off vector databases per app</li>
-          </ul>
-          <Link className="button button-primary" href="/products/storage">
-            Explore Library <span aria-hidden="true">→</span>
-          </Link>
-        </div>
-      </section>
-
-      <section className="simple-share">
-        <div className="shell simple-share-grid">
-          <div>
-            <p className="simple-pill">Door</p>
-            <h2>One URL. The right people. Done.</h2>
-            <p>
-              Apps start private. Invite a person or team, choose what they can
-              do, and send the link. Login and permissions follow the app.
-            </p>
-            <Link className="inline-link" href="/products/auth">
-              See sharing and permissions <span aria-hidden="true">→</span>
-            </Link>
-          </div>
-          <SharePanel />
-        </div>
-      </section>
-
-      <section className="simple-use-cases shell">
-        <div>
-          <p className="simple-pill">Start with one useful thing</p>
-          <h2>Software too specific to buy. Now easy enough to build.</h2>
-        </div>
-        <div className="simple-use-case-grid">
-          {Object.values(solutions).map((solution) => (
-            <Link href={`/solutions/${solution.slug}`} key={solution.slug}>
-              <span>{solution.eyebrow}</span>
-              <h3>{solution.name}</h3>
-              <p>{solution.short}</p>
-              <strong aria-hidden="true">↗</strong>
-            </Link>
-          ))}
-        </div>
-      </section>
-
-      <section className="simple-final">
+      <section className="products-stage">
         <div className="shell">
-          <p className="simple-pill">Private alpha</p>
-          <h2>Give your agent a smaller cloud to understand.</h2>
-          <p>Build the app. Run one command. Share the result.</p>
-          <Link className="button button-accent" href="/company">
-            Join the alpha <span aria-hidden="true">→</span>
-          </Link>
+          <div className="section-intro products-stage-intro">
+            <p className="eyebrow">Six products, six jobs</p>
+            <h2>The names stop where the responsibilities stop.</h2>
+          </div>
+          <div className="product-ledger">
+            {productOrder.map((slug) => {
+              const product = products[slug];
+              return (
+                <Link href={`/products/${slug}`} key={slug}>
+                  <span className="product-number">{product.number}</span>
+                  <ProductMark type={slug} />
+                  <div>
+                    <h3>{product.name}</h3>
+                    <p>{product.cardTitle}</p>
+                  </div>
+                  <small className={`status status-${product.availability}`}>
+                    {product.availability}
+                  </small>
+                  <b aria-hidden="true">↗</b>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      <section className="section shell boundaries">
+        <div className="section-intro">
+          <p className="eyebrow">The important boundaries</p>
+          <h2>Knowledge, actions, and execution stay separate.</h2>
+        </div>
+        <div className="boundary-lines">
+          <article>
+            <span>Library</span>
+            <h3>What the company knows</h3>
+            <p>Files, policies, notes, search, provenance, and freshness.</p>
+          </article>
+          <article>
+            <span>Switchboard</span>
+            <h3>What an app may do</h3>
+            <p>Vaulted credentials, typed tools, scoped grants, and an action ledger.</p>
+          </article>
+          <article>
+            <span>Loops</span>
+            <h3>What keeps running</h3>
+            <p>Requests, jobs, schedules, queues, agents, retries, approvals, and traces.</p>
+          </article>
+        </div>
+      </section>
+
+      <section className="agent-docs">
+        <div className="shell agent-docs-grid">
+          <div>
+            <p className="eyebrow">Docs for people and agents</p>
+            <h2>No dashboard scraping. No guessed state.</h2>
+            <p>
+              The same docs ship as readable pages, Markdown entrypoints,
+              `docs.json`, `llms.txt`, and versioned CLI JSON.
+            </p>
+            <Link className="text-link" href="/docs">
+              Open the docs <span aria-hidden="true">→</span>
+            </Link>
+          </div>
+          <div className="agent-files" aria-label="Agent documentation files">
+            <a href="/docs.json"><span>docs.json</span><small>page manifest</small></a>
+            <a href="/llms.txt"><span>llms.txt</span><small>agent index</small></a>
+            <a href="/llms-full.txt"><span>llms-full.txt</span><small>complete reference</small></a>
+            <Link href="/docs/app-contract"><span>tarantula.json</span><small>app contract</small></Link>
+          </div>
+        </div>
+      </section>
+
+      <section className="final-cta">
+        <div className="shell final-cta-grid">
+          <div>
+            <p className="eyebrow">Try the working slice</p>
+            <h2>Deploy the chat. Keep the URL.</h2>
+          </div>
+          <div>
+            <code>tarantula new open-chat --template chat</code>
+            <Link className="button button-orange" href="/docs/chat-example">
+              Follow the chat guide <span aria-hidden="true">→</span>
+            </Link>
+          </div>
         </div>
       </section>
     </main>

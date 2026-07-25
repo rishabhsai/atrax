@@ -1,0 +1,94 @@
+# Tarantula v0 complete agent reference
+
+Tarantula creates, runs, deploys, inspects, and debugs small full-stack apps from one CLI. v0 deploys public Cloudflare Workers with Static Assets and one D1 database.
+
+## Install
+
+Requires Node.js 22.13 or newer and an authenticated Wrangler session.
+
+```bash
+git clone https://github.com/rishabhsai/tarantula.git
+cd tarantula
+npm install
+npm link
+tarantula doctor --json
+```
+
+## Create and deploy
+
+```bash
+tarantula new open-chat --template chat
+cd open-chat
+tarantula dev
+tarantula deploy --json
+tarantula inspect --json
+tarantula logs
+```
+
+The chat is public. Anyone with the URL can read and post.
+
+## CLI
+
+- `tarantula new <name> --template chat`
+- `tarantula dev [--port 8787]`
+- `tarantula deploy [--json]`
+- `tarantula deploy --dry-run`
+- `tarantula inspect [--json]`
+- `tarantula logs [--json]`
+- `tarantula doctor [--json]`
+
+Finite JSON commands return one object with `schemaVersion: 1`. `logs --json` is a long-running Wrangler NDJSON event stream. Errors return a non-zero exit code, and unknown flags fail before mutation.
+
+## App contract
+
+`tarantula.json` is the provider-neutral desired architecture. `tarantula.lock.json` records stable non-secret resource identities and is safe to commit; it is not the future authoritative infrastructure state. Do not edit `.tarantula/wrangler.jsonc`; Tarantula generates it as a disposable provider artifact. Declared files must remain inside the app and may not contain symlinks.
+
+```json
+{
+  "version": 1,
+  "name": "open-chat",
+  "visibility": "public",
+  "web": {
+    "entry": "src/worker.js",
+    "assets": "public",
+    "health": "/.well-known/tarantula.json"
+  },
+  "tables": { "migrations": "migrations" }
+}
+```
+
+## Infrastructure model
+
+Tarantula products are the public abstraction. Infrastructure-as-code is an internal reconciliation engine. The planned model adds `stacks/dev.json` and `stacks/prod.json` for environment intent, remote locked state for authoritative observations and drift metadata, and `plan`, stack-aware `deploy`, and `drift` commands.
+
+Stateful infrastructure, immutable releases, and Switchboard secret/connection references have separate lifecycles. Provider engines remain replaceable implementation details.
+
+## Available products
+
+Launchpad v0 runs locally, deploys Worker and Static Assets, waits for readiness, keeps a stable workers.dev URL, inspects deployment state, and streams logs.
+
+Tables v0 provisions D1, applies ordered local and remote migrations, keeps the binding across releases, and reports database state.
+
+## Planned products
+
+Door will own guest identity, sign-in, sharing, teams, roles, and app identity.
+
+Library will own files and company knowledge, including collections, provenance, freshness, and permission-aware retrieval. It will not store credentials or perform actions.
+
+Switchboard will own the company vault, OAuth connections, typed tools, scoped grants, app-to-app capabilities, and the action ledger. It will not store company knowledge.
+
+Loops will own declared webhooks, schedules, queues, background jobs, and operational agents with durable execution semantics. Ordinary Worker request handlers remain part of an app's web runtime until they opt into one `loop({ on, run, tools?, approve? })` contract.
+
+## Security
+
+Cloudflare credentials remain in Wrangler. Account mismatch, lock-name mismatch, and unlocked Worker or D1 collisions fail before mutation. The chat validates input on the server, caps posts at 4 KiB and 12 per IP per minute, retains 500 messages, and renders messages with `textContent`. Public access is intentional and stated in the generated app.
+
+Private access, vaulted third-party connections, approval binding, compliance reports, backups and export, custom domains, previews, rollback, and a hosted control panel are not available in v0.
+
+## Machine entrypoints
+
+- `/docs.json`
+- `/llms.txt`
+- `/llms-full.txt`
+- `/schema/v0.json`
+- `/.well-known/tarantula.json` on generated apps

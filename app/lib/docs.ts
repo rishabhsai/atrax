@@ -1,0 +1,495 @@
+export type DocSection = {
+  heading: string;
+  paragraphs?: readonly string[];
+  bullets?: readonly string[];
+  code?: string;
+  note?: string;
+};
+
+export type DocPage = {
+  slug: string;
+  title: string;
+  description: string;
+  group: "Start" | "Build" | "Products" | "Operate";
+  status: "available" | "planned" | "mixed";
+  sections: readonly DocSection[];
+};
+
+export const docs: Record<string, DocPage> = {
+  quickstart: {
+    slug: "quickstart",
+    title: "Quickstart",
+    description:
+      "Install the local alpha, run the reference chat, and deploy it through your Cloudflare account.",
+    group: "Start",
+    status: "available",
+    sections: [
+      {
+        heading: "Install the local alpha",
+        paragraphs: [
+          "Tarantula v0 is installed from the private repository. It needs Node.js 22.13 or newer and an authenticated Wrangler session.",
+        ],
+        code: `git clone https://github.com/rishabhsai/tarantula.git
+cd tarantula
+npm install
+npm link
+tarantula doctor --json`,
+      },
+      {
+        heading: "Create the chat",
+        code: `tarantula new open-chat --template chat
+cd open-chat
+tarantula dev`,
+        paragraphs: [
+          "Development applies ordered migrations to a persistent local D1 database, then starts the Worker and static assets together.",
+        ],
+      },
+      {
+        heading: "Deploy",
+        code: `tarantula deploy --json`,
+        paragraphs: [
+          "The first deploy verifies the Cloudflare account, creates D1, applies remote migrations, deploys the Worker and assets, waits for the message API, writes tarantula.lock.json, and returns the URL.",
+        ],
+        note: "The generated chat is public. Anyone with the URL can read and post.",
+      },
+      {
+        heading: "Inspect what exists",
+        code: `tarantula inspect --json
+tarantula logs`,
+        paragraphs: [
+          "Inspect returns the active Worker deployment, stable URL, D1 binding, region, size, and query counters. Logs streams real request outcomes.",
+        ],
+      },
+    ],
+  },
+  cli: {
+    slug: "cli",
+    title: "CLI reference",
+    description:
+      "The commands and machine-output guarantees available in Tarantula v0.",
+    group: "Start",
+    status: "available",
+    sections: [
+      {
+        heading: "Commands",
+        bullets: [
+          "tarantula new <name> --template chat: scaffold the documented reference app.",
+          "tarantula dev [--port 8787]: migrate and run locally with persistent state.",
+          "tarantula deploy [--json]: provision, migrate, deploy, wait, lock, and return the URL.",
+          "tarantula deploy --dry-run: validate the bundle without changing remote resources.",
+          "tarantula inspect [--json]: inspect the live Worker and D1 database.",
+          "tarantula logs [--json]: stream live Worker logs; JSON mode is Wrangler NDJSON, not a single result object.",
+          "tarantula doctor [--json]: validate declared files, bundle, Wrangler, Cloudflare account, and lock ownership.",
+        ],
+      },
+      {
+        heading: "JSON contract",
+        paragraphs: [
+          "Finite JSON commands write one versioned object to stdout and return a non-zero exit code on failure. Provider logs stay out of successful JSON output. The long-running logs --json stream emits Wrangler NDJSON events instead.",
+        ],
+        code: `{
+  "schemaVersion": 1,
+  "status": "deployed",
+  "name": "open-chat",
+  "url": "https://open-chat...workers.dev",
+  "deploymentId": "...",
+  "resources": {
+    "tables": { "id": "...", "name": "open-chat-tables" }
+  }
+}`,
+      },
+      {
+        heading: "Account safety",
+        paragraphs: [
+          "The first deploy records the Cloudflare account ID. Later remote operations fail before mutation when the active account does not match the lockfile.",
+        ],
+      },
+    ],
+  },
+  "app-contract": {
+    slug: "app-contract",
+    title: "App contract",
+    description:
+      "tarantula.json is the app-owned source of truth; the provider configuration is generated.",
+    group: "Build",
+    status: "available",
+    sections: [
+      {
+        heading: "tarantula.json",
+        code: `{
+  "$schema": "https://tarantula-9l0.pages.dev/schema/v0.json",
+  "version": 1,
+  "name": "open-chat",
+  "visibility": "public",
+  "web": {
+    "entry": "src/worker.js",
+    "assets": "public",
+    "health": "/.well-known/tarantula.json"
+  },
+  "tables": {
+    "migrations": "migrations"
+  }
+}`,
+        paragraphs: [
+          "v0 accepts one public Worker entry, one static-asset directory, and one ordered migration directory. All paths must remain inside the app and may not contain symlinks. The optional same-origin health path defaults to /.well-known/tarantula.json.",
+        ],
+      },
+      {
+        heading: "tarantula.lock.json",
+        paragraphs: [
+          "The generated lockfile contains stable non-secret resource identities: the Cloudflare account, Worker name and URL, and D1 name and ID. It is a portable identity cache, not the authoritative infrastructure state. Commit it so a fresh checkout targets the same app.",
+        ],
+      },
+      {
+        heading: "Generated provider config",
+        paragraphs: [
+          "Tarantula writes .tarantula/wrangler.jsonc from the app contract and lockfile. Do not edit it. A second provider config is not a second source of truth.",
+        ],
+      },
+    ],
+  },
+  "infrastructure-model": {
+    slug: "infrastructure-model",
+    title: "Infrastructure model",
+    description:
+      "The planned reconciliation model separating app intent, stacks, remote state, releases, and company connections.",
+    group: "Build",
+    status: "mixed",
+    sections: [
+      {
+        heading: "The invariant",
+        paragraphs: [
+          "Tarantula products are the user-facing abstraction. Infrastructure-as-code is an internal reconciliation engine. Provider files such as wrangler.jsonc are compiled artifacts and never become the product contract.",
+        ],
+      },
+      {
+        heading: "Four sources with distinct jobs",
+        bullets: [
+          "tarantula.json: provider-neutral desired app architecture.",
+          "stacks/dev.json and stacks/prod.json: environment-specific intent and non-secret references.",
+          "tarantula.lock.json: stable resource identities safe to commit.",
+          "Remote locked state: authoritative observed infrastructure, ownership, and drift metadata.",
+        ],
+        note: "Stacks and remote state are roadmap architecture. v0 currently supports one implicit stack and a committed lockfile.",
+      },
+      {
+        heading: "Three lifecycles",
+        bullets: [
+          "Infrastructure: databases, buckets, queues, domains, and other stateful resources.",
+          "Releases: immutable Worker versions and static assets, promoted or rolled back independently.",
+          "Connections: external secret and OAuth references resolved through Switchboard without entering app files or state.",
+        ],
+      },
+      {
+        heading: "Planned workflow",
+        code: `tarantula plan --stack prod --json
+tarantula deploy --stack prod --json
+tarantula drift --stack prod --json`,
+        paragraphs: [
+          "Plan compares desired architecture with locked remote state. Deploy reconciles the approved change. Drift reports provider changes made outside Tarantula.",
+        ],
+      },
+      {
+        heading: "Provider engines",
+        paragraphs: [
+          "Wrangler is the v0 Cloudflare executor. A future reconciler may use Alchemy, direct Cloudflare APIs, or another engine behind an internal adapter. The engine is replaceable; Tarantula's contract and state semantics are not.",
+        ],
+      },
+    ],
+  },
+  "chat-example": {
+    slug: "chat-example",
+    title: "Public chat example",
+    description:
+      "A complete login-free app with static UI, Worker API, validation, migrations, D1, and deployment.",
+    group: "Build",
+    status: "available",
+    sections: [
+      {
+        heading: "What it proves",
+        bullets: [
+          "A fresh scaffold runs without edits.",
+          "Two browsers see the same messages through short polling.",
+          "Messages survive refresh, local restart, and remote redeploy.",
+          "Invalid input is rejected by the Worker.",
+          "User text is rendered with textContent, never inserted as HTML.",
+          "The deploy command returns a stable public HTTPS URL.",
+          "Posts are capped at 4 KiB and 12 messages per IP per minute.",
+          "The demo retains only the latest 500 messages.",
+        ],
+      },
+      {
+        heading: "Run it",
+        code: `tarantula new open-chat --template chat
+cd open-chat
+tarantula dev`,
+      },
+      {
+        heading: "Deploy it",
+        code: `tarantula deploy --json`,
+        note: "Public means public. Do not use this template for private conversations.",
+      },
+      {
+        heading: "Reference deployment",
+        paragraphs: [
+          "The verified reference app is live at https://tarantula-chat-demo.rishabhsai-mdbar.workers.dev.",
+        ],
+      },
+    ],
+  },
+  launchpad: {
+    slug: "launchpad",
+    title: "Launchpad",
+    description: "Local development, Worker deployment, readiness, inspection, URL, and logs.",
+    group: "Products",
+    status: "mixed",
+    sections: [
+      {
+        heading: "Available in v0",
+        bullets: [
+          "Worker and Static Assets deployment.",
+          "Persistent local development.",
+          "Stable workers.dev URL through a committed lockfile.",
+          "Readiness check against the deployed API.",
+          "Deployment inspection and live logs.",
+        ],
+      },
+      {
+        heading: "Planned",
+        bullets: [
+          "Preview deployments, promotion, and rollback.",
+          "Custom domains.",
+          "Arbitrary framework detection.",
+          "Hosted control-panel deployment history.",
+        ],
+      },
+    ],
+  },
+  tables: {
+    slug: "tables",
+    title: "Tables",
+    description: "D1 provisioning, ordered migrations, persistence, and database inspection.",
+    group: "Products",
+    status: "mixed",
+    sections: [
+      {
+        heading: "Available in v0",
+        bullets: [
+          "One D1 database per app.",
+          "Ordered SQL migrations locally and remotely.",
+          "Stable database binding across releases.",
+          "Database ID, region, size, and query counters through inspect.",
+        ],
+      },
+      {
+        heading: "Migration rule",
+        paragraphs: [
+          "Never edit an applied migration. Add the next numbered SQL file. D1 records applied migrations and captures a backup before remote application.",
+        ],
+      },
+      {
+        heading: "Planned",
+        bullets: [
+          "Typed schema and query helpers.",
+          "Data browser, export, and restore commands.",
+          "Preview-database branches.",
+          "Authorization helpers tied to Door.",
+        ],
+      },
+    ],
+  },
+  door: {
+    slug: "door",
+    title: "Door",
+    description: "The planned identity, sharing, teams, roles, and app identity product.",
+    group: "Products",
+    status: "planned",
+    sections: [
+      {
+        heading: "Status",
+        paragraphs: [
+          "Door is not available in v0. The current chat is intentionally public and has no visitor login.",
+        ],
+      },
+      {
+        heading: "Planned scope",
+        bullets: [
+          "Guest identities and optional sign-in.",
+          "Private URLs, invitations, and teams.",
+          "Roles enforced in UI, API, and Tables.",
+          "Stable app identity for Switchboard calls.",
+        ],
+      },
+    ],
+  },
+  library: {
+    slug: "library",
+    title: "Library",
+    description: "The planned files and company-knowledge product.",
+    group: "Products",
+    status: "planned",
+    sections: [
+      {
+        heading: "Status",
+        paragraphs: ["Library is not available in v0."],
+      },
+      {
+        heading: "Planned scope",
+        bullets: [
+          "R2-backed uploads, downloads, retention, and deletion.",
+          "Collections with source, owner, and audience.",
+          "Permission-aware keyword and semantic retrieval.",
+          "Provenance, freshness, and review state.",
+        ],
+        note: "Library provides knowledge. It never stores credentials or performs external actions.",
+      },
+    ],
+  },
+  switchboard: {
+    slug: "switchboard",
+    title: "Switchboard",
+    description: "The planned company vault, typed tools, and app-to-app capability product.",
+    group: "Products",
+    status: "planned",
+    sections: [
+      {
+        heading: "Status",
+        paragraphs: ["Switchboard is not available in v0."],
+      },
+      {
+        heading: "Planned scope",
+        bullets: [
+          "Cloudflare Secrets Store for key custody.",
+          "Company OAuth connections managed once.",
+          "Typed tools with narrow action and resource grants.",
+          "Short-lived delegation between apps.",
+          "An action ledger preserving person, app, scope, call, and result.",
+        ],
+        note: "Switchboard acts. Knowledge and files belong in Library.",
+      },
+    ],
+  },
+  loops: {
+    slug: "loops",
+    title: "Loops",
+    description:
+      "The planned durable execution product for webhooks, schedules, queues, jobs, and operational agents.",
+    group: "Products",
+    status: "planned",
+    sections: [
+      {
+        heading: "Status",
+        paragraphs: [
+          "Loops is not available in v0. Spark and the separate agent runtime have been removed from the product model.",
+        ],
+      },
+      {
+        heading: "One canonical primitive",
+        code: `loop({
+  on: schedule("0 8 * * 1"),
+  run: reviewRenewals,
+  tools: [accounts, outreach],
+  approve: ["outreach.send"]
+})`,
+        paragraphs: [
+          "A Loop is declared triggered work with durable execution semantics. Model and tool use can make the run agentic, but that does not create a second product. Ordinary Worker request handlers remain part of an app's web runtime until they opt into the Loop contract.",
+        ],
+      },
+      {
+        heading: "Planned Cloudflare foundation",
+        bullets: [
+          "Workers for request and webhook handlers.",
+          "Cron Triggers and Queues for event delivery.",
+          "Workflows for durable steps, retries, waits, and long execution.",
+          "Durable Objects only when coordination or realtime state requires them.",
+          "Switchboard for tools and Door for approval identity.",
+        ],
+      },
+    ],
+  },
+  security: {
+    slug: "security",
+    title: "Security",
+    description: "Implemented v0 boundaries and security work that remains planned.",
+    group: "Operate",
+    status: "mixed",
+    sections: [
+      {
+        heading: "Implemented",
+        bullets: [
+          "Cloudflare credentials remain in Wrangler.",
+          "Lockfile account mismatch fails before remote mutation.",
+          "The app database has a stable non-secret binding.",
+          "Server-side input validation and safe browser text rendering.",
+          "Public access is stated in the template, docs, UI, and manifest.",
+          "Public posts have request-size, rate, and bounded-retention guardrails.",
+        ],
+      },
+      {
+        heading: "Not implemented",
+        bullets: [
+          "Private sharing and roles.",
+          "Vaulted third-party credentials and OAuth.",
+          "Approval binding and agent tool policy.",
+          "Independent security review or compliance reports.",
+        ],
+      },
+    ],
+  },
+  status: {
+    slug: "status",
+    title: "Feature status",
+    description: "A direct map from the desired platform surface to what exists in v0.",
+    group: "Operate",
+    status: "mixed",
+    sections: [
+      {
+        heading: "Available",
+        bullets: [
+          "Scaffold, local development, deploy, inspect, and logs CLI.",
+          "Worker server endpoints and static browser client.",
+          "D1 provisioning, migrations, persistence, and inspection.",
+          "Unauthenticated public access with no login.",
+          "Reference chat example.",
+          "App contract, lockfile, docs.json, llms.txt, and llms-full.txt.",
+        ],
+      },
+      {
+        heading: "Planned for Lakebed-equivalent coverage",
+        bullets: [
+          "Reactive client data hooks and typed server queries and mutations.",
+          "Private identity and first-party sign-in.",
+          "Object storage and upload moderation.",
+          "Database dump, export, and restore.",
+          "Hosted environment and secrets sync.",
+          "Tokens, domains, previews, rollback, and control-panel UI.",
+          "Named stacks, remote locked state, plan, and drift detection.",
+        ],
+      },
+      {
+        heading: "Additional Tarantula roadmap",
+        bullets: [
+          "Company knowledge in Library.",
+          "Vaulted company connections and app-to-app tools in Switchboard.",
+          "Durable operational agents, approval, and traces in Loops.",
+        ],
+      },
+    ],
+  },
+};
+
+export const docOrder = [
+  "quickstart",
+  "cli",
+  "app-contract",
+  "infrastructure-model",
+  "chat-example",
+  "launchpad",
+  "tables",
+  "door",
+  "library",
+  "switchboard",
+  "loops",
+  "security",
+  "status",
+] as const;

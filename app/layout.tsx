@@ -1,37 +1,26 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import { SiteFooter } from "./components/SiteFooter";
 import { SiteHeader } from "./components/SiteHeader";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
 export const metadata: Metadata = {
   metadataBase: new URL("https://tarantula-9l0.pages.dev"),
   title: {
-    default: "Tarantula — The tiny cloud for agent-built software",
-    template: "%s — Tarantula",
+    default: "Tarantula | An agent-native cloud for small software",
+    template: "%s | Tarantula",
   },
   description:
-    "Build with an agent, deploy in one command, connect company tools, share knowledge, and invite your team.",
+    "Create, run, deploy, inspect, and debug small full-stack apps from one CLI.",
   openGraph: {
-    title: "Tarantula — The tiny cloud for agent-built software",
+    title: "Tarantula | An agent-native cloud for small software",
     description:
-      "Build it with an agent. Deploy it in one command.",
+      "Deploy a full-stack app from one CLI and get a URL to share.",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Tarantula — The tiny cloud for agent-built software",
+    title: "Tarantula | An agent-native cloud for small software",
     description:
-      "Build it with an agent. Deploy it in one command.",
+      "Deploy a full-stack app from one CLI and get a URL to share.",
   },
 };
 
@@ -42,7 +31,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable}`}>
+      <body>
         <SiteHeader />
         {children}
         <SiteFooter />

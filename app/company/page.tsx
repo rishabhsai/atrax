@@ -3,125 +3,74 @@ import Link from "next/link";
 export const metadata = {
   title: "Company",
   description:
-    "Tarantula is building a cloud for small software made by coding agents.",
+    "Tarantula is building an agent-native cloud for small software.",
 };
 
 export default function CompanyPage() {
   return (
     <main>
-      <section className="company-hero-v2">
-        <div className="shell company-hero-v2-grid">
-          <p className="section-kicker">Tarantula Systems</p>
+      <section className="page-hero page-hero-orange">
+        <div className="shell page-hero-grid">
+          <p className="eyebrow">Tarantula</p>
           <div>
-            <h1>We are building a cloud for small software.</h1>
+            <h1>Small software needs a smaller cloud.</h1>
             <p>
-              Tarantula is a developer cloud for personal apps, internal tools,
-              and operational agents built by coding agents, usually for one
-              person or one team.
+              Coding agents can write an app quickly. Tarantula is reducing the
+              work between a folder and software people can keep using.
             </p>
           </div>
         </div>
       </section>
 
-      <section className="company-origin">
-        <div className="shell company-origin-grid">
-          <p className="section-kicker">Why now</p>
-          <div>
-            <p className="company-origin-statement">
-              Coding agents made bespoke software cheap. The remaining cost is
-              turning generated code into something people can safely keep and
-              share.
-            </p>
-            <div className="company-origin-copy">
-              <p>
-                Personal apps, team tools, and narrow operational systems do
-                not need the service catalogs designed for software serving
-                millions of users.
-              </p>
-              <p>
-                They need a complete default: hosting, data, identity, files,
-                workers, agent runs, company connections, and one permission
-                model.
-              </p>
-              <p>
-                YC named the category. Our bet is that small software becomes
-                far more valuable when it can keep working safely through
-                durable operational agents and company-scoped tools.
-              </p>
-              <a
-                className="inline-link"
-                href="https://www.ycombinator.com/rfs#a-cloud-for-small-software"
-              >
-                Read the YC request for startups <span aria-hidden="true">↗</span>
-              </a>
-            </div>
-          </div>
+      <section className="section shell company-thesis">
+        <div className="section-intro">
+          <p className="eyebrow">The thesis</p>
+          <h2>Optimize for coherence, not service count.</h2>
+        </div>
+        <div>
+          <p>
+            A coding agent should create the app, run its data locally, deploy
+            it, inspect production, and fix a failure without scraping five
+            dashboards.
+          </p>
+          <p>
+            The current v0 proves that loop for public Workers apps with D1.
+            The roadmap adds identity, knowledge, connected tools, and durable
+            execution without adding overlapping products.
+          </p>
         </div>
       </section>
 
-      <section className="company-thesis-strip">
+      <section className="principles">
         <div className="shell">
-          <p>Big clouds optimize for software serving millions.</p>
-          <p>Small software needs a complete default and far fewer concepts.</p>
+          {[
+            ["01", "Working proof before positioning", "A command appears on the site only after it runs."],
+            ["02", "One product per responsibility", "Library reads, Switchboard acts, and Loops runs."],
+            ["03", "One workflow for people and agents", "Every control-plane action needs a CLI and machine output."],
+            ["04", "Small companies first", "The default path should end at a useful link this week."],
+          ].map(([number, title, copy]) => (
+            <article key={number}>
+              <span>{number}</span>
+              <h2>{title}</h2>
+              <p>{copy}</p>
+            </article>
+          ))}
         </div>
       </section>
 
-      <section className="company-beliefs">
-        <div className="shell">
-          <div className="section-heading">
-            <p className="section-kicker">What we believe</p>
-            <h2>Small software changes what a cloud should optimize for.</h2>
-          </div>
-          <div className="company-belief-grid">
-            {[
-              ["01", "Optimize for coherence", "An agent should understand the whole app and its cloud without crossing seven vendor boundaries."],
-              ["02", "Make sharing fundamental", "A private app should be as easy to share with a teammate as a document."],
-              ["03", "Treat code as untrusted", "Agent-built apps start isolated and receive only explicit people, data, network, and tool access."],
-              ["04", "Let software keep working", "Operational agents belong inside the app when the job requires judgment, tools, or human approval."],
-            ].map(([index, title, copy]) => (
-              <article key={index}>
-                <span>{index}</span>
-                <h3>{title}</h3>
-                <p>{copy}</p>
-              </article>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="company-building-section">
-        <div className="shell company-building-grid">
+      <section className="final-cta">
+        <div className="shell final-cta-grid">
           <div>
-            <p className="section-kicker">What we are building</p>
-            <h2>A complete cloud with fewer concepts.</h2>
+            <p className="eyebrow">Private repository, public proof app</p>
+            <h2>Follow the implementation.</h2>
           </div>
-          <div className="company-building-list">
-            <Link href="/products"><span>01</span><strong>The small cloud</strong><p>Hosting, Workers, Database, Auth, Storage, and Secrets &amp; Connections.</p><b>↗</b></Link>
-            <Link href="/products/agent-runtime"><span>02</span><strong>Operational agents</strong><p>Durable runs, tools, approvals, traces, schedules, and budgets inside the app.</p><b>↗</b></Link>
-            <Link href="/security"><span>03</span><strong>The trust model</strong><p>Isolated apps, company identity, scoped tool grants, and complete actor chains.</p><b>↗</b></Link>
-          </div>
-        </div>
-      </section>
-
-      <section className="company-alpha-v2" id="alpha">
-        <div className="shell company-alpha-v2-grid">
-          <div>
-            <p className="section-kicker">Private alpha</p>
-            <h2>Bring us one useful app your team should already have.</h2>
-          </div>
-          <div>
-            <p>
-              We are seeking a small set of technical design partners for
-              internal tools and operational-agent systems.
-            </p>
-            <a className="button button-accent" href="mailto:hello@tarantula.build">
-              Email hello@tarantula.build <span aria-hidden="true">→</span>
+          <div className="button-row">
+            <a className="button button-orange" href="https://github.com/rishabhsai/tarantula">
+              View GitHub <span aria-hidden="true">↗</span>
             </a>
-            <small>
-              Tell us the app, who uses it, what recurring work it should do,
-              and which company systems it must access. Security reports:
-              security@tarantula.build.
-            </small>
+            <Link className="button button-outline-light" href="/docs">
+              Read docs
+            </Link>
           </div>
         </div>
       </section>

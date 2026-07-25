@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
 
-export const alt = "Tarantula — The tiny cloud for agent-built software";
+export const alt = "Tarantula, an agent-native cloud for small software";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 export const dynamic = "force-static";
@@ -13,62 +13,48 @@ export default function OpenGraphImage() {
           width: "100%",
           height: "100%",
           display: "flex",
-          position: "relative",
-          overflow: "hidden",
-          background: "#faf9f4",
-          color: "#171815",
+          background: "#dd6b31",
+          color: "#18130f",
           fontFamily: "Arial, sans-serif",
         }}
       >
         <div
           style={{
-            position: "absolute",
-            width: 430,
-            height: 430,
-            borderRadius: "50%",
-            right: -110,
-            top: -190,
-            background: "#c9f76f",
-          }}
-        />
-        <div
-          style={{
             width: "100%",
+            padding: "48px 52px",
             display: "flex",
             flexDirection: "column",
-            padding: "48px 54px",
+            border: "18px solid #18130f",
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
             <div
               style={{
-                width: 40,
-                height: 40,
+                width: 42,
+                height: 42,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                background: "#d95d39",
-                color: "#fff",
-                fontSize: 20,
-                fontWeight: 700,
+                background: "#18130f",
+                color: "#dd6b31",
+                fontSize: 22,
+                fontWeight: 900,
               }}
             >
-              t
+              T
             </div>
-            <span style={{ fontSize: 28, fontWeight: 700, letterSpacing: -1 }}>
+            <span style={{ fontSize: 28, fontWeight: 900, letterSpacing: -1.5 }}>
               tarantula
             </span>
             <span
               style={{
-                marginLeft: 3,
                 padding: "5px 7px",
-                border: "1px solid #c9c6ba",
-                color: "#6e7067",
+                border: "1px solid #18130f",
+                fontFamily: "monospace",
                 fontSize: 10,
-                letterSpacing: 1.5,
               }}
             >
-              ALPHA
+              V0
             </span>
           </div>
 
@@ -77,95 +63,57 @@ export default function OpenGraphImage() {
               flex: 1,
               display: "flex",
               alignItems: "flex-end",
-              gap: 55,
+              justifyContent: "space-between",
+              gap: 50,
             }}
           >
-            <div style={{ width: 640, display: "flex", flexDirection: "column" }}>
+            <div style={{ maxWidth: 720, display: "flex", flexDirection: "column" }}>
               <span
                 style={{
-                  marginBottom: 24,
+                  marginBottom: 20,
+                  fontFamily: "monospace",
                   fontSize: 13,
-                  fontWeight: 700,
-                  letterSpacing: 2.2,
+                  letterSpacing: 1.5,
                 }}
               >
-                THE TINY CLOUD FOR AGENT-BUILT APPS
+                AGENT-NATIVE CLOUD FOR SMALL SOFTWARE
               </span>
               <div
                 style={{
-                  fontFamily: "Georgia, serif",
-                  fontSize: 82,
-                  lineHeight: 0.94,
-                  letterSpacing: -4,
+                  fontSize: 78,
+                  fontWeight: 900,
+                  lineHeight: 0.88,
+                  letterSpacing: -5,
                 }}
               >
-                Build it with an agent. Deploy it in one command.
+                A small cloud your coding agent can operate.
               </div>
-              <p
-                style={{
-                  width: 590,
-                  margin: "26px 0 0",
-                  color: "#4c4d47",
-                  fontSize: 21,
-                  lineHeight: 1.35,
-                }}
-              >
-                Data, login, knowledge, company tools, and operational agents
-                are already attached.
-              </p>
             </div>
 
             <div
               style={{
-                width: 375,
-                height: 310,
+                width: 350,
+                height: 280,
+                padding: "24px",
                 display: "flex",
                 flexDirection: "column",
-                background: "#171815",
-                color: "#faf9f4",
-                boxShadow: "14px 14px 0 #d8d0ff",
+                background: "#18130f",
+                color: "#f4eadf",
+                boxShadow: "13px 13px 0 #9c3d1d",
+                fontFamily: "monospace",
+                fontSize: 13,
+                lineHeight: 1.65,
               }}
             >
-              <div
-                style={{
-                  height: 54,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  padding: "0 20px",
-                  borderBottom: "1px solid #3d3e36",
-                  fontSize: 11,
-                  letterSpacing: 1.2,
-                }}
-              >
-                <span>RENEWAL-BOARD</span>
-                <span style={{ color: "#c9f76f" }}>● LIVE</span>
-              </div>
-              {[
-                ["WEB", "Live"],
-                ["DATABASE", "42 rows"],
-                ["AUTH", "8 users"],
-                ["AGENT", "1 awaiting approval"],
-              ].map(([label, value]) => (
-                <div
-                  key={label}
-                  style={{
-                    flex: 1,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    padding: "0 20px",
-                    borderBottom: "1px solid #30312c",
-                  }}
-                >
-                  <span
-                    style={{ color: "#777970", fontSize: 10, letterSpacing: 1 }}
-                  >
-                    {label}
-                  </span>
-                  <strong style={{ fontSize: 15 }}>{value}</strong>
-                </div>
-              ))}
+              <span style={{ color: "#dd6b31" }}>$ tarantula deploy --json</span>
+              <span style={{ marginTop: 22 }}>{`{`}</span>
+              <span style={{ paddingLeft: 16 }}>&quot;schemaVersion&quot;: 1,</span>
+              <span style={{ paddingLeft: 16 }}>&quot;status&quot;: &quot;deployed&quot;,</span>
+              <span style={{ paddingLeft: 16 }}>&quot;url&quot;: &quot;https://...&quot;,</span>
+              <span style={{ paddingLeft: 16 }}>&quot;resources&quot;: {`{`}</span>
+              <span style={{ paddingLeft: 32 }}>&quot;tables&quot;: {`{`} &quot;id&quot;: &quot;1d6f...&quot; {`}`}</span>
+              <span style={{ paddingLeft: 16 }}>{`}`}</span>
+              <span>{`}`}</span>
             </div>
           </div>
         </div>

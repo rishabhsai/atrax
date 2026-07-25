@@ -1,0 +1,108 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-07-25T08:30:00Z",
+  "title": "Design System: Tarantula",
+  "extensions": {
+    "colorMeta": {
+      "signal-orange": {
+        "role": "primary",
+        "displayName": "Signal Orange",
+        "canonical": "oklch(0.7 0.19 45)",
+        "tonalRamp": ["oklch(0.2 0.06 45)", "oklch(0.3 0.09 45)", "oklch(0.4 0.12 45)", "oklch(0.5 0.15 45)", "oklch(0.6 0.18 45)", "oklch(0.7 0.19 45)", "oklch(0.82 0.13 45)", "oklch(0.94 0.05 45)"]
+      },
+      "near-black": {
+        "role": "neutral",
+        "displayName": "Near Black",
+        "canonical": "oklch(0.16 0.012 50)",
+        "tonalRamp": ["oklch(0.12 0.01 50)", "oklch(0.2 0.012 50)", "oklch(0.3 0.012 50)", "oklch(0.42 0.012 50)", "oklch(0.55 0.01 50)", "oklch(0.68 0.009 50)", "oklch(0.82 0.007 50)", "oklch(0.95 0.004 50)"]
+      },
+      "warm-paper": {
+        "role": "neutral",
+        "displayName": "Warm Paper",
+        "canonical": "oklch(0.965 0.012 78)",
+        "tonalRamp": ["oklch(0.18 0.018 78)", "oklch(0.3 0.018 78)", "oklch(0.42 0.018 78)", "oklch(0.55 0.018 78)", "oklch(0.68 0.016 78)", "oklch(0.8 0.014 78)", "oklch(0.9 0.013 78)", "oklch(0.965 0.012 78)"]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Compressed Display",
+        "purpose": "Hero declarations and section decisions."
+      },
+      "body": {
+        "displayName": "Operational Mono",
+        "purpose": "Prose, commands, navigation, and metadata."
+      }
+    },
+    "shadows": [
+      {
+        "name": "terminal-offset",
+        "value": "15px 15px 0 var(--orange-dark)",
+        "purpose": "Hard structural depth behind working terminal examples."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-out",
+        "value": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "Short entrances and directional hover movement."
+      }
+    ],
+    "breakpoints": [
+      {"name": "compact", "value": "540px"},
+      {"name": "mobile", "value": "800px"},
+      {"name": "wide", "value": "1020px"}
+    ]
+  },
+  "components": [
+    {
+      "name": "Orange Button",
+      "kind": "button",
+      "refersTo": "button-orange",
+      "description": "The single saturated action on a surface.",
+      "html": "<button class=\"ds-button-orange\">Deploy now <span>↗</span></button>",
+      "css": ".ds-button-orange { min-height: 50px; padding: 0 16px; display: inline-flex; align-items: center; justify-content: space-between; gap: 48px; border: 1px solid var(--orange); border-radius: 0; background: var(--orange); color: var(--ink); font: 700 12px var(--font-body); transition: transform 220ms var(--ease-out), background 180ms ease; } .ds-button-orange:hover { transform: translateY(-3px); background: var(--paper); } .ds-button-orange:focus-visible { outline: 3px solid var(--orange-light); outline-offset: 4px; }"
+    },
+    {
+      "name": "Dark Button",
+      "kind": "button",
+      "refersTo": "button-dark",
+      "description": "The default action on paper surfaces.",
+      "html": "<button class=\"ds-button-dark\">Read the guide <span>→</span></button>",
+      "css": ".ds-button-dark { min-height: 50px; padding: 0 16px; display: inline-flex; align-items: center; justify-content: space-between; gap: 48px; border: 1px solid var(--ink); border-radius: 0; background: var(--ink); color: var(--paper); font: 700 12px var(--font-body); transition: transform 220ms var(--ease-out), background 180ms ease; } .ds-button-dark:hover { transform: translateY(-3px); background: var(--paper); color: var(--ink); } .ds-button-dark:focus-visible { outline: 3px solid var(--orange-light); outline-offset: 4px; }"
+    },
+    {
+      "name": "Availability Status",
+      "kind": "chip",
+      "refersTo": "status-available",
+      "description": "A literal availability state with color as a secondary cue.",
+      "html": "<span class=\"ds-status-available\">Available</span>",
+      "css": ".ds-status-available { padding: 5px 7px 4px; border: 1px solid currentColor; border-radius: 0; color: var(--good); font: 400 8px/1 var(--font-body); letter-spacing: 0.08em; text-transform: uppercase; }"
+    },
+    {
+      "name": "Product Ledger Row",
+      "kind": "card",
+      "description": "One product responsibility presented as a record, not a floating card.",
+      "html": "<a class=\"ds-product-row\" href=\"#\"><b>01</b><strong>Launchpad</strong><span>Build, deploy, inspect</span><i>→</i></a>",
+      "css": ".ds-product-row { min-height: 86px; padding: 0 14px; display: grid; grid-template-columns: 36px 1fr 1.5fr 24px; align-items: center; gap: 18px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); border-radius: 0; background: var(--paper); color: var(--ink); font: 12px var(--font-body); text-decoration: none; transition: background 180ms ease; } .ds-product-row strong { font: 900 22px var(--font-display); letter-spacing: -0.05em; } .ds-product-row span { color: var(--muted); } .ds-product-row:hover, .ds-product-row:focus-visible { background: var(--orange); }"
+    },
+    {
+      "name": "Command Bar",
+      "kind": "nav",
+      "description": "A compact operator rail with one orange action.",
+      "html": "<nav class=\"ds-nav\"><strong><b>T</b> tarantula</strong><a href=\"#\">Products</a><a href=\"#\">Docs</a><a class=\"ds-nav-action\" href=\"#\">Open live chat ↗</a></nav>",
+      "css": ".ds-nav { min-height: 66px; padding: 0 18px; display: flex; align-items: center; gap: 24px; border-bottom: 1px solid var(--line); background: var(--ink); color: var(--paper); font: 10px var(--font-body); } .ds-nav strong { margin-right: 14px; font: 900 16px var(--font-display); } .ds-nav strong b { padding: 7px 9px; background: var(--orange); color: var(--ink); } .ds-nav a { color: var(--muted); text-decoration: none; } .ds-nav a:hover, .ds-nav a:focus-visible { color: var(--orange-light); } .ds-nav .ds-nav-action { margin-left: auto; padding: 10px 12px; background: var(--orange); color: var(--ink); }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Operator's Manual",
+    "overview": "Tarantula looks like infrastructure that can be understood and operated, not a toy promising magic. Large compressed headlines establish certainty; monospace body copy, explicit status labels, terminal output, and ledger-like rows provide evidence. Orange is structural and committed rather than decorative.",
+    "keyCharacteristics": ["Hard rectangular edges and visible one-pixel rules.", "Orange fields paired with near-black operational surfaces.", "Real commands, outputs, boundaries, and roadmap status before claims.", "Restrained entrance and state motion with a complete reduced-motion path."],
+    "rules": [
+      {"name": "The Orange Has a Job Rule", "body": "Orange must denote brand, action, sequence, or emphasis. It is never a decorative glow.", "section": "colors"},
+      {"name": "The Evidence Before Adjective Rule", "body": "A command, state, output, or boundary must substantiate every large claim.", "section": "typography"},
+      {"name": "The Flat Infrastructure Rule", "body": "If a surface needs a soft shadow to be understood, its hierarchy is wrong.", "section": "elevation"}
+    ],
+    "dos": ["Do use Signal Orange as a committed field or explicit action.", "Do use one-pixel rules and square geometry to show hierarchy.", "Do show real commands, outputs, status, and product boundaries."],
+    "donts": ["Don't make a generic AI-generated SaaS landing page.", "Don't use decorative 3D cloud imagery, soft gradient blobs, or fake product screenshots.", "Don't arrange interchangeable card grids or use product names whose responsibilities overlap.", "Don't imitate Lakebed or BYOA visually; retain only their brevity, legibility, and agent-first discipline."]
+  }
+}

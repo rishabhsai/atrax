@@ -4,6 +4,9 @@ const jsonHeaders = {
   "content-type": "application/json; charset=utf-8",
   "cache-control": "no-store",
 };
+const maxBodyBytes = 4096;
+const messagesPerMinute = 12;
+const retainedMessages = 500;
 
 function json(value, init = {}) {
   return new Response(JSON.stringify(value), {
@@ -29,9 +32,27 @@ async function listMessages(request, env) {
 }
 
 async function postMessage(request, env) {
+  const contentType = request.headers.get("content-type") ?? "";
+  if (!contentType.toLowerCase().startsWith("application/json")) {
+    return json(
+      { error: "Expected content-type application/json." },
+      { status: 415 },
+    );
+  }
+
+  const declaredSize = Number(request.headers.get("content-length") ?? "0");
+  if (Number.isFinite(declaredSize) && declaredSize > maxBodyBytes) {
+    return json({ error: "Request body is too large." }, { status: 413 });
+  }
+
+  const source = await request.text();
+  if (new TextEncoder().encode(source).byteLength > maxBodyBytes) {
+    return json({ error: "Request body is too large." }, { status: 413 });
+  }
+
   let input;
   try {
-    input = await request.json();
+    input = JSON.parse(source);
   } catch {
     return json({ error: "Expected a JSON request body." }, { status: 400 });
   }
@@ -39,6 +60,32 @@ async function postMessage(request, env) {
   if (!checked.ok) {
     return json({ error: checked.error }, { status: 400 });
   }
+
+  const now = Date.now();
+  const windowStart = Math.floor(now / 60_000) * 60_000;
+  const address = request.headers.get("CF-Connecting-IP") ?? "local";
+  const digest = await crypto.subtle.digest(
+    "SHA-256",
+    new TextEncoder().encode(address),
+  );
+  const key = Array.from(new Uint8Array(digest), (byte) =>
+    byte.toString(16).padStart(2, "0"),
+  ).join("");
+  const rate = await env.DB.prepare(
+    `INSERT INTO message_rate_limits (key, window_start, count)
+     VALUES (?, ?, 1)
+     ON CONFLICT(key) DO UPDATE SET count = count + 1
+     RETURNING count`,
+  )
+    .bind(`${windowStart}:${key}`, windowStart)
+    .first();
+  if (Number(rate.count) > messagesPerMinute) {
+    return json(
+      { error: "Too many messages. Try again in a minute." },
+      { status: 429, headers: { "retry-after": "60" } },
+    );
+  }
+
   const createdAt = Date.now();
   const result = await env.DB.prepare(
     `INSERT INTO messages (nickname, body, created_at)
@@ -47,6 +94,18 @@ async function postMessage(request, env) {
   )
     .bind(checked.value.nickname, checked.value.body, createdAt)
     .first();
+  await env.DB.batch([
+    env.DB.prepare(
+      `DELETE FROM messages
+       WHERE id NOT IN (
+         SELECT id FROM messages ORDER BY id DESC LIMIT ?
+       )`,
+    ).bind(retainedMessages),
+    env.DB.prepare(
+      `DELETE FROM message_rate_limits
+       WHERE window_start < ?`,
+    ).bind(now - 10 * 60_000),
+  ]);
   return json(
     {
       message: {

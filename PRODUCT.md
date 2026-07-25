@@ -23,7 +23,7 @@ Do not look like a generic AI-generated SaaS landing page. Avoid decorative 3D c
 ## Design Principles
 
 1. Show the working command, output, and product contract before making a claim.
-2. Keep one clear concept for each job. Loops owns functions, webhooks, schedules, background jobs, and operational agents.
+2. Keep one clear concept for each job. Loops owns declared durable webhooks, schedules, background jobs, and operational agents; ordinary Worker request handlers remain part of the app runtime.
 3. Write for a small company choosing whether it can ship this week.
 4. Make every public feature traceable to a real CLI command, runtime behavior, or documented roadmap status.
 5. Let coding agents complete the same workflow a person can complete in the interface.

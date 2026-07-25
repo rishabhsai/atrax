@@ -31,6 +31,10 @@
         "assets": {
           "type": "string",
           "minLength": 1
+        },
+        "health": {
+          "type": "string",
+          "pattern": "^/(?!/)[^\\\\]*$"
         }
       }
     },

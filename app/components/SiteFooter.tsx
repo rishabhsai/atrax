@@ -1,49 +1,48 @@
 import Link from "next/link";
-import { products } from "../lib/content";
+import { productOrder, products } from "../lib/content";
 
 export function SiteFooter() {
   return (
     <footer className="site-footer">
-      <div className="shell footer-top">
-        <div className="footer-brand">
-          <Link className="brand brand-light" href="/">
-            <span className="brand-mark" aria-hidden="true">t</span>
+      <div className="shell footer-main">
+        <div className="footer-statement">
+          <Link className="brand brand-footer" href="/">
+            <span className="brand-mark" aria-hidden="true">T</span>
             <span>tarantula</span>
           </Link>
-          <p>The tiny cloud for software built by agents.</p>
-          <code>npx tarantula deploy</code>
+          <p>A small cloud your coding agent can operate.</p>
+          <code>tarantula deploy --json</code>
         </div>
-        <div className="footer-links">
+
+        <div className="footer-columns">
           <div>
-            <p>Cloud</p>
-            {Object.values(products).map((product) => (
-              <Link href={`/products/${product.slug}`} key={product.slug}>
-                {product.name}
+            <p>Products</p>
+            {productOrder.map((slug) => (
+              <Link href={`/products/${slug}`} key={slug}>
+                {products[slug].name}
+                <small>{products[slug].availability}</small>
               </Link>
             ))}
           </div>
           <div>
-            <p>Explore</p>
-            <Link href="/solutions">What to build</Link>
-            <Link href="/developers">Developers</Link>
-            <Link href="/security">Security</Link>
-            <Link href="/pricing">Pricing</Link>
+            <p>Build</p>
+            <Link href="/docs">Quickstart</Link>
+            <Link href="/docs/cli">CLI reference</Link>
+            <Link href="/docs/chat-example">Chat example</Link>
+            <Link href="/developers">Agent workflow</Link>
           </div>
           <div>
-            <p>Company</p>
-            <Link href="/company">About</Link>
-            <Link href="/company">Private alpha</Link>
-            <a href="https://github.com/rishabhsai/tarantula">GitHub</a>
+            <p>Project</p>
+            <Link href="/company">Company</Link>
+            <Link href="/pricing">Pricing</Link>
+            <Link href="/security">Security</Link>
+            <a href="https://github.com/rishabhsai/tarantula">GitHub ↗</a>
           </div>
         </div>
       </div>
       <div className="shell footer-bottom">
-        <span>© 2026 Tarantula Systems</span>
-        <div>
-          <Link href="/security">Privacy</Link>
-          <Link href="/security">Terms</Link>
-          <span className="system-state"><i /> All systems operational</span>
-        </div>
+        <span>© 2026 Tarantula</span>
+        <span>Launchpad and Tables are available. Four products are planned.</span>
       </div>
     </footer>
   );

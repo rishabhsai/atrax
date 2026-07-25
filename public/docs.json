@@ -1,0 +1,25 @@
+{
+  "name": "Tarantula Docs",
+  "url": "https://tarantula-9l0.pages.dev/docs/",
+  "description": "Agent-native documentation for the Tarantula v0 CLI and product roadmap.",
+  "agentEntrypoints": {
+    "manifest": "/docs.json",
+    "llms": "/llms.txt",
+    "llmsFull": "/llms-full.txt"
+  },
+  "pages": [
+    { "title": "Quickstart", "status": "available", "url": "/docs/", "markdownUrl": "/docs/quickstart/index.md" },
+    { "title": "CLI reference", "status": "available", "url": "/docs/cli/", "markdownUrl": "/docs/cli/index.md" },
+    { "title": "App contract", "status": "available", "url": "/docs/app-contract/", "markdownUrl": "/docs/app-contract/index.md" },
+    { "title": "Infrastructure model", "status": "mixed", "url": "/docs/infrastructure-model/", "markdownUrl": "/docs/infrastructure-model/index.md" },
+    { "title": "Public chat example", "status": "available", "url": "/docs/chat-example/", "markdownUrl": "/docs/chat-example/index.md" },
+    { "title": "Launchpad", "status": "mixed", "url": "/docs/launchpad/", "markdownUrl": "/docs/launchpad/index.md" },
+    { "title": "Tables", "status": "mixed", "url": "/docs/tables/", "markdownUrl": "/docs/tables/index.md" },
+    { "title": "Door", "status": "planned", "url": "/docs/door/", "markdownUrl": "/docs/door/index.md" },
+    { "title": "Library", "status": "planned", "url": "/docs/library/", "markdownUrl": "/docs/library/index.md" },
+    { "title": "Switchboard", "status": "planned", "url": "/docs/switchboard/", "markdownUrl": "/docs/switchboard/index.md" },
+    { "title": "Loops", "status": "planned", "url": "/docs/loops/", "markdownUrl": "/docs/loops/index.md" },
+    { "title": "Security", "status": "mixed", "url": "/docs/security/", "markdownUrl": "/docs/security/index.md" },
+    { "title": "Feature status", "status": "mixed", "url": "/docs/status/", "markdownUrl": "/docs/status/index.md" }
+  ]
+}

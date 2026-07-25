@@ -5,7 +5,8 @@
   "visibility": "public",
   "web": {
     "entry": "src/worker.js",
-    "assets": "public"
+    "assets": "public",
+    "health": "/.well-known/tarantula.json"
   },
   "tables": {
     "migrations": "migrations"
