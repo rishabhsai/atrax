@@ -4,6 +4,10 @@
 
 Tarantula is a cloud for everyone, starting with small companies and coding agents. A coding agent can turn a folder into a working, inspectable app and a shareable URL without operating a cloud console.
 
+The Tarantula account is the hosted control plane for projects, stacks, releases,
+resources, activity, connections, and team membership. It reads Tarantula state;
+it does not infer ownership by scraping a provider dashboard.
+
 ## Products
 
 | Product | Owns |
@@ -20,6 +24,10 @@ No responsibility may have two product owners. Agents are Loops with models and 
 Ordinary Worker request handlers are part of an app's web runtime. They become Loops only when declared through the durable Loop contract.
 
 Launchpad runs and releases software. Door controls who can enter it. Neither is a mode of the other.
+
+Tarantula account identity is platform identity. Door provides identity and
+authorization to applications built on Tarantula; it does not own sign-in to
+the Tarantula control plane.
 
 ## Contract
 
@@ -59,6 +67,7 @@ Tarantula products are the user-facing abstraction. Infrastructure-as-code is an
 
 - **Available v0:** public Worker + Static Assets, one D1 database, migrations, local development, deploy, readiness, stable URL, inspect, logs, committed lockfile, no-login chat.
 - **Next foundation:** named stacks, remote locked state, plan, drift, immutable release history, preview and rollback.
+- **Account foundation:** Access-authenticated console, CLI device authorization, project registration, release and resource views, and activity ledger.
 - **Platform coverage:** Door, Library, Switchboard, Loops, custom domains, backup and restore, typed data access, hosted control panel.
 
 Roadmap features must be labelled planned until they work end to end.

@@ -50,6 +50,7 @@ export function SiteHeader() {
           <Link href="/docs">Docs</Link>
           <Link href="/developers">CLI</Link>
           <Link href="/security">Security</Link>
+          <Link className="nav-account" href="/account">Account</Link>
         </nav>
 
         <details className="mobile-nav">
@@ -60,6 +61,7 @@ export function SiteHeader() {
             <Link href="/docs">Docs</Link>
             <Link href="/developers">CLI</Link>
             <Link href="/security">Security</Link>
+            <Link href="/account">Account</Link>
           </div>
         </details>
       </div>

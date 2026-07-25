@@ -52,6 +52,8 @@ Planned:
 - Named stacks, remote locked state, plan, drift detection, previews, custom domains, rollback, private apps, backups, and a control panel
 
 The provider-neutral product contract and reconciliation model are in [SPEC.md](./SPEC.md).
+The account identity, project registry, and CLI device flow are in
+[CONTROL_PLANE.md](./CONTROL_PLANE.md).
 
 ## Work on the product site
 

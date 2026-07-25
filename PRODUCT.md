@@ -14,7 +14,12 @@ Small companies building focused internal tools, customer portals, prototypes, a
 
 ## Product Purpose
 
-Tarantula is a cloud for everyone, operated through an agent-native CLI. A coding agent can create, run, inspect, and deploy a small full-stack app through one compact contract. The platform includes hosting, data, access, files and company knowledge, connected tools, and durable background work. Success means a useful app can move from a folder to a shareable URL without a cloud console.
+Tarantula is a cloud for everyone, operated through an agent-native CLI and a
+quiet account console. A coding agent can create, run, inspect, and deploy a
+small full-stack app through one compact contract. The account shows projects,
+releases, resources, health, connections, and activity without becoming a
+second source of truth. The platform includes hosting, data, access, files and
+company knowledge, connected tools, and durable background work.
 
 ## Brand Personality
 

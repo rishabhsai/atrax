@@ -31,6 +31,8 @@ test("exports the six-product Tarantula site", async () => {
   assert.match(html, /\/docs\.json/);
   assert.match(html, /\/llms\.txt/);
   assert.match(html, /Use cases/);
+  assert.match(html, /Everything you shipped\. In one quiet place\./);
+  assert.match(html, /\/account/);
   assert.match(html, /nav-menu-products/);
   assert.match(html, /nav-menu-use-cases/);
   const header = html.match(/<header[\s\S]*?<\/header>/)?.[0] ?? "";
@@ -42,6 +44,10 @@ test("exports the six-product Tarantula site", async () => {
   assert.doesNotMatch(html, /tiny-cloud-hero|company-switchboard|company-library/);
   assert.match(html, /opengraph-image/);
   assert.doesNotMatch(html, /codex-preview|Building your site|loading skeleton/i);
+  const accountHtml = await readExportedPage("/account");
+  assert.match(accountHtml, /Your software, without the provider maze\./);
+  assert.match(accountHtml, /Cloudflare Access is not enabled on this account yet/);
+  assert.match(accountHtml, /Your first deploy will appear here\./);
   await access(new URL("../out/opengraph-image", import.meta.url));
 });
 

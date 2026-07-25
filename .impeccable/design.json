@@ -1,25 +1,25 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-07-25T09:00:00Z",
+  "generatedAt": "2026-07-25T10:00:00Z",
   "title": "Design System: Tarantula",
   "extensions": {
     "colorMeta": {
       "signal-orange": {
         "role": "primary",
         "displayName": "Signal Orange",
-        "canonical": "oklch(0.7 0.19 45)",
+        "canonical": "oklch(0.69 0.2 42)",
         "tonalRamp": ["oklch(0.2 0.06 45)", "oklch(0.3 0.09 45)", "oklch(0.4 0.12 45)", "oklch(0.5 0.15 45)", "oklch(0.6 0.18 45)", "oklch(0.7 0.19 45)", "oklch(0.82 0.13 45)", "oklch(0.94 0.05 45)"]
       },
       "near-black": {
         "role": "neutral",
         "displayName": "Near Black",
-        "canonical": "oklch(0.16 0.012 50)",
+        "canonical": "oklch(0.17 0.008 50)",
         "tonalRamp": ["oklch(0.12 0.01 50)", "oklch(0.2 0.012 50)", "oklch(0.3 0.012 50)", "oklch(0.42 0.012 50)", "oklch(0.55 0.01 50)", "oklch(0.68 0.009 50)", "oklch(0.82 0.007 50)", "oklch(0.95 0.004 50)"]
       },
       "warm-paper": {
         "role": "neutral",
         "displayName": "Warm Paper",
-        "canonical": "oklch(0.965 0.012 78)",
+        "canonical": "oklch(0.982 0.006 75)",
         "tonalRamp": ["oklch(0.18 0.018 78)", "oklch(0.3 0.018 78)", "oklch(0.42 0.018 78)", "oklch(0.55 0.018 78)", "oklch(0.68 0.016 78)", "oklch(0.8 0.014 78)", "oklch(0.9 0.013 78)", "oklch(0.965 0.012 78)"]
       }
     },
@@ -35,9 +35,9 @@
     },
     "shadows": [
       {
-        "name": "terminal-offset",
-        "value": "15px 15px 0 var(--orange-dark)",
-        "purpose": "Hard structural depth behind working terminal examples."
+        "name": "product-window",
+        "value": "0 30px 80px color-mix(in oklch, var(--ink) 12%, transparent)",
+        "purpose": "Soft depth reserved for working product windows."
       }
     ],
     "motion": [
@@ -94,9 +94,9 @@
     }
   ],
   "narrative": {
-    "northStar": "The Operator's Manual",
-    "overview": "Tarantula looks like infrastructure that can be understood and operated, not a toy promising magic. Large compressed headlines establish certainty; monospace body copy, explicit status labels, terminal output, and ledger-like rows provide evidence. Orange is structural and committed rather than decorative.",
-    "keyCharacteristics": ["Hard rectangular edges and visible one-pixel rules.", "Orange fields paired with near-black operational surfaces.", "Real commands, outputs, boundaries, and roadmap status before claims.", "Restrained entrance and state motion with a complete reduced-motion path."],
+    "northStar": "Quiet Infrastructure",
+    "overview": "Tarantula uses spacious product storytelling, warm paper, near-black stages, soft material depth, and the existing monospace register. Real commands and honest empty states substantiate every claim.",
+    "keyCharacteristics": ["Large quiet spacing.", "Orange used as a precise signal.", "Soft depth reserved for product windows.", "Real commands and honest empty states."],
     "rules": [
       {"name": "The Orange Has a Job Rule", "body": "Orange must denote brand, action, sequence, or emphasis. It is never a decorative glow.", "section": "colors"},
       {"name": "The Evidence Before Adjective Rule", "body": "A command, state, output, or boundary must substantiate every large claim.", "section": "typography"},

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { AgentCommand } from "./components/AgentCommand";
-import { DeployTerminal, ProductMark } from "./components/Visuals";
+import { AccountPreview, DeployTerminal, ProductMark } from "./components/Visuals";
 import { productOrder, products } from "./lib/content";
 
 export const metadata = {
@@ -15,38 +15,38 @@ export default function Home() {
       <section className="hero">
         <div className="shell hero-grid">
           <div className="hero-copy">
-            <p className="eyebrow">Software without the cloud overhead</p>
+            <p className="eyebrow">The agent-native cloud</p>
             <h1>A cloud for everyone.</h1>
             <p className="hero-summary">
-              Deploy software, keep its data, connect internal tools, and give
-              people and agents the same company knowledge. One CLI. No cloud
-              console.
+              Tell your coding agent what to build. Tarantula deploys the app,
+              keeps its data, connects company tools, and shows you exactly
+              what is running.
             </p>
             <AgentCommand />
             <p className="hero-note">
-              The scaffold includes `AGENTS.md`, the app contract, migrations,
-              and machine-readable deploy output.{" "}
+              One command gives an agent the app contract, migrations, and a
+              machine-readable deployment workflow.{" "}
               <Link href="/docs">Read the quickstart →</Link>
             </p>
           </div>
           <DeployTerminal />
         </div>
         <div className="hero-rail" aria-label="Current capabilities">
-          <span>Worker + static assets</span>
-          <span>D1 + ordered migrations</span>
-          <span>Stable lockfile</span>
-          <span>JSON deploy output</span>
-          <span>Live inspect and logs</span>
+          <span>Apps</span>
+          <span>Data</span>
+          <span>Access</span>
+          <span>Knowledge</span>
+          <span>Automations</span>
         </div>
       </section>
 
       <section className="section shell proof-section">
         <div className="section-intro">
-          <p className="eyebrow">Available now</p>
-          <h2>From an empty folder to a working link.</h2>
+          <p className="eyebrow">The shortest path to useful</p>
+          <h2>From an idea to running software.</h2>
           <p>
-            The chat template is public, persistent, and ready for you or your
-            coding agent to deploy with the same CLI in the docs.
+            Your agent works against one small contract. Tarantula handles the
+            provider details and leaves every result inspectable.
           </p>
         </div>
         <div className="proof-flow">
@@ -65,11 +65,25 @@ export default function Home() {
         </div>
       </section>
 
+      <section className="account-story">
+        <div className="shell account-story-copy">
+          <p className="eyebrow">Your Tarantula account</p>
+          <h2>Everything you shipped. In one quiet place.</h2>
+          <p>
+            See projects, environments, health, releases, resources, and recent
+            activity without opening a provider console.
+          </p>
+        </div>
+        <div className="shell account-preview-wrap">
+          <AccountPreview />
+        </div>
+      </section>
+
       <section className="products-stage">
         <div className="shell">
           <div className="section-intro products-stage-intro">
-            <p className="eyebrow">Six products, six jobs</p>
-            <h2>The names stop where the responsibilities stop.</h2>
+            <p className="eyebrow">One cloud, clear parts</p>
+            <h2>Everything an app needs. Nothing overlapping.</h2>
           </div>
           <div className="product-ledger">
             {productOrder.map((slug) => {
@@ -95,8 +109,8 @@ export default function Home() {
 
       <section className="section shell boundaries">
         <div className="section-intro">
-          <p className="eyebrow">The important boundaries</p>
-          <h2>Each product has one job.</h2>
+          <p className="eyebrow">Designed to stay understandable</p>
+          <h2>Six products. Six responsibilities.</h2>
         </div>
         <div className="boundary-lines">
           <article>
@@ -135,8 +149,8 @@ export default function Home() {
       <section className="agent-docs">
         <div className="shell agent-docs-grid">
           <div>
-            <p className="eyebrow">Docs for people and agents</p>
-            <h2>No dashboard scraping. No guessed state.</h2>
+            <p className="eyebrow">A shared language</p>
+            <h2>People and agents read the same cloud.</h2>
             <p>
               The same docs ship as readable pages, Markdown entrypoints,
               `docs.json`, `llms.txt`, and versioned CLI JSON.
@@ -157,8 +171,8 @@ export default function Home() {
       <section className="final-cta">
         <div className="shell final-cta-grid">
           <div>
-            <p className="eyebrow">Try the working slice</p>
-            <h2>Deploy the chat. Keep the URL.</h2>
+            <p className="eyebrow">Start with something real</p>
+            <h2>Give your agent one command.</h2>
           </div>
           <div>
             <code>tarantula new open-chat --template chat</code>
