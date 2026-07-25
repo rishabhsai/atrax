@@ -1,0 +1,13 @@
+{
+  "$schema": "https://tarantula-9l0.pages.dev/schema/v0.json",
+  "version": 1,
+  "name": "__APP_NAME__",
+  "visibility": "public",
+  "web": {
+    "entry": "src/worker.js",
+    "assets": "public"
+  },
+  "tables": {
+    "migrations": "migrations"
+  }
+}

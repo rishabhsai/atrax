@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#12100e" />
+    <meta
+      name="description"
+      content="A public, login-free shared chat deployed with Tarantula."
+    />
+    <title>__APP_NAME__</title>
+    <link rel="stylesheet" href="/styles.css" />
+    <script type="module" src="/app.js"></script>
+  </head>
+  <body>
+    <main>
+      <header>
+        <div>
+          <span class="eyebrow">Tarantula public chat</span>
+          <h1>__APP_NAME__</h1>
+        </div>
+        <button id="copy-link" type="button">Copy link</button>
+      </header>
+
+      <section class="chat" aria-label="Messages">
+        <ol id="messages" aria-live="polite"></ol>
+        <p id="empty">No messages yet.</p>
+      </section>
+
+      <form id="composer">
+        <label>
+          <span>Name</span>
+          <input
+            id="nickname"
+            name="nickname"
+            maxlength="40"
+            autocomplete="nickname"
+            required
+          />
+        </label>
+        <label class="message-field">
+          <span>Message</span>
+          <textarea
+            id="body"
+            name="body"
+            maxlength="2000"
+            rows="2"
+            required
+          ></textarea>
+        </label>
+        <button type="submit">Send</button>
+        <p id="error" role="alert"></p>
+      </form>
+
+      <footer>
+        <span><i></i> Public room</span>
+        <span>Anyone with this URL can read and post.</span>
+      </footer>
+    </main>
+  </body>
+</html>

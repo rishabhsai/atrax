@@ -1,7 +1,10 @@
 {
-  "name": "tarantula-site",
+  "name": "tarantula",
   "version": "0.1.0",
   "private": true,
+  "bin": {
+    "tarantula": "bin/tarantula.mjs"
+  },
   "engines": {
     "node": ">=22.13.0"
   },
@@ -10,7 +13,8 @@
     "build": "next build",
     "start": "wrangler pages dev out",
     "deploy": "npm run build && wrangler pages deploy out --project-name=tarantula --branch=main",
-    "test": "npm run build && node --test tests/rendered-html.test.mjs",
+    "test": "npm run build && node --test tests/*.test.mjs",
+    "test:cli": "node --test tests/cli.test.mjs",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next"
   },
   "dependencies": {
@@ -27,7 +31,7 @@
     "eslint-config-next": "16.2.6",
     "tailwindcss": "4.2.1",
     "typescript": "5.9.3",
-    "wrangler": "4.92.0"
+    "wrangler": "^4.114.0"
   },
   "type": "module"
 }

@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tarantula-9l0.pages.dev/schema/v0.json",
+  "title": "Tarantula app contract v0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "name", "visibility", "web", "tables"],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "version": {
+      "const": 1
+    },
+    "name": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]{1,47}$"
+    },
+    "visibility": {
+      "const": "public"
+    },
+    "web": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["entry", "assets"],
+      "properties": {
+        "entry": {
+          "type": "string",
+          "minLength": 1
+        },
+        "assets": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "tables": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["migrations"],
+      "properties": {
+        "migrations": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    }
+  }
+}

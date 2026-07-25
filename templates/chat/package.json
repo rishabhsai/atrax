@@ -1,0 +1,11 @@
+{
+  "name": "__APP_NAME__",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tarantula dev",
+    "deploy": "tarantula deploy",
+    "test": "node --test"
+  }
+}
