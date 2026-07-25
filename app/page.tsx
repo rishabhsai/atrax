@@ -174,7 +174,7 @@ export default function Home() {
                 {"\n\n"}
                 <span className="code-dim">06</span>{" "}
                 <span className="code-comment">
-                  // one command from local to live
+                  {"// one command from local to live"}
                 </span>
                 {"\n"}
                 <span className="code-dim">07</span> $ npx tarantula deploy
