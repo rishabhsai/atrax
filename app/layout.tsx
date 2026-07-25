@@ -17,21 +17,21 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL("https://tarantula-9l0.pages.dev"),
   title: {
-    default: "Tarantula — A cloud for small software",
+    default: "Tarantula — The tiny cloud for agent-built software",
     template: "%s — Tarantula",
   },
   description:
-    "Deploy and share software built by agents with hosting, workers, databases, auth, storage, secrets, and durable agent infrastructure included.",
+    "Build with an agent, deploy in one command, connect company tools, share knowledge, and invite your team.",
   openGraph: {
-    title: "Tarantula — A cloud for small software",
+    title: "Tarantula — The tiny cloud for agent-built software",
     description:
-      "The small cloud for software built by agents.",
+      "Build it with an agent. Deploy it in one command.",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Tarantula — A cloud for small software",
+    title: "Tarantula — The tiny cloud for agent-built software",
     description:
-      "The small cloud for software built by agents.",
+      "Build it with an agent. Deploy it in one command.",
   },
 };
 

@@ -4,6 +4,13 @@ The product site for Tarantula: a cloud for small software built by coding
 agents. Hosting, workers, databases, auth, storage, company connections, and
 durable operational agents share one app and permission model.
 
+The product surface uses seven friendly names: Launchpad, Tables, Door,
+Library, Switchboard, Spark, and Loop. The primary workflow is:
+
+```bash
+npx tarantula deploy
+```
+
 ## Development
 
 Requires Node.js `>=22.13.0`.

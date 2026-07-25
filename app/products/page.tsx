@@ -1,139 +1,125 @@
 import Link from "next/link";
+import { ProductMark } from "../components/Visuals";
 import { products } from "../lib/content";
 
 export const metadata = {
   title: "Products",
   description:
-    "Hosting, agent infrastructure, workers, databases, auth, storage, and secrets for small software.",
+    "Seven friendly building blocks for deploying, sharing, connecting, and operating small software.",
 };
 
+const productDetails = [
+  [products.hosting, "web()", "Ship"],
+  [products.database, "database()", "Remember"],
+  [products.auth, "auth()", "Invite"],
+  [products.storage, "storage()", "Know"],
+  [products.secrets, "connection()", "Connect"],
+  [products.workers, "worker()", "React"],
+  [products["agent-runtime"], "agent()", "Operate"],
+] as const;
+
 export default function ProductsPage() {
-  const productGroups = [
-    {
-      name: "Ship",
-      description: "Put the app online and run code on requests, events, or schedules.",
-      products: [products.hosting, products.workers],
-    },
-    {
-      name: "Store",
-      description: "Keep relational data and files beside the app that owns them.",
-      products: [products.database, products.storage],
-    },
-    {
-      name: "Control access",
-      description: "Know who can use the app and what company systems it can touch.",
-      products: [products.auth, products.secrets],
-    },
-    {
-      name: "Operate",
-      description: "Run operational agents after deployment.",
-      products: [products["agent-runtime"]],
-    },
-  ];
-
   return (
-    <main>
-      <section className="cloud-page-hero">
-        <div className="shell cloud-page-hero-grid">
-          <p className="section-kicker">A cloud for small software</p>
-          <div>
-            <h1>Everything a small app needs, built in.</h1>
-            <p>
-              Deploy apps for one person or one team with hosting, workers, a
-              database, auth, files, secrets, and durable agents. One project,
-              one deploy, one permission model. Private by default—invite a
-              person or team and share the URL like a document.
-            </p>
+    <main className="simple-products-page">
+      <section className="simple-products-hero">
+        <div className="shell">
+          <p className="simple-pill">The Tarantula cloud</p>
+          <h1>Seven building blocks. One tiny cloud.</h1>
+          <p>
+            Seven pieces cover deployment, data, login, knowledge, company
+            tools, background code, and operational agents. They ship together.
+          </p>
+          <div className="products-command">
+            <code><b>$</b> npx tarantula deploy</code>
+            <span>One app · one deploy · one permission model</span>
           </div>
         </div>
       </section>
 
-      <section className="cloud-contract-section">
-        <div className="shell cloud-contract-grid">
+      <section className="shell products-story">
+        {[
+          ["01", "Build", "Your coding agent writes one ordinary app."],
+          ["02", "Deploy", "Tarantula creates everything it declares."],
+          ["03", "Invite", "Send one private URL to a person or team."],
+          ["04", "Keep going", "Jobs and agents continue after the tab closes."],
+        ].map(([index, title, copy]) => (
+          <article key={index}>
+            <span>{index}</span>
+            <h2>{title}</h2>
+            <p>{copy}</p>
+          </article>
+        ))}
+      </section>
+
+      <section className="shell products-friendly-list">
+        <div className="products-friendly-heading">
+          <p className="simple-pill">The building blocks</p>
           <div>
-            <p className="section-kicker">One app contract</p>
-            <h2>One app. One deploy. One permission model.</h2>
+            <h2>Friendly on the surface. Literal in code.</h2>
             <p>
-              Declare what the app needs beside its code. Tarantula runs it
-              locally and deploys it together.
+              Fun names make the system easier to remember. The TypeScript
+              primitives stay unsurprising for coding agents.
             </p>
-            <Link className="inline-link" href="/developers">
-              See the developer model <span aria-hidden="true">→</span>
-            </Link>
           </div>
-          <div className="cloud-contract-map">
-            <div className="contract-source">
-              <span>YOUR PROJECT</span>
-              <strong>renewal-board/</strong>
-              <code>app/</code>
-              <code>tarantula.ts</code>
-            </div>
-            <div className="contract-arrow">→</div>
-            <div className="contract-runtime">
-              <span>TARANTULA CLOUD</span>
+        </div>
+
+        <div className="products-friendly-grid">
+          {productDetails.map(([product, primitive, action], index) => (
+            <Link
+              className={`product-friendly-card product-friendly-${product.slug}`}
+              href={`/products/${product.slug}`}
+              key={product.slug}
+            >
               <div>
-                {Object.values(products).map((product) => (
-                  <i key={product.slug}>{product.name}</i>
-                ))}
+                <ProductMark type={product.slug} />
+                <span>0{index + 1}</span>
               </div>
-            </div>
-            <div className="contract-arrow">→</div>
-            <div className="contract-output">
-              <span>LIVE APP</span>
-              <strong>renewal-board</strong>
-              <code>private · 8 users</code>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="shell grouped-products">
-        <div className="grouped-products-heading">
-          <p className="section-kicker">Products</p>
-          <div>
-            <h2>Coding agents build the app. Operational agents keep doing the work.</h2>
-            <p>Each product is useful alone. Together they are the whole small cloud.</p>
-          </div>
-        </div>
-        <div className="grouped-products-list">
-          {productGroups.map((group) => (
-            <section key={group.name}>
-              <div className="grouped-product-label">
-                <h2>{group.name}</h2>
-                <p>{group.description}</p>
-              </div>
-              <ul>
-                {group.products.map((product) => (
-                  <li key={product.slug}>
-                    <Link href={`/products/${product.slug}`}>
-                      <div>
-                        <h3>{product.name}</h3>
-                        <span>{product.eyebrow}</span>
-                      </div>
-                      <p>{product.summary}</p>
-                      <dl>
-                        <dt>Included</dt>
-                        <dd>{product.features.map(([name]) => name).join(" · ")}</dd>
-                      </dl>
-                      <strong aria-hidden="true">↗</strong>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </section>
+              <small>{action} / {product.eyebrow}</small>
+              <h3>{product.name}</h3>
+              <p>{product.summary}</p>
+              <code>{primitive}</code>
+              <strong aria-hidden="true">↗</strong>
+            </Link>
           ))}
         </div>
       </section>
 
-      <section className="page-final-cta">
-        <div className="shell page-final-cta-grid">
-          <p className="section-kicker">Start small</p>
+      <section className="products-one-contract">
+        <div className="shell products-one-contract-grid">
           <div>
-            <h2>Pick one useful app. The cloud is already there.</h2>
-            <Link className="button button-accent" href="/company">
-              Join the alpha <span aria-hidden="true">→</span>
+            <p className="simple-pill">One app contract</p>
+            <h2>The pieces know about each other.</h2>
+            <p>
+              Door permissions apply to Tables and Library. Switchboard tools
+              are available to Spark and Loop. Launchpad deploys the complete
+              app—not seven separate projects.
+            </p>
+            <Link className="inline-link" href="/developers">
+              Read the developer model <span aria-hidden="true">→</span>
             </Link>
           </div>
+          <div className="contract-snippet">
+            <span>tarantula.ts</span>
+            <pre><code>{`export default defineApp({
+  web: web("./app"),
+  database: database({ accounts }),
+  auth: auth({ audience: "team" }),
+  storage: storage({ knowledge: true }),
+  connections: [slack, hubspot],
+  agents: [renewalReview]
+});`}</code></pre>
+            <strong>That is the whole cloud.</strong>
+          </div>
+        </div>
+      </section>
+
+      <section className="simple-final">
+        <div className="shell">
+          <p className="simple-pill">Start small</p>
+          <h2>Pick one useful app. The cloud is already there.</h2>
+          <Link className="button button-accent" href="/company">
+            Join the alpha <span aria-hidden="true">→</span>
+          </Link>
         </div>
       </section>
     </main>

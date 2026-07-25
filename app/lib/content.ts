@@ -1,14 +1,14 @@
 export const products = {
   hosting: {
     slug: "hosting",
-    name: "Hosting",
-    eyebrow: "Web apps & APIs",
-    cardTitle: "Ship an app. Get a URL. Share it.",
-    title: "Deploy a folder. Get a private URL.",
+    name: "Launchpad",
+    eyebrow: "Deploy & share",
+    cardTitle: "One command from a folder to a team-ready app.",
+    title: "Deploy the app. Get a URL. Invite the team.",
     summary:
-      "Deploy web apps and APIs in one command with previews, custom domains, TLS, logs, and rollbacks already handled.",
+      "Deploy web apps and APIs in one command. Previews, private URLs, custom domains, TLS, logs, and rollbacks are already handled.",
     intro:
-      "Turn an agent-built web app or API into a live URL with previews, TLS, logs, custom domains, and rollbacks included.",
+      "Point Tarantula at an agent-built app. It comes back online, private, and ready to share—with previews, TLS, logs, custom domains, and rollbacks included.",
     features: [
       ["Instant URLs", "Every deploy gets a stable production URL and an isolated preview URL."],
       ["Fast for collaborators", "Serve the app close to wherever your collaborators open it."],
@@ -35,10 +35,10 @@ export default defineApp({
   },
   "agent-runtime": {
     slug: "agent-runtime",
-    name: "Agent Runtime",
-    eyebrow: "Durable agent infrastructure",
-    cardTitle: "Run agents that survive the request.",
-    title: "Run agents that keep working after the request ends.",
+    name: "Loop",
+    eyebrow: "Operational agents",
+    cardTitle: "Give recurring work to an agent that keeps going.",
+    title: "Turn a repeated task into an agent your team can trust.",
     summary:
       "Durable runs, model access, browser and code tools, checkpoints, retries, approvals, and complete traces in one runtime.",
     intro:
@@ -72,10 +72,10 @@ export const renewalAgent = agent({
   },
   workers: {
     slug: "workers",
-    name: "Workers",
+    name: "Spark",
     eyebrow: "Functions, jobs & webhooks",
-    cardTitle: "Run code on a request, event, or schedule.",
-    title: "Run functions on requests, events, and schedules.",
+    cardTitle: "Run a little code whenever something happens.",
+    title: "Run code on a request, event, or schedule.",
     summary:
       "TypeScript functions for APIs, webhooks, queues, cron jobs, and background work—deployed beside the app that uses them.",
     intro:
@@ -108,10 +108,10 @@ export const syncAccount = worker({
   },
   database: {
     slug: "database",
-    name: "Database",
-    eyebrow: "Relational data",
-    cardTitle: "A database every app can understand.",
-    title: "Add a table. Deploy it with the app.",
+    name: "Tables",
+    eyebrow: "Managed database",
+    cardTitle: "Give the app real data without opening a cloud console.",
+    title: "Add a table. The database comes with it.",
     summary:
       "A managed relational database with schemas, migrations, indexes, transactions, backups, and a simple typed API.",
     intro:
@@ -147,10 +147,10 @@ export const db = database({
   },
   auth: {
     slug: "auth",
-    name: "Auth",
-    eyebrow: "Users, teams & permissions",
-    cardTitle: "Know who can open it and what they can do.",
-    title: "Share a private app without building login.",
+    name: "Door",
+    eyebrow: "Login, teams & permissions",
+    cardTitle: "Invite people without building login or roles.",
+    title: "Share a private app without building auth.",
     summary:
       "Sign-in, sessions, teams, invitations, roles, app identities, and row-level authorization built into every app.",
     intro:
@@ -184,19 +184,19 @@ export const access = auth({
   },
   storage: {
     slug: "storage",
-    name: "Storage",
-    eyebrow: "Files & objects",
-    cardTitle: "Put files beside the app that needs them.",
-    title: "Store uploads and generated files inside the app.",
+    name: "Library",
+    eyebrow: "Files & company knowledge",
+    cardTitle: "Give apps and agents the same trusted knowledge.",
+    title: "Give every app a shared company library.",
     summary:
-      "Private uploads, generated assets, signed downloads, metadata, and lifecycle rules through a typed object-storage API.",
+      "Keep files, policies, notes, and generated artifacts in one permission-aware library that apps and agents can search and use.",
     intro:
-      "Keep receipts, reports, images, exports, and model artifacts private by default. Files inherit app permissions and use signed uploads and downloads.",
+      "Store policies, reports, notes, uploads, exports, and model artifacts once. Apps and agents can retrieve the approved knowledge they need without copying files between systems.",
     features: [
-      ["Direct uploads", "Upload large files straight from the browser with short-lived signed URLs."],
-      ["Private by default", "Files inherit app and user permissions unless you explicitly publish them."],
-      ["Metadata", "Attach structured metadata and find objects without a second tracking system."],
-      ["Lifecycle", "Expire temporary files and retain important artifacts with clear rules."],
+      ["Knowledge collections", "Organize policies, playbooks, notes, and files into collections with clear owners."],
+      ["Permission-aware search", "Apps and agents find only the knowledge their current user is allowed to see."],
+      ["Uploads & artifacts", "Handle large uploads, generated reports, exports, and signed downloads."],
+      ["Freshness rules", "Track sources, expire temporary output, and flag knowledge that needs review."],
     ],
     stat: "Private",
     statLabel: "until you choose to share",
@@ -207,26 +207,26 @@ export const files = storage({
   maxSize: "50mb",
   expires: { previews: "7d" }
 });`,
-    codeTitle: "Files follow the app's users and roles.",
-    fit: ["No bucket account", "No permission bridge", "Expire temporary output automatically"],
+    codeTitle: "Company knowledge follows the same users and roles as the app.",
+    fit: ["No bucket account", "One trusted knowledge source", "Permissions follow every retrieval"],
     related: ["auth", "database", "agent-runtime"],
     diagram: {
-      label: "storage · private",
-      title: "renewal-briefs/",
-      rows: ["northstar.pdf · 2.4 MB", "acme.csv · 880 KB", "preview-18.png · expires"],
-      result: "Access follows app roles",
+      label: "library · private",
+      title: "customer-success/",
+      rows: ["renewal-playbook · current", "pricing-policy · finance only", "account-briefs · 42 files"],
+      result: "Apps retrieve only approved knowledge",
     },
   },
   secrets: {
     slug: "secrets",
-    name: "Secrets & Connections",
-    eyebrow: "Company keys, OAuth & internal tools",
-    cardTitle: "Connect once. Give apps only what they need.",
-    title: "Connect a company tool without giving the app its key.",
+    name: "Switchboard",
+    eyebrow: "Company tools & app-to-app access",
+    cardTitle: "Connect tools once. Let apps safely help each other.",
+    title: "Connect company tools once. Let every app use them safely.",
     summary:
-      "Store API keys and OAuth connections once, then grant narrow capabilities to apps without exposing permanent credentials.",
+      "Connect SaaS tools, internal APIs, and other Tarantula apps once, then grant narrow capabilities without exposing permanent credentials.",
     intro:
-      "Connect HubSpot, Slack, or an internal service once. Grant each app only the actions and data it needs; Tarantula keeps the raw credential in the company vault.",
+      "Connect HubSpot, Slack, an internal service, or another Tarantula app once. Each app gets only the tools and data it needs; raw credentials stay in the company vault.",
     features: [
       ["Company vault", "Manage API keys, OAuth accounts, and internal services in one inventory."],
       ["Scoped grants", "Limit access by app, action, resource, environment, and time."],

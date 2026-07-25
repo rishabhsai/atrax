@@ -10,11 +10,21 @@ async function readExportedPage(pathname = "/") {
 
 test("exports the Tarantula product site", async () => {
   const html = await readExportedPage();
-  assert.match(html, /<title>Tarantula — A cloud for small software/);
-  assert.match(html, /Built for five users, not five million\./);
-  assert.match(html, /The whole small cloud/);
-  assert.match(html, /Run agents for minutes, hours, or every Monday\./);
-  assert.match(html, /Small software should share like a Google Doc\./);
+  assert.match(html, /<title>Tarantula — The tiny cloud for agent-built software/);
+  assert.match(html, /Build it with an agent\. Deploy it in one command\./);
+  assert.match(html, /npx tarantula deploy/);
+  assert.match(html, /Launchpad/);
+  assert.match(html, /Tables/);
+  assert.match(html, /Door/);
+  assert.match(html, /Library/);
+  assert.match(html, /Switchboard/);
+  assert.match(html, /Spark/);
+  assert.match(html, /Loop/);
+  assert.match(html, /Connect once\. Let your apps help each other\./);
+  assert.match(html, /Give every app the same trusted company knowledge\./);
+  assert.match(html, /images\/tiny-cloud-hero\.jpg/);
+  assert.match(html, /images\/company-switchboard\.jpg/);
+  assert.match(html, /images\/company-library\.jpg/);
   assert.match(html, /\/products\/agent-runtime/);
   assert.match(html, /\/products\/database/);
   assert.match(html, /\/products\/auth/);
@@ -28,12 +38,14 @@ test("exports the Tarantula product site", async () => {
 
 test("exports product detail routes", async () => {
   const agentHtml = await readExportedPage("/products/agent-runtime");
-  assert.match(agentHtml, /Run agents that keep working after the request ends\./);
+  assert.match(agentHtml, /Turn a repeated task into an agent your team can trust\./);
+  assert.match(agentHtml, /Loop/);
   assert.match(agentHtml, /on: schedule/);
   assert.match(agentHtml, /approve: \[&quot;outreach\.send&quot;\]/);
 
   const secretsHtml = await readExportedPage("/products/secrets");
-  assert.match(secretsHtml, /Connect a company tool without giving the app its key\./);
-  assert.match(secretsHtml, /raw credential in the company vault/);
+  assert.match(secretsHtml, /Connect company tools once\. Let every app use them safely\./);
+  assert.match(secretsHtml, /Switchboard/);
+  assert.match(secretsHtml, /raw credentials stay in the company vault/);
   assert.match(secretsHtml, /Typed tool grants/);
 });

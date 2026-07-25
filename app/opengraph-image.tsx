@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
 
-export const alt = "Tarantula — A cloud for small software";
+export const alt = "Tarantula — The tiny cloud for agent-built software";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 export const dynamic = "force-static";
@@ -89,7 +89,7 @@ export default function OpenGraphImage() {
                   letterSpacing: 2.2,
                 }}
               >
-                A CLOUD FOR SMALL SOFTWARE
+                THE TINY CLOUD FOR AGENT-BUILT APPS
               </span>
               <div
                 style={{
@@ -99,7 +99,7 @@ export default function OpenGraphImage() {
                   letterSpacing: -4,
                 }}
               >
-                Built for five users, not five million.
+                Build it with an agent. Deploy it in one command.
               </div>
               <p
                 style={{
@@ -110,8 +110,8 @@ export default function OpenGraphImage() {
                   lineHeight: 1.35,
                 }}
               >
-                Hosting, data, auth, workers, files, secrets, and durable agents
-                in one small cloud.
+                Data, login, knowledge, company tools, and operational agents
+                are already attached.
               </p>
             </div>
 

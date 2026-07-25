@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { products } from "../lib/content";
 
 export function SiteHeader() {
   return (
@@ -12,25 +11,8 @@ export function SiteHeader() {
         </Link>
 
         <nav className="desktop-nav" aria-label="Primary navigation">
-          <div className="nav-cluster">
-            <Link href="/products">Products <span aria-hidden="true">⌄</span></Link>
-            <div className="mega-menu product-menu">
-              <div className="mega-intro">
-                <span className="mega-kicker">A complete small cloud</span>
-                <p>Every primitive an agent needs to ship a real app.</p>
-                <Link href="/products">Explore all products →</Link>
-              </div>
-              <div className="mega-links">
-                {Object.values(products).map((product) => (
-                  <Link href={`/products/${product.slug}`} key={product.slug}>
-                    <span>{product.name}</span>
-                    <small>{product.eyebrow}</small>
-                  </Link>
-                ))}
-              </div>
-            </div>
-          </div>
-          <Link href="/solutions">What to build</Link>
+          <Link href="/products">Products</Link>
+          <Link href="/solutions">Use cases</Link>
           <Link href="/developers">Developers</Link>
           <Link href="/security">Security</Link>
           <Link href="/pricing">Pricing</Link>
@@ -47,12 +29,7 @@ export function SiteHeader() {
           <summary>Menu</summary>
           <div className="mobile-panel">
             <Link href="/products">Products</Link>
-            {Object.values(products).map((product) => (
-              <Link href={`/products/${product.slug}`} key={product.slug}>
-                <span>↳</span> {product.name}
-              </Link>
-            ))}
-            <Link href="/solutions">What to build</Link>
+            <Link href="/solutions">Use cases</Link>
             <Link href="/developers">Developers</Link>
             <Link href="/security">Security</Link>
             <Link href="/pricing">Pricing</Link>

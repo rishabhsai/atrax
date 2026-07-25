@@ -10,8 +10,8 @@ export function SiteFooter() {
             <span className="brand-mark" aria-hidden="true">t</span>
             <span>tarantula</span>
           </Link>
-          <p>A cloud for small software.</p>
-          <code>npx tarantula new</code>
+          <p>The tiny cloud for software built by agents.</p>
+          <code>npx tarantula deploy</code>
         </div>
         <div className="footer-links">
           <div>
