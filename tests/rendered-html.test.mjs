@@ -10,24 +10,30 @@ async function readExportedPage(pathname = "/") {
 
 test("exports the Tarantula product site", async () => {
   const html = await readExportedPage();
-  assert.match(html, /<title>Tarantula — Software that keeps working/);
-  assert.match(html, /The agent-native application platform/);
-  assert.match(html, /Software that/);
-  assert.match(html, /keeps working\./);
-  assert.match(html, /Connect once\. Compose forever\./);
-  assert.match(html, /Credentials remain in the Vault/);
-  assert.match(html, /\/products\/vault/);
-  assert.match(html, /\/products\/network/);
-  assert.match(html, /og\.png/);
+  assert.match(html, /<title>Tarantula — A cloud for small software/);
+  assert.match(html, /Built for five users, not five million\./);
+  assert.match(html, /The whole small cloud/);
+  assert.match(html, /Run agents for minutes, hours, or every Monday\./);
+  assert.match(html, /Small software should share like a Google Doc\./);
+  assert.match(html, /\/products\/agent-runtime/);
+  assert.match(html, /\/products\/database/);
+  assert.match(html, /\/products\/auth/);
+  assert.match(html, /\/products\/workers/);
+  assert.match(html, /\/products\/secrets/);
+  assert.doesNotMatch(html, /\/products\/vault|\/products\/network/);
+  assert.match(html, /opengraph-image/);
   assert.doesNotMatch(html, /codex-preview|Building your site|loading skeleton/i);
-
-  await access(new URL("../public/og.png", import.meta.url));
+  await access(new URL("../out/opengraph-image", import.meta.url));
 });
 
 test("exports product detail routes", async () => {
-  const html = await readExportedPage("/products/vault");
-  assert.match(html, /Vault/);
-  assert.match(html, /The company owns access\. Apps borrow capability\./);
-  assert.match(html, /Apps receive short-lived authority/);
-  assert.match(html, /Store company connections once/);
+  const agentHtml = await readExportedPage("/products/agent-runtime");
+  assert.match(agentHtml, /Run agents that keep working after the request ends\./);
+  assert.match(agentHtml, /on: schedule/);
+  assert.match(agentHtml, /approve: \[&quot;outreach\.send&quot;\]/);
+
+  const secretsHtml = await readExportedPage("/products/secrets");
+  assert.match(secretsHtml, /Connect a company tool without giving the app its key\./);
+  assert.match(secretsHtml, /raw credential in the company vault/);
+  assert.match(secretsHtml, /Typed tool grants/);
 });

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { solutions, type SolutionSlug } from "../../lib/content";
+import { products, solutions, type SolutionSlug } from "../../lib/content";
 
 type PageProps = {
   params: Promise<{ slug: string }>;
@@ -28,84 +28,121 @@ export default async function SolutionPage({ params }: PageProps) {
 
   return (
     <main>
-      <section className="solution-detail-hero">
-        <div className="shell">
-          <p className="eyebrow">{solution.eyebrow}</p>
-          <h1>{solution.title}</h1>
-          <p className="detail-intro">{solution.summary}</p>
-          <div className="button-row">
-            <Link className="button button-dark" href="/company">
-              Discuss your use case <span aria-hidden="true">↗</span>
-            </Link>
-            <Link className="text-link" href="/products">
-              Explore the platform <span aria-hidden="true">→</span>
-            </Link>
+      <section className={`solution-hero-v2 solution-${solution.slug}`}>
+        <div className="shell solution-hero-v2-grid">
+          <div>
+            <p className="section-kicker">Small software / {solution.name}</p>
+            <h1>{solution.title}</h1>
+          </div>
+          <div className="solution-hero-side">
+            <p>{solution.summary}</p>
+            {solution.slug === "agent-operations" ? (
+              <p className="solution-boundary">
+                Workers run deterministic code. Operational agents reason with
+                tools, preserve state, and can pause for a person.
+              </p>
+            ) : null}
+            <div className="button-row">
+              <Link className="button button-primary" href="/company">
+                Build with us <span aria-hidden="true">→</span>
+              </Link>
+              <Link className="button button-quiet" href="/products">
+                See the cloud
+              </Link>
+            </div>
           </div>
         </div>
       </section>
 
-      <section className="shell solution-flow">
-        {solution.flow.map((step, index) => (
-          <div key={step}>
-            <span>0{index + 1}</span>
-            <p>{step}</p>
+      <section className="solution-example-v2">
+        <div className="shell solution-example-grid-v2">
+          <div>
+            <p className="section-kicker">One example</p>
+            <h2>{solution.example}</h2>
+            <p>{solution.exampleDetail}</p>
           </div>
-        ))}
+          <div className="example-app-window">
+            <div className="example-app-bar">
+              <span>{solution.slug}</span>
+              <span><i /> live</span>
+            </div>
+            <div className="example-app-body">
+              <div className="example-app-nav"><i /><i /><i /></div>
+              <div className="example-app-main">
+                <small>{solution.previewLabel}</small>
+                <strong>{solution.example}</strong>
+                <div>
+                  {solution.previewRows.map((row) => (
+                    <p key={row}>{row}</p>
+                  ))}
+                </div>
+              </div>
+            </div>
+            <div className="example-app-resources">
+              {solution.previewStack.map((productSlug) => (
+                <span key={productSlug}>{products[productSlug].name}</span>
+              ))}
+            </div>
+          </div>
+        </div>
       </section>
 
-      <section className="section shell outcome-grid">
+      <section className="shell solution-flow-v2">
+        <p className="section-kicker">How it comes together</p>
         <div>
-          <p className="eyebrow">What changes</p>
-          <h2>Turn a recurring effort into an operating system.</h2>
-        </div>
-        <div className="outcome-list">
-          {solution.outcomes.map((outcome) => (
-            <p key={outcome}>
-              <span aria-hidden="true">+</span>
-              {outcome}
-            </p>
+          {solution.flow.map((step, index) => (
+            <article key={step}>
+              <span>0{index + 1}</span>
+              <h2>{step}</h2>
+              {index < solution.flow.length - 1 ? <b aria-hidden="true">→</b> : null}
+            </article>
           ))}
         </div>
       </section>
 
-      <section className="section section-dark">
-        <div className="shell example-grid">
+      <section className="solution-outcomes-v2">
+        <div className="shell solution-outcomes-grid-v2">
           <div>
-            <p className="eyebrow">Example application</p>
-            <h2>{solution.example}</h2>
-            <p>{solution.exampleDetail}</p>
+            <p className="section-kicker">What changes</p>
+            <h2>{solution.outcomeTitle}</h2>
           </div>
-          <div className="example-console">
-            <div className="diagram-bar">
-              <span>{solution.slug}</span>
-              <span className="success-text">production</span>
-            </div>
-            <div className="example-console-body">
-              <p>Latest operating cycle</p>
-              <strong>Completed with 4 new findings</strong>
-              <div>
-                <span>Sources</span>
-                <b>12</b>
-              </div>
-              <div>
-                <span>Actions</span>
-                <b>03</b>
-              </div>
-              <div>
-                <span>Needs review</span>
-                <b>01</b>
-              </div>
-            </div>
+          <div>
+            {solution.outcomes.map((outcome, index) => (
+              <p key={outcome}>
+                <span>0{index + 1}</span>
+                {outcome}
+              </p>
+            ))}
           </div>
         </div>
       </section>
 
-      <section className="closing-cta shell">
-        <p className="eyebrow">Build your own</p>
-        <h2>The best starting point is one painful recurring workflow.</h2>
-        <Link className="button button-accent" href="/company">
-          Join the private alpha <span aria-hidden="true">↗</span>
-        </Link>
+      <section className="section shell solution-cloud-stack">
+        <div className="section-heading">
+          <p className="section-kicker">The cloud underneath</p>
+          <h2>Use the pieces the app needs. They already work together.</h2>
+        </div>
+        <div>
+          {solution.stack.map((productSlug) => (
+            <Link href={`/products/${productSlug}`} key={productSlug}>
+              <span>{products[productSlug].name}</span>
+              <p>{products[productSlug].cardTitle}</p>
+              <strong aria-hidden="true">↗</strong>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      <section className="page-final-cta">
+        <div className="shell page-final-cta-grid">
+          <p className="section-kicker">Private alpha</p>
+          <div>
+            <h2>Bring us one useful thing that should be software.</h2>
+            <Link className="button button-accent" href="/company">
+              Request access <span aria-hidden="true">→</span>
+            </Link>
+          </div>
+        </div>
       </section>
     </main>
   );

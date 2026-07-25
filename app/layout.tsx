@@ -15,25 +15,23 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://tarantula.build"),
+  metadataBase: new URL("https://tarantula-9l0.pages.dev"),
   title: {
-    default: "Tarantula — Software that keeps working",
+    default: "Tarantula — A cloud for small software",
     template: "%s — Tarantula",
   },
   description:
-    "The agent-native platform for building, deploying, and operating complete software.",
+    "Deploy and share software built by agents with hosting, workers, databases, auth, storage, secrets, and durable agent infrastructure included.",
   openGraph: {
-    title: "Tarantula — Software that keeps working",
+    title: "Tarantula — A cloud for small software",
     description:
-      "Build, deploy, and operate complete software with coding agents.",
-    images: ["/og.png"],
+      "The small cloud for software built by agents.",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Tarantula — Software that keeps working",
+    title: "Tarantula — A cloud for small software",
     description:
-      "Build, deploy, and operate complete software with coding agents.",
-    images: ["/og.png"],
+      "The small cloud for software built by agents.",
   },
 };
 

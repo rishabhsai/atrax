@@ -1,7 +1,8 @@
 # Tarantula
 
-The product site for Tarantula: the agent-native platform for building,
-deploying, and operating complete software.
+The product site for Tarantula: a cloud for small software built by coding
+agents. Hosting, workers, databases, auth, storage, company connections, and
+durable operational agents share one app and permission model.
 
 ## Development
 

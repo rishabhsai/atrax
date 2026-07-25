@@ -1,25 +1,24 @@
 import Link from "next/link";
-import { products, solutions } from "../lib/content";
+import { products } from "../lib/content";
 
 export function SiteHeader() {
   return (
     <header className="site-header">
       <div className="shell nav-shell">
         <Link className="brand" href="/" aria-label="Tarantula home">
-          <span className="brand-mark" aria-hidden="true">
-            t/
-          </span>
-          tarantula
+          <span className="brand-mark" aria-hidden="true">t</span>
+          <span>tarantula</span>
+          <small>alpha</small>
         </Link>
 
         <nav className="desktop-nav" aria-label="Primary navigation">
           <div className="nav-cluster">
-            <Link href="/products">Products</Link>
+            <Link href="/products">Products <span aria-hidden="true">⌄</span></Link>
             <div className="mega-menu product-menu">
               <div className="mega-intro">
-                <span className="mega-kicker">Platform</span>
-                <p>One runtime for software built and operated by agents.</p>
-                <Link href="/products">View platform overview →</Link>
+                <span className="mega-kicker">A complete small cloud</span>
+                <p>Every primitive an agent needs to ship a real app.</p>
+                <Link href="/products">Explore all products →</Link>
               </div>
               <div className="mega-links">
                 {Object.values(products).map((product) => (
@@ -31,35 +30,16 @@ export function SiteHeader() {
               </div>
             </div>
           </div>
-          <div className="nav-cluster">
-            <Link href="/solutions">Solutions</Link>
-            <div className="mega-menu solution-menu">
-              <div className="mega-intro">
-                <span className="mega-kicker">Use cases</span>
-                <p>Operational software for the work between existing tools.</p>
-                <Link href="/solutions">Explore all solutions →</Link>
-              </div>
-              <div className="mega-links">
-                {Object.values(solutions).map((solution) => (
-                  <Link href={`/solutions/${solution.slug}`} key={solution.slug}>
-                    <span>{solution.name}</span>
-                    <small>{solution.eyebrow}</small>
-                  </Link>
-                ))}
-              </div>
-            </div>
-          </div>
+          <Link href="/solutions">What to build</Link>
           <Link href="/developers">Developers</Link>
           <Link href="/security">Security</Link>
           <Link href="/pricing">Pricing</Link>
         </nav>
 
         <div className="nav-actions">
-          <Link className="signin-link" href="/company">
-            Sign in
-          </Link>
+          <Link className="nav-plain" href="/company">About</Link>
           <Link className="nav-cta" href="/company">
-            Join alpha <span aria-hidden="true">↗</span>
+            Join alpha <span aria-hidden="true">→</span>
           </Link>
         </div>
 
@@ -72,12 +52,7 @@ export function SiteHeader() {
                 <span>↳</span> {product.name}
               </Link>
             ))}
-            <Link href="/solutions">Solutions</Link>
-            {Object.values(solutions).map((solution) => (
-              <Link href={`/solutions/${solution.slug}`} key={solution.slug}>
-                <span>↳</span> {solution.name}
-              </Link>
-            ))}
+            <Link href="/solutions">What to build</Link>
             <Link href="/developers">Developers</Link>
             <Link href="/security">Security</Link>
             <Link href="/pricing">Pricing</Link>
