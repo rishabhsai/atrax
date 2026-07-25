@@ -16,7 +16,7 @@ test("exports the six-product Tarantula site", async () => {
   );
   assert.match(html, /A cloud for everyone\./);
   assert.match(html, /Give this to your coding agent/);
-  assert.match(html, /tarantula new company-app --template chat/);
+  assert.match(html, /curl -fsSL https:\/\/tarantula-9l0\.pages\.dev\/agent/);
   assert.match(html, /tarantula deploy --json/);
   assert.match(html, /Launchpad/);
   assert.match(html, /Tables/);
@@ -42,13 +42,16 @@ test("exports the six-product Tarantula site", async () => {
     /\/products\/(workers|agent-runtime|hosting|database|auth|storage|secrets)/,
   );
   assert.doesNotMatch(html, /tiny-cloud-hero|company-switchboard|company-library/);
-  assert.match(html, /opengraph-image/);
+  assert.match(html, /og\.png/);
+  assert.match(html, /icon\.svg/);
   assert.doesNotMatch(html, /codex-preview|Building your site|loading skeleton/i);
   const accountHtml = await readExportedPage("/account");
   assert.match(accountHtml, /Your software, without the provider maze\./);
   assert.match(accountHtml, /Cloudflare Access is not enabled on this account yet/);
   assert.match(accountHtml, /Your first deploy will appear here\./);
-  await access(new URL("../out/opengraph-image", import.meta.url));
+  await access(new URL("../out/og.png", import.meta.url));
+  await access(new URL("../out/icon.svg", import.meta.url));
+  await access(new URL("../out/agent", import.meta.url));
 });
 
 test("exports canonical product detail routes", async () => {
@@ -81,6 +84,7 @@ test("exports human and agent-native docs", async () => {
   const docsManifest = JSON.parse(
     await readFile(new URL("../out/docs.json", import.meta.url), "utf8"),
   );
+  assert.equal(docsManifest.agentEntrypoints.agent, "/agent");
   assert.equal(docsManifest.agentEntrypoints.llms, "/llms.txt");
   assert.equal(docsManifest.pages.length, 13);
   for (const page of docsManifest.pages) {

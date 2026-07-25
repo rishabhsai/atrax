@@ -29,6 +29,7 @@ export function DocsShell({ doc }: { doc: DocPage }) {
             ))}
           </nav>
           <div className="docs-machine-links">
+            <a href="/agent">agent ↗</a>
             <a href="/docs.json">docs.json ↗</a>
             <a href="/llms.txt">llms.txt ↗</a>
             <a href="/llms-full.txt">llms-full.txt ↗</a>

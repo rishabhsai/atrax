@@ -24,8 +24,8 @@ export default function Home() {
             </p>
             <AgentCommand />
             <p className="hero-note">
-              One command gives an agent the app contract, migrations, and a
-              machine-readable deployment workflow.{" "}
+              One read-only command gives your agent the docs, app contract,
+              safety rules, and machine-readable deployment workflow.{" "}
               <Link href="/docs">Read the quickstart →</Link>
             </p>
           </div>
@@ -171,13 +171,13 @@ export default function Home() {
       <section className="final-cta">
         <div className="shell final-cta-grid">
           <div>
-            <p className="eyebrow">Start with something real</p>
-            <h2>Give your agent one command.</h2>
+            <p className="eyebrow">Shared context, instantly</p>
+            <h2>Teach your agent Tarantula.</h2>
           </div>
           <div>
-            <code>tarantula new open-chat --template chat</code>
-            <Link className="button button-orange" href="/docs/chat-example">
-              Follow the chat guide <span aria-hidden="true">→</span>
+            <code>curl -fsSL https://tarantula-9l0.pages.dev/agent</code>
+            <Link className="button button-orange" href="/agent">
+              Read the agent file <span aria-hidden="true">→</span>
             </Link>
           </div>
         </div>

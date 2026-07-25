@@ -2,6 +2,8 @@
 
 Tarantula v0 is an agent-native CLI for public Cloudflare Worker apps with Static Assets and D1. Prefer the Markdown pages or docs.json when reading programmatically.
 
+Agent onboarding command: `curl -fsSL https://tarantula-9l0.pages.dev/agent`
+
 ## Available
 
 - [Quickstart](https://tarantula-9l0.pages.dev/docs/quickstart/index.md)

@@ -3,6 +3,7 @@
   "url": "https://tarantula-9l0.pages.dev/docs/",
   "description": "Agent-native documentation for the Tarantula v0 CLI and product roadmap.",
   "agentEntrypoints": {
+    "agent": "/agent",
     "manifest": "/docs.json",
     "llms": "/llms.txt",
     "llmsFull": "/llms-full.txt"

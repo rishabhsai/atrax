@@ -25,6 +25,13 @@ export const docs: Record<string, DocPage> = {
     status: "available",
     sections: [
       {
+        heading: "Brief your coding agent",
+        paragraphs: [
+          "This read-only endpoint gives a coding agent the current docs map, product boundaries, app contract rules, and safe CLI workflow. It does not execute a script or change your machine.",
+        ],
+        code: `curl -fsSL https://tarantula-9l0.pages.dev/agent`,
+      },
+      {
         heading: "Install the local alpha",
         paragraphs: [
           "Tarantula v0 is installed from the private repository. It needs Node.js 22.13 or newer and an authenticated Wrangler session.",

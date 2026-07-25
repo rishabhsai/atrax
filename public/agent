@@ -1,0 +1,44 @@
+# Tarantula agent reference
+
+You are working with Tarantula, an agent-native CLI for small full-stack apps on Cloudflare Workers, Static Assets, and D1.
+
+## Read the source of truth
+
+Base URL: https://tarantula-9l0.pages.dev
+
+1. Fetch `/llms.txt` for the documentation map.
+2. Fetch `/docs.json` when you need a machine-readable page manifest.
+3. Read the relevant Markdown page under `/docs/<slug>/index.md` before changing an app or running a remote operation.
+4. Use `/llms-full.txt` only when the task crosses several product areas.
+
+Do not treat planned features as available. The docs label every feature as available, mixed, or planned.
+
+## Preserve the contract
+
+- `tarantula.json` is the app-owned, provider-neutral source of truth.
+- `tarantula.lock.json` stores stable, non-secret remote identities and should be committed.
+- `.tarantula/wrangler.jsonc` is generated. Never edit it.
+- Migrations are ordered and immutable after application. Add the next migration instead of rewriting an applied one.
+
+## Work safely
+
+1. Read `tarantula.json` and the relevant docs.
+2. Run `tarantula doctor --json` before deployment work.
+3. Use `tarantula deploy --dry-run` before a remote deploy when validating changes.
+4. Use `tarantula deploy --json` only when the user asked to deploy.
+5. Verify remote state with `tarantula inspect --json`.
+6. Use `tarantula logs` for live request outcomes.
+
+The v0 chat template is public: anyone with its URL can read and post. Never describe it as private or suitable for secrets.
+
+## Common workflow
+
+```sh
+tarantula new open-chat --template chat
+cd open-chat
+tarantula dev
+tarantula deploy --json
+tarantula inspect --json
+```
+
+Return the stable app URL and important resource identities from JSON output. Keep provider noise out of user-facing summaries.

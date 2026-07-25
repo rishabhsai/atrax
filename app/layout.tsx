@@ -15,12 +15,23 @@ export const metadata: Metadata = {
     title: "Tarantula | A cloud for everyone",
     description:
       "Deploy a full-stack app from one CLI and get a URL to share.",
+    type: "website",
+    siteName: "Tarantula",
+    images: [
+      {
+        url: "/og.png",
+        width: 1200,
+        height: 630,
+        alt: "Tarantula — A cloud for everyone.",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "Tarantula | A cloud for everyone",
     description:
       "Deploy a full-stack app from one CLI and get a URL to share.",
+    images: ["/og.png"],
   },
 };
 

@@ -1,5 +1,70 @@
+"use client";
+
 import Link from "next/link";
+import { useState, type FocusEvent, type KeyboardEvent, type ReactNode } from "react";
 import { productOrder, products, solutions } from "../lib/content";
+
+type NavMenuProps = {
+  className: string;
+  label: string;
+  children: ReactNode;
+};
+
+function NavMenu({ className, label, children }: NavMenuProps) {
+  const [open, setOpen] = useState(false);
+  const [pinned, setPinned] = useState(false);
+
+  function close() {
+    setPinned(false);
+    setOpen(false);
+  }
+
+  function handleBlur(event: FocusEvent<HTMLDivElement>) {
+    if (!event.currentTarget.contains(event.relatedTarget) && !pinned) {
+      setOpen(false);
+    }
+  }
+
+  function handleKeyDown(event: KeyboardEvent<HTMLDivElement>) {
+    if (event.key === "Escape") {
+      close();
+      event.currentTarget.querySelector("button")?.focus();
+    }
+  }
+
+  return (
+    <div
+      className={`nav-menu ${className}${open ? " is-open" : ""}`}
+      onMouseEnter={() => {
+        if (!pinned) setOpen(true);
+      }}
+      onMouseLeave={() => {
+        if (!pinned) setOpen(false);
+      }}
+      onFocusCapture={() => {
+        if (!pinned) setOpen(true);
+      }}
+      onBlurCapture={handleBlur}
+      onKeyDown={handleKeyDown}
+    >
+      <button
+        type="button"
+        aria-expanded={open}
+        onClick={() => {
+          if (pinned) {
+            close();
+          } else {
+            setPinned(true);
+            setOpen(true);
+          }
+        }}
+      >
+        {label} <span aria-hidden="true">⌄</span>
+      </button>
+      {children}
+    </div>
+  );
+}
 
 export function SiteHeader() {
   return (
@@ -12,8 +77,7 @@ export function SiteHeader() {
         </Link>
 
         <nav className="desktop-nav" aria-label="Primary navigation">
-          <details className="nav-menu nav-menu-products">
-            <summary>Products <span aria-hidden="true">⌄</span></summary>
+          <NavMenu className="nav-menu-products" label="Products">
             <div className="nav-menu-panel">
               <Link className="nav-menu-overview" href="/products">
                 <strong>All products</strong>
@@ -29,9 +93,8 @@ export function SiteHeader() {
                 ))}
               </div>
             </div>
-          </details>
-          <details className="nav-menu nav-menu-use-cases">
-            <summary>Use cases <span aria-hidden="true">⌄</span></summary>
+          </NavMenu>
+          <NavMenu className="nav-menu-use-cases" label="Use cases">
             <div className="nav-menu-panel">
               <Link className="nav-menu-overview" href="/solutions">
                 <strong>All use cases</strong>
@@ -46,7 +109,7 @@ export function SiteHeader() {
                 ))}
               </div>
             </div>
-          </details>
+          </NavMenu>
           <Link href="/docs">Docs</Link>
           <Link href="/developers">CLI</Link>
           <Link href="/security">Security</Link>
