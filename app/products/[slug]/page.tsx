@@ -94,7 +94,7 @@ export default async function ProductPage({ params }: PageProps) {
             </h2>
             <p>
               {product.availability === "available"
-                ? "This surface is implemented and covered by the reference chat."
+                ? "This surface is implemented in the deployable chat template."
                 : "This is roadmap architecture, not an available CLI promise."}
             </p>
           </div>

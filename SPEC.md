@@ -2,15 +2,15 @@
 
 ## Position
 
-Tarantula is an agent-native cloud for small companies. A coding agent can turn a folder into a working, inspectable app and a shareable URL without operating a cloud console.
+Tarantula is a cloud for everyone, starting with small companies and coding agents. A coding agent can turn a folder into a working, inspectable app and a shareable URL without operating a cloud console.
 
 ## Products
 
 | Product | Owns |
 | --- | --- |
-| Launchpad | Development, releases, deploys, URLs, previews, rollback, inspection |
+| Launchpad | Runtime, releases, deploys, URLs, previews, rollback, inspection |
 | Tables | Structured transactional data, migrations, queries, backup, restore |
-| Door | Guest identity, sign-in, sharing, teams, roles, app identity |
+| Door | Identity, sessions, sharing, teams, roles, app identity |
 | Library | Files and permission-aware company knowledge |
 | Switchboard | Company vault, OAuth connections, typed tools, scoped app-to-app actions |
 | Loops | Declared webhooks, schedules, queues, durable jobs, and operational agents |
@@ -18,6 +18,8 @@ Tarantula is an agent-native cloud for small companies. A coding agent can turn 
 No responsibility may have two product owners. Agents are Loops with models and tools, not a separate runtime product.
 
 Ordinary Worker request handlers are part of an app's web runtime. They become Loops only when declared through the durable Loop contract.
+
+Launchpad runs and releases software. Door controls who can enter it. Neither is a mode of the other.
 
 ## Contract
 

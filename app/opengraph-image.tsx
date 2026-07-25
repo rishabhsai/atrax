@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
 
-export const alt = "Tarantula, an agent-native cloud for small software";
+export const alt = "Tarantula, a cloud for everyone";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 export const dynamic = "force-static";
@@ -15,7 +15,7 @@ export default function OpenGraphImage() {
           display: "flex",
           background: "#dd6b31",
           color: "#18130f",
-          fontFamily: "Arial, sans-serif",
+          fontFamily: "monospace",
         }}
       >
         <div
@@ -76,7 +76,7 @@ export default function OpenGraphImage() {
                   letterSpacing: 1.5,
                 }}
               >
-                AGENT-NATIVE CLOUD FOR SMALL SOFTWARE
+                SOFTWARE WITHOUT THE CLOUD OVERHEAD
               </span>
               <div
                 style={{
@@ -86,7 +86,7 @@ export default function OpenGraphImage() {
                   letterSpacing: -5,
                 }}
               >
-                A small cloud your coding agent can operate.
+                A cloud for everyone.
               </div>
             </div>
 

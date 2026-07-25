@@ -5,12 +5,12 @@ export const products = {
     number: "01",
     availability: "available",
     eyebrow: "Build, deploy, inspect",
-    cardTitle: "Turn a folder into a public app and a stable URL.",
+    cardTitle: "Run and release an app. Keep one stable URL.",
     title: "Deploy the app. Get the URL.",
     summary:
       "Launchpad builds a Worker and its static assets, deploys them through your Cloudflare account, waits for the app to become ready, and returns versioned JSON.",
     boundary:
-      "Launchpad owns releases and runtime inspection. It does not own app data, identity, files, tools, or background work.",
+      "Launchpad owns runtime, releases, and inspection. It never decides who can access the app; that is Door.",
     features: [
       ["Local runtime", "Run the same Worker, assets, bindings, and migrations before deploying."],
       ["Stable deployment", "A committed lockfile updates the same Worker and keeps its URL."],
@@ -61,12 +61,12 @@ export const products = {
     number: "03",
     availability: "planned",
     eyebrow: "Identity and access",
-    cardTitle: "Share an app with the right people and roles.",
+    cardTitle: "Control who can open an app and what they can do.",
     title: "Give people access without rebuilding login.",
     summary:
       "Door will add guest identity, sign-in, sessions, teams, invitations, roles, app identity, and one share control for every app.",
     boundary:
-      "Door decides who or what may act. Switchboard decides which external capabilities an app may call.",
+      "Door owns identity, sessions, sharing, and roles. It never deploys or runs software; that is Launchpad. Switchboard owns external capabilities.",
     features: [
       ["Guest identity", "Start without login when the app is intentionally public."],
       ["Private sharing", "Invite a person or team and send one URL."],

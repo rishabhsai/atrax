@@ -20,7 +20,7 @@ export const docs: Record<string, DocPage> = {
     slug: "quickstart",
     title: "Quickstart",
     description:
-      "Install the local alpha, run the reference chat, and deploy it through your Cloudflare account.",
+      "Install the local alpha, create a chat app, and deploy it through your Cloudflare account.",
     group: "Start",
     status: "available",
     sections: [
@@ -73,7 +73,7 @@ tarantula logs`,
       {
         heading: "Commands",
         bullets: [
-          "tarantula new <name> --template chat: scaffold the documented reference app.",
+          "tarantula new <name> --template chat: scaffold the documented chat app.",
           "tarantula dev [--port 8787]: migrate and run locally with persistent state.",
           "tarantula deploy [--json]: provision, migrate, deploy, wait, lock, and return the URL.",
           "tarantula deploy --dry-run: validate the bundle without changing remote resources.",
@@ -215,7 +215,7 @@ tarantula drift --stack prod --json`,
           "User text is rendered with textContent, never inserted as HTML.",
           "The deploy command returns a stable public HTTPS URL.",
           "Posts are capped at 4 KiB and 12 messages per IP per minute.",
-          "The demo retains only the latest 500 messages.",
+          "The template retains only the latest 500 messages.",
         ],
       },
       {
@@ -228,12 +228,6 @@ tarantula dev`,
         heading: "Deploy it",
         code: `tarantula deploy --json`,
         note: "Public means public. Do not use this template for private conversations.",
-      },
-      {
-        heading: "Reference deployment",
-        paragraphs: [
-          "The verified reference app is live at https://tarantula-chat-demo.rishabhsai-mdbar.workers.dev.",
-        ],
       },
     ],
   },

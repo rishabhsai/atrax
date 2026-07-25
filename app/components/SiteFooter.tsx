@@ -10,7 +10,7 @@ export function SiteFooter() {
             <span className="brand-mark" aria-hidden="true">T</span>
             <span>tarantula</span>
           </Link>
-          <p>A small cloud your coding agent can operate.</p>
+          <p>A cloud for everyone.</p>
           <code>tarantula deploy --json</code>
         </div>
 

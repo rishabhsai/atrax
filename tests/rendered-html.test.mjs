@@ -12,9 +12,11 @@ test("exports the six-product Tarantula site", async () => {
   const html = await readExportedPage();
   assert.match(
     html,
-    /<title>Tarantula \| An agent-native cloud for small software/,
+    /<title>Tarantula \| A cloud for everyone/,
   );
-  assert.match(html, /A small cloud your coding agent can operate\./);
+  assert.match(html, /A cloud for everyone\./);
+  assert.match(html, /Give this to your coding agent/);
+  assert.match(html, /tarantula new company-app --template chat/);
   assert.match(html, /tarantula deploy --json/);
   assert.match(html, /Launchpad/);
   assert.match(html, /Tables/);
@@ -28,7 +30,11 @@ test("exports the six-product Tarantula site", async () => {
   assert.match(html, /\/docs/);
   assert.match(html, /\/docs\.json/);
   assert.match(html, /\/llms\.txt/);
-  assert.match(html, /tarantula-chat-demo/);
+  assert.match(html, /Use cases/);
+  assert.match(html, /nav-menu-products/);
+  assert.match(html, /nav-menu-use-cases/);
+  const header = html.match(/<header[\s\S]*?<\/header>/)?.[0] ?? "";
+  assert.doesNotMatch(header, /GitHub|tarantula-chat-demo|Open live chat/);
   assert.doesNotMatch(
     html,
     /\/products\/(workers|agent-runtime|hosting|database|auth|storage|secrets)/,

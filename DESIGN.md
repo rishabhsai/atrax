@@ -16,28 +16,33 @@ colors:
   operational-green-light: "oklch(0.78 0.15 137)"
 typography:
   display:
-    fontFamily: "Arial Black, Arial, sans-serif"
-    fontSize: "clamp(56px, 8.3vw, 116px)"
-    fontWeight: 900
-    lineHeight: 0.84
-    letterSpacing: "-0.065em"
+    fontFamily: "Lucida Console, IBM Plex Mono, Monaco, monospace"
+    fontSize: "clamp(52px, 7.6vw, 104px)"
+    fontWeight: 700
+    lineHeight: 0.9
+    letterSpacing: "-0.075em"
   headline:
-    fontFamily: "Arial Black, Arial, sans-serif"
-    fontSize: "clamp(36px, 5vw, 68px)"
-    fontWeight: 900
-    lineHeight: 0.94
-    letterSpacing: "-0.065em"
+    fontFamily: "Lucida Console, IBM Plex Mono, Monaco, monospace"
+    fontSize: "clamp(34px, 4.4vw, 58px)"
+    fontWeight: 700
+    lineHeight: 0.98
+    letterSpacing: "-0.075em"
   body:
-    fontFamily: "Lucida Console, Monaco, ui-monospace, monospace"
+    fontFamily: "Lucida Console, IBM Plex Mono, Monaco, monospace"
     fontSize: "15px"
     fontWeight: 400
     lineHeight: 1.65
   label:
-    fontFamily: "Lucida Console, Monaco, ui-monospace, monospace"
+    fontFamily: "Lucida Console, IBM Plex Mono, Monaco, monospace"
     fontSize: "10px"
     fontWeight: 400
     lineHeight: 1
     letterSpacing: "0.08em"
+  logo:
+    fontFamily: "Arial Black, Arial, sans-serif"
+    fontSize: "16px"
+    fontWeight: 900
+    lineHeight: 1
 rounded:
   square: "0"
   status-dot: "50%"
@@ -70,7 +75,7 @@ components:
 
 **Creative North Star: "The Operator's Manual"**
 
-Tarantula looks like infrastructure that can be understood and operated, not a toy promising magic. Large compressed headlines establish certainty; monospace body copy, explicit status labels, terminal output, and ledger-like rows provide evidence. Orange is structural and committed rather than decorative.
+Tarantula looks like infrastructure that can be understood and operated, not a toy promising magic. Large compressed monospace headlines establish certainty; explicit status labels, terminal output, and ledger-like rows provide evidence. Orange is structural and committed rather than decorative.
 
 The system is precise, practical, and confident. It rejects the generic AI-generated SaaS landing page: no decorative 3D clouds, soft gradient blobs, interchangeable card grids, vague claims, fake product screenshots, or editorial affectations.
 
@@ -110,17 +115,19 @@ Signal Orange carries the brand; warm paper and near-black create the working su
 
 ## Typography
 
-**Display Font:** Arial Black (with Arial fallback)  
-**Body Font:** Lucida Console (with Monaco and system monospace fallbacks)  
+**Display Font:** Lucida Console (with IBM Plex Mono and Monaco fallbacks)
+
+**Body Font:** Lucida Console (with IBM Plex Mono and Monaco fallbacks)
+
 **Label/Mono Font:** Lucida Console
 
-**Character:** The display face is blunt and compressed. The monospace face turns prose, navigation, commands, and metadata into one coherent operational register.
+**Character:** The BYOA-style monospace stack turns headlines, prose, navigation, commands, and metadata into one coherent operational register. Arial Black is restricted to the square `T` mark.
 
 ### Hierarchy
 
-- **Display** (900, fluid 56–116px, 0.84): Hero declarations only.
-- **Headline** (900, fluid 36–68px, 0.94): Section decisions and product boundaries.
-- **Title** (900, 22–28px, 1): Product and component names.
+- **Display** (700, fluid 52–104px, 0.9): Hero declarations only.
+- **Headline** (700, fluid 34–58px, 0.98): Section decisions and product boundaries.
+- **Title** (700, 22–28px, 1): Product and component names.
 - **Body** (400, 15px, 1.65): Explanations, capped near 70 characters where practical.
 - **Label** (400, 10px, 0.08em, uppercase): Eyebrows, status, and system metadata.
 

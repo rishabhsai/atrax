@@ -2,7 +2,7 @@ import Link from "next/link";
 import { solutions } from "../lib/content";
 
 export const metadata = {
-  title: "Examples",
+  title: "Use cases",
   description:
     "Public tools and prototypes available in v0, plus the private and operational software roadmap.",
 };

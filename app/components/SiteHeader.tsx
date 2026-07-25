@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { productOrder, products, solutions } from "../lib/content";
 
 export function SiteHeader() {
   return (
@@ -11,39 +12,54 @@ export function SiteHeader() {
         </Link>
 
         <nav className="desktop-nav" aria-label="Primary navigation">
-          <Link href="/products">Products</Link>
+          <details className="nav-menu nav-menu-products">
+            <summary>Products <span aria-hidden="true">⌄</span></summary>
+            <div className="nav-menu-panel">
+              <Link className="nav-menu-overview" href="/products">
+                <strong>All products</strong>
+                <small>Six clear system boundaries →</small>
+              </Link>
+              <div className="nav-menu-grid">
+                {productOrder.map((slug) => (
+                  <Link href={`/products/${slug}`} key={slug}>
+                    <strong>{products[slug].name}</strong>
+                    <small>{products[slug].eyebrow}</small>
+                    <i>{products[slug].availability}</i>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </details>
+          <details className="nav-menu nav-menu-use-cases">
+            <summary>Use cases <span aria-hidden="true">⌄</span></summary>
+            <div className="nav-menu-panel">
+              <Link className="nav-menu-overview" href="/solutions">
+                <strong>All use cases</strong>
+                <small>Start with one useful app →</small>
+              </Link>
+              <div className="nav-menu-grid">
+                {Object.values(solutions).map((useCase) => (
+                  <Link href={`/solutions/${useCase.slug}`} key={useCase.slug}>
+                    <strong>{useCase.name}</strong>
+                    <small>{useCase.short}</small>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </details>
           <Link href="/docs">Docs</Link>
           <Link href="/developers">CLI</Link>
-          <Link href="/solutions">Examples</Link>
           <Link href="/security">Security</Link>
         </nav>
-
-        <div className="nav-actions">
-          <a
-            className="nav-github"
-            href="https://github.com/rishabhsai/tarantula"
-          >
-            GitHub
-          </a>
-          <a
-            className="nav-cta"
-            href="https://tarantula-chat-demo.rishabhsai-mdbar.workers.dev"
-          >
-            Open live chat <span aria-hidden="true">↗</span>
-          </a>
-        </div>
 
         <details className="mobile-nav">
           <summary>Menu</summary>
           <div className="mobile-panel">
             <Link href="/products">Products</Link>
+            <Link href="/solutions">Use cases</Link>
             <Link href="/docs">Docs</Link>
             <Link href="/developers">CLI</Link>
-            <Link href="/solutions">Examples</Link>
             <Link href="/security">Security</Link>
-            <a href="https://tarantula-chat-demo.rishabhsai-mdbar.workers.dev">
-              Open live chat ↗
-            </a>
           </div>
         </details>
       </div>

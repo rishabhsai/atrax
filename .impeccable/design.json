@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-07-25T08:30:00Z",
+  "generatedAt": "2026-07-25T09:00:00Z",
   "title": "Design System: Tarantula",
   "extensions": {
     "colorMeta": {
@@ -25,7 +25,7 @@
     },
     "typographyMeta": {
       "display": {
-        "displayName": "Compressed Display",
+        "displayName": "Compressed Operational Mono",
         "purpose": "Hero declarations and section decisions."
       },
       "body": {

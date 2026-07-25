@@ -1,9 +1,10 @@
 import Link from "next/link";
+import { AgentCommand } from "./components/AgentCommand";
 import { DeployTerminal, ProductMark } from "./components/Visuals";
 import { productOrder, products } from "./lib/content";
 
 export const metadata = {
-  title: "Tarantula | An agent-native cloud for small software",
+  title: "Tarantula | A cloud for everyone",
   description:
     "Create, run, deploy, inspect, and debug small full-stack apps from one CLI.",
 };
@@ -14,27 +15,18 @@ export default function Home() {
       <section className="hero">
         <div className="shell hero-grid">
           <div className="hero-copy">
-            <p className="eyebrow">Agent-native cloud for small software</p>
-            <h1>A small cloud your coding agent can operate.</h1>
+            <p className="eyebrow">Software without the cloud overhead</p>
+            <h1>A cloud for everyone.</h1>
             <p className="hero-summary">
-              Create, run, deploy, inspect, and debug from one CLI. Launchpad
-              and Tables work today. Door, Library, Switchboard, and Loops are
-              the roadmap.
+              Deploy software, keep its data, connect internal tools, and give
+              people and agents the same company knowledge. One CLI. No cloud
+              console.
             </p>
-            <div className="button-row">
-              <Link className="button button-dark" href="/docs">
-                Read the quickstart <span aria-hidden="true">→</span>
-              </Link>
-              <a
-                className="button button-outline-dark"
-                href="https://tarantula-chat-demo.rishabhsai-mdbar.workers.dev"
-              >
-                Use the live chat <span aria-hidden="true">↗</span>
-              </a>
-            </div>
+            <AgentCommand />
             <p className="hero-note">
-              Alpha install is local. Deployer uses your Cloudflare account.
-              Visitors to the chat do not log in.
+              The scaffold includes `AGENTS.md`, the app contract, migrations,
+              and machine-readable deploy output.{" "}
+              <Link href="/docs">Read the quickstart →</Link>
             </p>
           </div>
           <DeployTerminal />
@@ -53,8 +45,8 @@ export default function Home() {
           <p className="eyebrow">Available now</p>
           <h2>From an empty folder to a working link.</h2>
           <p>
-            The reference chat is public, persistent, and deployed by the same
-            CLI in the docs.
+            The chat template is public, persistent, and ready for you or your
+            coding agent to deploy with the same CLI in the docs.
           </p>
         </div>
         <div className="proof-flow">
@@ -104,9 +96,24 @@ export default function Home() {
       <section className="section shell boundaries">
         <div className="section-intro">
           <p className="eyebrow">The important boundaries</p>
-          <h2>Knowledge, actions, and execution stay separate.</h2>
+          <h2>Each product has one job.</h2>
         </div>
         <div className="boundary-lines">
+          <article>
+            <span>Launchpad</span>
+            <h3>How software ships</h3>
+            <p>Runtime, releases, URLs, rollback, inspection, and logs.</p>
+          </article>
+          <article>
+            <span>Tables</span>
+            <h3>What state it keeps</h3>
+            <p>Structured data, migrations, queries, backup, and restore.</p>
+          </article>
+          <article>
+            <span>Door</span>
+            <h3>Who may enter</h3>
+            <p>Identity, sessions, invitations, teams, sharing, and roles.</p>
+          </article>
           <article>
             <span>Library</span>
             <h3>What the company knows</h3>
@@ -120,7 +127,7 @@ export default function Home() {
           <article>
             <span>Loops</span>
             <h3>What keeps running</h3>
-            <p>Requests, jobs, schedules, queues, agents, retries, approvals, and traces.</p>
+            <p>Jobs, schedules, queues, agents, retries, approvals, and traces.</p>
           </article>
         </div>
       </section>

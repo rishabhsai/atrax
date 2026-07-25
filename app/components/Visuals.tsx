@@ -27,8 +27,10 @@ export function DeployTerminal({ compact = false }: { compact?: boolean }) {
         <span>agent / terminal</span>
         <span><i /> verified live</span>
       </div>
-      <pre><code><span>$</span> tarantula new open-chat --template chat{"\n"}
-<span>$</span> cd open-chat{"\n"}
+      <pre><code><span>$</span> curl -fsSL https://tarantula-9l0.pages.dev/llms-full.txt{"\n"}
+<b># agent reads the CLI and app contract</b>{"\n\n"}
+<span>$</span> tarantula new company-app --template chat{"\n"}
+<span>$</span> cd company-app{"\n"}
 <span>$</span> tarantula deploy --json{"\n\n"}
 <b>{`{
   "schemaVersion": 1,
@@ -43,8 +45,8 @@ export function DeployTerminal({ compact = false }: { compact?: boolean }) {
     }
   }
 }`}</b></code></pre>
-      <a href="https://tarantula-chat-demo.rishabhsai-mdbar.workers.dev">
-        Open the deployed reference app <span aria-hidden="true">↗</span>
+      <a href="/llms-full.txt">
+        Open the complete agent reference <span aria-hidden="true">↗</span>
       </a>
     </div>
   );

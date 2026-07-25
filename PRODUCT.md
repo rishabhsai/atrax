@@ -1,5 +1,9 @@
 # Tarantula
 
+## Tagline
+
+A cloud for everyone.
+
 ## Register
 
 brand
@@ -10,7 +14,7 @@ Small companies building focused internal tools, customer portals, prototypes, a
 
 ## Product Purpose
 
-Tarantula is an agent-native cloud for small full-stack apps. A coding agent can create, run, inspect, and deploy an app through one compact CLI. The platform includes hosting, data, access, files and company knowledge, connected tools, and durable background work. Success means a useful app can move from a folder to a shareable URL without a cloud console.
+Tarantula is a cloud for everyone, operated through an agent-native CLI. A coding agent can create, run, inspect, and deploy a small full-stack app through one compact contract. The platform includes hosting, data, access, files and company knowledge, connected tools, and durable background work. Success means a useful app can move from a folder to a shareable URL without a cloud console.
 
 ## Brand Personality
 

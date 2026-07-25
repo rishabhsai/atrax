@@ -1,6 +1,6 @@
 # Tarantula
 
-Tarantula is an agent-native CLI for small full-stack apps on Cloudflare. The current v0 can scaffold a public chat, run it locally with persistent data, provision D1, apply migrations, deploy a Worker with static assets, and return a shareable URL.
+Tarantula is a cloud for everyone, operated through an agent-native CLI. The current v0 can scaffold a public chat, run it locally with persistent data, provision D1, apply migrations, deploy a Worker with static assets, and return a shareable URL.
 
 The product site lives in this repository too.
 
@@ -52,8 +52,6 @@ Planned:
 - Named stacks, remote locked state, plan, drift detection, previews, custom domains, rollback, private apps, backups, and a control panel
 
 The provider-neutral product contract and reconciliation model are in [SPEC.md](./SPEC.md).
-
-The proof deployment is [tarantula-chat-demo.rishabhsai-mdbar.workers.dev](https://tarantula-chat-demo.rishabhsai-mdbar.workers.dev).
 
 ## Work on the product site
 

@@ -34,8 +34,8 @@ export default function DevelopersPage() {
 
       <section className="section shell cli-demo-section">
         <div className="section-intro">
-          <p className="eyebrow">Reference deployment</p>
-          <h2>The output points to real resources.</h2>
+          <p className="eyebrow">Agent-readable output</p>
+          <h2>Every deploy explains what it created.</h2>
         </div>
         <DeployTerminal />
       </section>
