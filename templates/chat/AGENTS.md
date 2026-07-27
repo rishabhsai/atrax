@@ -21,10 +21,14 @@ With no Cloudflare account available, `atrax deploy` publishes through
 Atrax instant hosting instead and prints a real public URL plus a one-time
 claim token. The app is anonymous and disappears after 30 days unless you run
 the `atrax claim <token>` line the deploy prints; the token is never written
-to disk, so capture it from that output. `--instant` forces the path. Instant
-apps must be `"visibility": "public"` — a shared app's members are invited with
-`atrax share`, which needs a Cloudflare account — and `inspect`, `logs`,
-`plan`, `drift`, and `share` are not available for them.
+to disk, so capture it from that output. `--instant` forces the path.
+`inspect`, `logs`, `plan`, and `drift` are not available for instant apps.
+
+Every instant deploy names who can open the URL in one line under it, and the
+JSON carries `"access": "public"` or `"access": "shared"`. Both visibilities
+work: a shared instant app gets its Door session secret from instant hosting,
+and `atrax share` manages its members through Atrax instead of a Cloudflare
+account.
 
 Two commands work only on instant apps:
 
@@ -45,7 +49,8 @@ put the app behind an invite-only gate.
 
 - Deploy generates the `DOOR_SESSION_SECRET` Worker secret once and records
   `door.secretProvisioned` in `atrax.lock.json`. The secret itself is never
-  written to disk.
+  written to disk. On instant hosting the control plane generates and records
+  it instead; either way it happens once and never rotates on a redeploy.
 - `atrax share add <email> [--json]` returns a single-use invite URL. Send it
   to the person yourself; Atrax does not send email.
 - `atrax share list [--json]` reports each member as joined, invited, or expired.

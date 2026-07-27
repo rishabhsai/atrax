@@ -266,6 +266,41 @@ async function instantServer() {
           resources: tables,
         });
       }
+      if (request.url === `/v1/apps/${appId}/members`) {
+        if (request.method === "POST") {
+          return send(200, {
+            schemaVersion: 1,
+            status: "invited",
+            email: body.email,
+            inviteUrl: `${url}/.door/join?token=invite-token-1`,
+            expiresAt: Date.now() + 14 * 24 * 60 * 60 * 1000,
+          });
+        }
+        if (request.method === "GET") {
+          return send(200, {
+            schemaVersion: 1,
+            status: "ok",
+            members: [
+              {
+                email: "ana@example.com",
+                state: "invited",
+                joinedAt: null,
+                inviteExpiresAt: Date.now() + 1000,
+              },
+            ],
+          });
+        }
+      }
+      const member = request.url.match(
+        new RegExp(`^/v1/apps/${appId}/members/([^/]+)$`),
+      );
+      if (member && request.method === "DELETE") {
+        return send(200, {
+          schemaVersion: 1,
+          status: "removed",
+          email: decodeURIComponent(member[1]),
+        });
+      }
       const secret = request.url.match(
         new RegExp(`^/v1/apps/${appId}/secrets/([^/]+)$`),
       );
@@ -806,7 +841,15 @@ test("deploy without a Cloudflare account falls back to instant hosting", async 
       /No Cloudflare account detected — deploying to Atrax instant hosting\./,
     );
     assert.match(first.stdout, new RegExp(control.url.replaceAll(".", "\\.")));
-    assert.match(first.stdout, /This app is unclaimed\. It disappears in 30 days/);
+    assert.match(
+      first.stdout,
+      /This app is public: anyone with the URL can open it\./,
+    );
+    assert.match(
+      first.stdout,
+      /Claim it to keep it and manage access:[\s\S]*atrax claim claim-token-1/,
+    );
+    assert.match(first.stdout, /Unclaimed apps disappear after 30 days/);
     assert.match(first.stdout, /atrax claim claim-token-1/);
 
     const created = control.requests.find((item) => item.url === "/v1/apps");
@@ -862,6 +905,7 @@ test("deploy without a Cloudflare account falls back to instant hosting", async 
     assert.equal(payload.name, "instant-chat");
     assert.equal(payload.appId, control.appId);
     assert.equal(payload.url, control.url);
+    assert.equal(payload.access, "public");
     assert.equal(payload.claimToken, undefined);
     assert.equal(payload.resources.tables.name, `i-${control.appId}-tables`);
     assert.ok(!second.stdout.includes("claim-token-1"));
@@ -874,6 +918,14 @@ test("deploy without a Cloudflare account falls back to instant hosting", async 
     assert.equal(redeploys[0].headers.authorization, "Bearer manage-token-1");
     assert.equal(redeploys[0].body.name, undefined);
     assert.ok(redeploys[0].body.modules["worker.js"]);
+
+    // A redeploy has no claim token to offer, so the warning is the short form.
+    const third = await run(["deploy"], appRoot, env);
+    assert.match(
+      third.stdout,
+      /This app is public: anyone with the URL can open it\.$/,
+    );
+    assert.ok(!third.stdout.includes("Claim it to keep it"));
   } finally {
     await control.close();
     await readiness.close();
@@ -1028,26 +1080,101 @@ test("delete needs --yes and then removes the app and its local state", async ()
   }
 });
 
-test("instant hosting refuses a shared app and names the recovery", async () => {
+test("instant hosting deploys a shared app and points at atrax share", async () => {
   const root = await mkdtemp(join(tmpdir(), "atrax-cli-"));
   await run(["new", "shared-instant", "--template", "chat"], root);
   const appRoot = join(root, "shared-instant");
   await setVisibility(appRoot, "shared");
   const bin = await fakeWrangler(root);
   const control = await instantServer();
+  const readiness = await readinessServer();
+  const env = {
+    ...fakeEnv(bin, { whoamiFails: true }),
+    ATRAX_INSTANT_ORIGIN: control.origin,
+    ATRAX_READINESS_ORIGIN: readiness.origin,
+  };
 
   try {
-    const failed = await runAllowFailure(["deploy", "--instant", "--json"], appRoot, {
-      ...fakeEnv(bin, { whoamiFails: true }),
-      ATRAX_INSTANT_ORIGIN: control.origin,
+    const deployed = await run(["deploy", "--instant"], appRoot, env);
+    assert.match(
+      deployed.stdout,
+      /Shared app: only invited members can open it\. Invite someone: atrax share add <email>/,
+    );
+    assert.doesNotMatch(deployed.stdout, /This app is public/);
+    const created = control.requests.find((item) => item.url === "/v1/apps");
+    assert.equal(created.body.contract.visibility, "shared");
+
+    const redeployed = await run(["deploy", "--json"], appRoot, env);
+    const payload = JSON.parse(redeployed.stdout);
+    assert.equal(payload.status, "deployed");
+    assert.equal(payload.access, "shared");
+  } finally {
+    await control.close();
+    await readiness.close();
+  }
+});
+
+test("share on an instant lock manages members through the control plane", async () => {
+  const root = await mkdtemp(join(tmpdir(), "atrax-cli-"));
+  await run(["new", "shared-members", "--template", "chat"], root);
+  const appRoot = join(root, "shared-members");
+  await setVisibility(appRoot, "shared");
+  const control = await instantServer();
+  await writeInstantState(appRoot, control.appId, control.url);
+  const env = { ATRAX_INSTANT_ORIGIN: control.origin };
+
+  try {
+    const invited = await run(
+      ["share", "add", "Ana@Example.com", "--json"],
+      appRoot,
+      env,
+    );
+    const payload = JSON.parse(invited.stdout);
+    assert.equal(payload.schemaVersion, 1);
+    assert.equal(payload.status, "invited");
+    assert.equal(payload.email, "ana@example.com");
+    assert.equal(payload.inviteUrl, `${control.url}/.door/join?token=invite-token-1`);
+
+    const added = control.requests.at(-1);
+    assert.equal(added.method, "POST");
+    assert.equal(added.url, `/v1/apps/${control.appId}/members`);
+    assert.equal(added.headers.authorization, "Bearer manage-token-1");
+    assert.deepEqual(added.body, { email: "ana@example.com" });
+
+    const human = await run(["share", "add", "ana@example.com"], appRoot, env);
+    assert.match(human.stdout, /Invited ana@example\.com/);
+    assert.match(human.stdout, /\/\.door\/join\?token=invite-token-1/);
+
+    const listed = await run(["share", "list", "--json"], appRoot, env);
+    const listPayload = JSON.parse(listed.stdout);
+    assert.equal(listPayload.status, "ok");
+    assert.deepEqual(
+      listPayload.members.map((item) => [item.email, item.state]),
+      [["ana@example.com", "invited"]],
+    );
+    assert.equal(control.requests.at(-1).method, "GET");
+    assert.equal(
+      control.requests.at(-1).url,
+      `/v1/apps/${control.appId}/members`,
+    );
+
+    const removed = await run(
+      ["share", "remove", "ana@example.com", "--json"],
+      appRoot,
+      env,
+    );
+    assert.deepEqual(JSON.parse(removed.stdout), {
+      schemaVersion: 1,
+      status: "removed",
+      email: "ana@example.com",
     });
-    assert.equal(failed.code, 1);
-    const payload = JSON.parse(failed.stdout);
-    assert.equal(payload.status, "error");
-    assert.match(payload.error, /supports public apps only/);
-    assert.equal(payload.details.visibility, "shared");
-    assert.match(payload.details.recovery, /Cloudflare account/);
-    assert.equal(control.requests.length, 0);
+    const deleted = control.requests.at(-1);
+    assert.equal(deleted.method, "DELETE");
+    assert.equal(
+      deleted.url,
+      `/v1/apps/${control.appId}/members/ana%40example.com`,
+    );
+    assert.equal(deleted.headers.authorization, "Bearer manage-token-1");
   } finally {
     await control.close();
   }
@@ -1090,18 +1217,6 @@ test("commands that need a Cloudflare account refuse instant apps", async () => 
     );
     assert.match(payload.details.recovery, /atrax claim/);
   }
-
-  await setVisibility(appRoot, "shared");
-  const share = await runAllowFailure(
-    ["share", "list", "--json"],
-    appRoot,
-    fakeEnv(bin, { workerExists: true }),
-  );
-  assert.equal(share.code, 1);
-  assert.match(
-    JSON.parse(share.stdout).error,
-    /atrax share is not available for instant apps yet/,
-  );
 });
 
 test("the contract accepts shared visibility and still rejects anything else", async () => {

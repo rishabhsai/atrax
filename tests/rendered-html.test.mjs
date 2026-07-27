@@ -15,7 +15,8 @@ test("exports the six-product Atrax site", async () => {
     /<title>Atrax \| A cloud for everyone/,
   );
   assert.match(html, /A cloud for everyone\./);
-  assert.match(html, /Give this to your coding agent/);
+  assert.match(html, /Start in your terminal/);
+  assert.match(html, /npx atrax-cloud new my-app/);
   assert.match(html, /curl -fsSL https:\/\/tarantula-9l0\.pages\.dev\/agent/);
   assert.match(html, /atrax deploy --json/);
   assert.match(html, /Launchpad/);

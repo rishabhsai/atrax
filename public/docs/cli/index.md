@@ -17,19 +17,19 @@ Status: available
 - `atrax share list [--json]`: list members as joined, invited, or expired.
 - `atrax share remove <email> [--json]`: remove a member.
 
-The share commands need `"visibility": "shared"` in `atrax.json` and a deployed app. Visibility `public` is the default and is unchanged: anyone with the URL can use the app. Visibility `shared` is a Door alpha slice: deploy provisions a Worker session secret, and only people who opened an invite link can reach the app. Atrax prints the invite URL; sending it is up to you.
+The share commands need `"visibility": "shared"` in `atrax.json` and a deployed app. Visibility `public` is the default and is unchanged: anyone with the URL can use the app. Visibility `shared` is a Door alpha slice: deploy provisions a Worker session secret, and only people who opened an invite link can reach the app. Atrax prints the invite URL; sending it is up to you. The share commands work on instant apps as well as Cloudflare-account apps: an instant lock routes them through Atrax instant hosting, and the output is identical.
 
 ```json
 { "schemaVersion": 1, "status": "invited", "email": "ana@example.com",
   "inviteUrl": "https://open-chat...workers.dev/.door/join?token=...", "expiresAt": 1790000000000 }
 ```
 
-Instant hosting needs no Cloudflare account. `claimToken` and `expiresAt` appear only on the deploy that creates the app; redeploys reuse `.atrax/instant.json` and omit them.
+Instant hosting needs no Cloudflare account. `claimToken` and `expiresAt` appear only on the deploy that creates the app; redeploys reuse `.atrax/instant.json` and omit them. `access` is `public` or `shared` and reports who can open the URL; the human output says the same thing in one line under the URL.
 
 ```json
 { "schemaVersion": 1, "status": "deployed", "mode": "instant", "name": "open-chat",
   "url": "https://i-3f9a2c81be.<subdomain>.workers.dev", "appId": "3f9a2c81be",
-  "claimToken": "...", "expiresAt": 1790000000000,
+  "access": "public", "claimToken": "...", "expiresAt": 1790000000000,
   "resources": { "tables": { "name": "i-3f9a2c81be-tables" } } }
 ```
 

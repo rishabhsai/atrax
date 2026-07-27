@@ -65,8 +65,9 @@ atrax dev`,
 atrax claim <token>`,
         paragraphs: [
           "Deploy takes this path on its own when no Cloudflare account is detected; --instant forces it. Atrax posts the app to its own hosted control plane and returns a real public URL plus a claim token, printed exactly once by the deploy that minted it. An unclaimed app is deleted 30 days after it was created. Claiming keeps the same URL and stops the expiry.",
+          "Every instant deploy names who can open the URL. A public app prints that anyone with the URL can open it, and the JSON carries access: public. Shared apps work here too: set visibility shared in atrax.json, deploy, and atrax share add <email> invites people the same way it does on a Cloudflare account.",
         ],
-        note: "Instant apps are public only; shared visibility still needs a Cloudflare account. Instant deploys are capped at 10 per day per IP.",
+        note: "Instant deploys are capped at 10 per day per IP.",
       },
       {
         heading: "Inspect what exists",
@@ -93,14 +94,14 @@ atrax logs`,
           "atrax dev [--port 8787]: migrate and run locally with persistent state.",
           "atrax deploy [--json]: provision, migrate, deploy, wait, lock, and return the URL.",
           "atrax deploy --dry-run: validate the bundle without changing remote resources.",
-          "atrax deploy --instant: deploy to Atrax instant hosting instead of a Cloudflare account, and print a claim token once. Deploy chooses this path by itself when no Cloudflare account is detected.",
+          "atrax deploy --instant: deploy to Atrax instant hosting instead of a Cloudflare account, and print a claim token once. Deploy chooses this path by itself when no Cloudflare account is detected. The deploy names who can open the URL and reports it as access: public or access: shared.",
           "atrax claim <token> [--json]: claim an instant app so it stops expiring.",
           "atrax plan [--json]: preview what deploy would create, update, keep, or apply, without changing anything.",
           "atrax drift [--json]: compare the provider with the lockfile and report changes made outside Atrax.",
           "atrax inspect [--json]: inspect the live Worker and D1 database.",
           "atrax logs [--json]: stream live Worker logs; JSON mode is Wrangler NDJSON, not a single result object.",
           "atrax doctor [--json]: validate declared files, bundle, Wrangler, Cloudflare account, and lock ownership.",
-          "atrax share add <email> [--json]: invite someone to a shared app and return a single-use invite URL.",
+          "atrax share add <email> [--json]: invite someone to a shared app and return a single-use invite URL. Works on instant apps and Cloudflare-account apps alike.",
           "atrax share list [--json]: list members as joined, invited, or expired.",
           "atrax share remove <email> [--json]: remove a member from a shared app.",
         ],
@@ -109,6 +110,7 @@ atrax logs`,
         heading: "Sharing",
         paragraphs: [
           "The share commands need visibility shared in atrax.json and a deployed app. Deploy provisions the Worker session secret once. Atrax prints the invite URL; sending it is up to you.",
+          "An instant lock routes the share commands through Atrax instant hosting instead of your Cloudflare account. The JSON and the human output are identical either way.",
         ],
         code: `atrax share add ana@example.com --json
 
@@ -357,6 +359,7 @@ atrax dev`,
         heading: "Available alpha slice",
         paragraphs: [
           "Setting visibility shared in atrax.json puts the deployed app behind an invite-only gate implemented in the template Worker. Deploy provisions the session secret once, and it never touches disk. Opening an invite URL sets a signed session cookie; members live in the app's own door_members table.",
+          "Shared apps also run on Atrax instant hosting, with no Cloudflare account. The invite flow is identical; only the plumbing differs. Instant hosting generates the session secret itself, once per app, and the same atrax share commands manage members through Atrax instead of through your Cloudflare account.",
         ],
         code: `atrax share add ana@example.com --json
 atrax share list --json

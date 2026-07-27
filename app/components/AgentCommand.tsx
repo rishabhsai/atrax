@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-const command = "curl -fsSL https://tarantula-9l0.pages.dev/agent";
+const command = "npx atrax-cloud new my-app";
 
 export function AgentCommand() {
   const [copied, setCopied] = useState(false);
@@ -16,13 +16,13 @@ export function AgentCommand() {
   return (
     <div className="agent-command">
       <div className="agent-command-label">
-        <span>Give this to your coding agent</span>
+        <span>Start in your terminal</span>
         <a href="/agent">Read the agent file ↗</a>
       </div>
       <div className="agent-command-line">
         <span aria-hidden="true">$</span>
         <code>{command}</code>
-        <button type="button" onClick={copy} aria-label="Copy agent reference command">
+        <button type="button" onClick={copy} aria-label="Copy the start command">
           {copied ? "Copied" : "Copy"}
         </button>
       </div>

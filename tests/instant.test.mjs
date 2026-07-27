@@ -106,6 +106,11 @@ class FakeDatabase {
       }
       return [];
     }
+    if (text.startsWith("UPDATE apps SET door_secret_set = 1")) {
+      const row = this.apps.find((item) => item.app_id === values[0]);
+      if (row) row.door_secret_set = 1;
+      return [];
+    }
     if (text.startsWith("UPDATE apps SET applied_migrations = ?, last_deploy_at = ?")) {
       const row = this.apps.find((item) => item.app_id === values[2]);
       if (row) {
@@ -140,9 +145,18 @@ function fakeCfApi() {
     if (method === "GET" && path.endsWith("/workers/subdomain")) {
       return { subdomain: "atrax-apps" };
     }
+    // D1's query endpoint answers in the same envelope for every statement;
+    // `api.rows` is what a SELECT against an app's own database finds.
+    if (method === "POST" && path.endsWith("/query")) {
+      const sql = String(body?.sql ?? "");
+      return [
+        { results: /^\s*SELECT/i.test(sql) ? (api.rows ?? []) : [], success: true },
+      ];
+    }
     return {};
   };
   api.calls = calls;
+  api.rows = [];
   return api;
 }
 
@@ -200,9 +214,15 @@ function request(method, path, body, headers = {}) {
   });
 }
 
-async function createdApp(env) {
+const sharedContract = { ...contract, visibility: "shared" };
+
+function sharedBundle(extra = {}) {
+  return bundle({ contract: sharedContract, ...extra });
+}
+
+async function createdApp(env, body = bundle()) {
   const response = await handleRequest(
-    post("/v1/apps", { name: "open-chat", ...bundle() }),
+    post("/v1/apps", { name: "open-chat", ...body }),
     env,
   );
   const payload = await response.json();
@@ -486,7 +506,7 @@ test("the daily sweep deletes expired unclaimed apps and prunes rate rows", asyn
   ]);
 });
 
-test("rejects oversized bundles, bad names, and shared visibility", async () => {
+test("rejects oversized bundles, bad names, and unknown visibility", async () => {
   const env = environment();
 
   const named = await handleRequest(
@@ -496,17 +516,17 @@ test("rejects oversized bundles, bad names, and shared visibility", async () => 
   assert.equal(named.status, 400);
   assert.match((await named.json()).error, /App names use 2 to 48 lowercase/);
 
-  const shared = await handleRequest(
+  const private_ = await handleRequest(
     post("/v1/apps", {
       name: "open-chat",
-      ...bundle({ contract: { ...contract, visibility: "shared" } }),
+      ...bundle({ contract: { ...contract, visibility: "private" } }),
     }),
     env,
   );
-  assert.equal(shared.status, 400);
-  const sharedPayload = await shared.json();
-  assert.match(sharedPayload.error, /supports public apps only/);
-  assert.match(sharedPayload.details.recovery, /Cloudflare account/);
+  assert.equal(private_.status, 400);
+  const privatePayload = await private_.json();
+  assert.match(privatePayload.error, /supports visibility "public" and "shared"/);
+  assert.equal(privatePayload.details.visibility, "private");
 
   const tooManyAssets = {};
   for (let index = 0; index < 41; index += 1) {
@@ -631,6 +651,186 @@ test("secrets are set and removed on the app's script and never stored", async (
   );
   assert.equal(missing.status, 404);
   assert.match((await missing.json()).error, /is not set on this app/);
+});
+
+test("a shared app binds shared visibility and gets one Door secret ever", async () => {
+  const env = environment();
+  const response = await handleRequest(
+    post("/v1/apps", { name: "open-chat", ...sharedBundle() }),
+    env,
+  );
+  assert.equal(response.status, 200);
+  const created = await response.json();
+
+  const upload = env.__cfApi.calls.find(
+    (call) => call.method === "PUT" && !call.path.endsWith("/secrets"),
+  );
+  assert.ok(
+    upload.body.__body.includes(
+      '{"type":"plain_text","name":"ATRAX_VISIBILITY","text":"shared"}',
+    ),
+  );
+
+  const secrets = env.__cfApi.calls.filter((call) =>
+    call.path.endsWith("/secrets"),
+  );
+  assert.equal(secrets.length, 1);
+  assert.equal(
+    secrets[0].path,
+    `/accounts/account-1/workers/scripts/i-${created.appId}/secrets`,
+  );
+  assert.equal(secrets[0].body.name, "DOOR_SESSION_SECRET");
+  assert.equal(secrets[0].body.type, "secret_text");
+  assert.ok(secrets[0].body.text.length >= 40);
+
+  // The value is never stored and never returned, only the marker.
+  const row = env.CP_DB.apps[0];
+  assert.equal(row.door_secret_set, 1);
+  assert.ok(!JSON.stringify(env.CP_DB.apps).includes(secrets[0].body.text));
+  assert.equal(created.doorSecret, undefined);
+
+  env.__cfApi.calls.length = 0;
+  const redeployed = await handleRequest(
+    post(`/v1/apps/${created.appId}/deploys`, sharedBundle(), {
+      authorization: `Bearer ${created.manageToken}`,
+    }),
+    env,
+  );
+  assert.equal(redeployed.status, 200);
+  assert.equal(
+    env.__cfApi.calls.filter((call) => call.path.endsWith("/secrets")).length,
+    0,
+  );
+  assert.equal(env.CP_DB.apps[0].door_secret_set, 1);
+
+  // A public app never gets one.
+  const publicEnv = environment();
+  await createdApp(publicEnv);
+  assert.equal(publicEnv.CP_DB.apps[0].door_secret_set, null);
+});
+
+test("members are invited, listed, and removed on the app's own database", async () => {
+  const env = environment();
+  const created = await createdApp(env, sharedBundle());
+  const auth = { authorization: `Bearer ${created.manageToken}` };
+
+  const anonymous = await handleRequest(
+    post(`/v1/apps/${created.appId}/members`, { email: "ana@example.com" }),
+    env,
+  );
+  assert.equal(anonymous.status, 401);
+
+  const badEmail = await handleRequest(
+    post(`/v1/apps/${created.appId}/members`, { email: "not an email" }, auth),
+    env,
+  );
+  assert.equal(badEmail.status, 400);
+  assert.match((await badEmail.json()).error, /one email address/);
+
+  const invited = await handleRequest(
+    post(`/v1/apps/${created.appId}/members`, { email: "Ana@Example.com" }, auth),
+    env,
+  );
+  assert.equal(invited.status, 200);
+  const payload = await invited.json();
+  assert.equal(payload.schemaVersion, 1);
+  assert.equal(payload.status, "invited");
+  assert.equal(payload.email, "ana@example.com");
+  assert.ok(payload.expiresAt > Date.now() + 13 * 24 * 60 * 60 * 1000);
+  assert.match(
+    payload.inviteUrl,
+    new RegExp(
+      `^${created.url.replaceAll(".", "\\.")}/\\.door/join\\?token=[A-Za-z0-9_-]+$`,
+    ),
+  );
+
+  const token = new URL(payload.inviteUrl).searchParams.get("token");
+  const queries = env.__cfApi.calls.filter((call) => call.path.endsWith("/query"));
+  assert.equal(queries.length, 2);
+  assert.ok(
+    queries.every((call) =>
+      call.path.startsWith("/accounts/account-1/d1/database/d1-1/"),
+    ),
+    "member queries run against the app's own database",
+  );
+  const upsert = queries[1];
+  assert.match(upsert.body.sql, /INSERT INTO door_members/);
+  assert.match(upsert.body.sql, /ON CONFLICT\(email\) DO UPDATE/);
+  assert.deepEqual(upsert.body.params.slice(0, 2), [
+    "ana@example.com",
+    sha256Hex(token),
+  ]);
+  assert.ok(!JSON.stringify(env.__cfApi.calls).includes(token));
+
+  env.__cfApi.calls.length = 0;
+  env.__cfApi.rows = [
+    { email: "ana@example.com", joined_at: null, invite_expires_at: Date.now() + 1000 },
+    { email: "joined@example.com", joined_at: 1, invite_expires_at: null },
+    { email: "stale@example.com", joined_at: null, invite_expires_at: 1 },
+  ];
+  const listed = await handleRequest(
+    request("GET", `/v1/apps/${created.appId}/members`, undefined, auth),
+    env,
+  );
+  assert.equal(listed.status, 200);
+  const listPayload = await listed.json();
+  assert.equal(listPayload.status, "ok");
+  assert.deepEqual(
+    listPayload.members.map((item) => [item.email, item.state]),
+    [
+      ["ana@example.com", "invited"],
+      ["joined@example.com", "joined"],
+      ["stale@example.com", "expired"],
+    ],
+  );
+
+  env.__cfApi.calls.length = 0;
+  env.__cfApi.rows = [];
+  const removed = await handleRequest(
+    request(
+      "DELETE",
+      `/v1/apps/${created.appId}/members/${encodeURIComponent("ana@example.com")}`,
+      undefined,
+      auth,
+    ),
+    env,
+  );
+  assert.equal(removed.status, 200);
+  assert.deepEqual(await removed.json(), {
+    schemaVersion: 1,
+    status: "removed",
+    email: "ana@example.com",
+  });
+  const deleteQuery = env.__cfApi.calls.find((call) => call.path.endsWith("/query"));
+  assert.match(deleteQuery.body.sql, /DELETE FROM door_members WHERE email = \?/);
+  assert.deepEqual(deleteQuery.body.params, ["ana@example.com"]);
+});
+
+test("member endpoints refuse a public app and name the fix", async () => {
+  const env = environment();
+  const created = await createdApp(env);
+  const auth = { authorization: `Bearer ${created.manageToken}` };
+
+  for (const call of [
+    post(`/v1/apps/${created.appId}/members`, { email: "ana@example.com" }, auth),
+    request("GET", `/v1/apps/${created.appId}/members`, undefined, auth),
+    request(
+      "DELETE",
+      `/v1/apps/${created.appId}/members/${encodeURIComponent("ana@example.com")}`,
+      undefined,
+      auth,
+    ),
+  ]) {
+    const response = await handleRequest(call, env);
+    assert.equal(response.status, 409);
+    const payload = await response.json();
+    assert.match(payload.error, /only available on a shared app/);
+    assert.match(payload.details.recovery, /"visibility": "shared".*atrax deploy/s);
+  }
+  assert.equal(
+    env.__cfApi.calls.filter((item) => item.path.endsWith("/query")).length,
+    0,
+  );
 });
 
 test("delete tears down the script, the database, and the row", async () => {

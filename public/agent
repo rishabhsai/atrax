@@ -52,6 +52,7 @@ atrax claim <token> --json
   "name": "open-chat",
   "url": "https://i-3f9a2c81be.<subdomain>.workers.dev",
   "appId": "3f9a2c81be",
+  "access": "public",
   "claimToken": "...",
   "expiresAt": 1790000000000,
   "resources": { "tables": { "name": "i-3f9a2c81be-tables" } }
@@ -62,7 +63,11 @@ atrax claim <token> --json
 { "schemaVersion": 1, "status": "claimed", "appId": "3f9a2c81be", "url": "https://i-3f9a2c81be.<subdomain>.workers.dev" }
 ```
 
-`claimToken` and `expiresAt` (epoch milliseconds) are present only on the deploy that creates the app; later deploys reuse `.atrax/instant.json` and omit them. An unclaimed app is deleted 30 days after creation. Instant apps are always public: a `"visibility": "shared"` app fails with a recovery line pointing at a Cloudflare account, because instant mode has no secrets. Creates are limited to 10 per day per IP. `atrax.lock.json` records `"mode": "instant"`, and `inspect`, `logs`, `plan`, `drift`, and `share` refuse instant locks.
+`claimToken` and `expiresAt` (epoch milliseconds) are present only on the deploy that creates the app; later deploys reuse `.atrax/instant.json` and omit them. An unclaimed app is deleted 30 days after creation. Creates are limited to 10 per day per IP. `atrax.lock.json` records `"mode": "instant"`, and `inspect`, `logs`, `plan`, and `drift` refuse instant locks.
+
+`access` is `"public"` or `"shared"` and reports who can open the URL. The human output says it in one line under the URL: a public app gets "This app is public: anyone with the URL can open it." Tell the user this verbatim when you report a public deploy; never imply the URL is private.
+
+Instant hosting serves shared apps too. `"visibility": "shared"` deploys normally, instant hosting generates the app's Door session secret itself, and `atrax share` manages members through Atrax rather than a Cloudflare account. Use the same commands as below; the JSON is identical.
 
 ## Shared visibility (Door alpha slice)
 
@@ -74,7 +79,7 @@ atrax share list --json                  # joined | invited | expired
 atrax share remove ana@example.com --json
 ```
 
-Atrax prints the invite URL. It does not send email; the owner shares the link. Members live in the app's own `door_members` table. This is an alpha slice, not the full Door product: no roles, teams, email delivery, or central session revocation. Do not describe a shared app as having sign-in, SSO, or roles.
+Atrax prints the invite URL. It does not send email; the owner shares the link. Members live in the app's own `door_members` table, whether the app runs in the caller's Cloudflare account or on instant hosting. This is an alpha slice, not the full Door product: no roles, teams, email delivery, or central session revocation. Do not describe a shared app as having sign-in, SSO, or roles.
 
 ## Common workflow
 

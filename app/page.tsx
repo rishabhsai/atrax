@@ -63,11 +63,11 @@ export default function Home() {
             </p>
             <AgentCommand />
             <p className="hero-note">
-              One read-only command gives your agent the docs, app contract,
-              safety rules, and machine-readable deployment workflow. No
-              Cloudflare account? <code>atrax deploy --instant</code> puts
-              the app on a public URL and prints a claim token — claim it, or it
-              disappears in 30 days.{" "}
+              No account needed: <code>atrax deploy --instant</code> puts the
+              app on a public URL and prints a claim token — claim it, or it
+              disappears in 30 days. Using a coding agent?{" "}
+              <code>curl -fsSL https://tarantula-9l0.pages.dev/agent</code>{" "}
+              gives it the docs, app contract, and safety rules.{" "}
               <Link href="/docs">Read the quickstart →</Link>
             </p>
           </div>

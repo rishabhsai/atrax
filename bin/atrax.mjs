@@ -777,7 +777,6 @@ function validateEmail(value) {
 
 async function loadSharedApp() {
   const app = await loadApp();
-  rejectInstantLock(app, "share");
   if (app.contract.visibility !== "shared") {
     throw new CliError(
       `atrax share needs visibility "shared" in atrax.json. This app is "${app.contract.visibility}".`,
@@ -833,6 +832,47 @@ async function provisionDoorSecret(app, configPath, account) {
   );
 }
 
+// Two backends write the same member table: the Cloudflare-account path
+// through Wrangler, and the instant path through the control plane. The
+// payloads and the human output are produced here once, so `atrax share`
+// reads identically whichever one answered.
+function emitInvited(payload) {
+  if (jsonOutput) {
+    process.stdout.write(`${JSON.stringify(payload)}\n`);
+  } else {
+    process.stdout.write(
+      `Invited ${payload.email}\n\n  ${payload.inviteUrl}\n\nSend this link to ${payload.email}. It works once and expires in 14 days.\n`,
+    );
+  }
+}
+
+function emitMembers(app, payload) {
+  if (jsonOutput) {
+    process.stdout.write(`${JSON.stringify(payload)}\n`);
+  } else if (!payload.members.length) {
+    process.stdout.write(
+      `No members yet. Run atrax share add <email> to invite someone.\n`,
+    );
+  } else {
+    const lines = payload.members.map(
+      (item) => `  ${item.state.padEnd(8)} ${item.email}\n`,
+    );
+    process.stdout.write(
+      `Members of ${app.contract.name}\n\n${lines.join("")}`,
+    );
+  }
+}
+
+function emitRemoved(payload) {
+  if (jsonOutput) {
+    process.stdout.write(`${JSON.stringify(payload)}\n`);
+  } else {
+    process.stdout.write(
+      `Removed ${payload.email}. Their session stops working when it expires.\n`,
+    );
+  }
+}
+
 async function shareAdd(app, configPath, account, email) {
   const workerUrl = app.lock.worker?.url;
   if (!workerUrl) {
@@ -869,20 +909,13 @@ async function shareAdd(app, configPath, account, email) {
   );
 
   const inviteUrl = `${workerUrl.replace(/\/+$/, "")}/.door/join?token=${token}`;
-  const payload = {
+  emitInvited({
     schemaVersion: 1,
     status: "invited",
     email,
     inviteUrl,
     expiresAt,
-  };
-  if (jsonOutput) {
-    process.stdout.write(`${JSON.stringify(payload)}\n`);
-  } else {
-    process.stdout.write(
-      `Invited ${email}\n\n  ${inviteUrl}\n\nSend this link to ${email}. It works once and expires in 14 days.\n`,
-    );
-  }
+  });
 }
 
 async function shareList(app, configPath, account) {
@@ -907,21 +940,7 @@ async function shareList(app, configPath, account) {
       inviteExpiresAt,
     };
   });
-  const payload = { schemaVersion: 1, status: "ok", members };
-  if (jsonOutput) {
-    process.stdout.write(`${JSON.stringify(payload)}\n`);
-  } else if (!members.length) {
-    process.stdout.write(
-      `No members yet. Run atrax share add <email> to invite someone.\n`,
-    );
-  } else {
-    const lines = members.map(
-      (item) => `  ${item.state.padEnd(8)} ${item.email}\n`,
-    );
-    process.stdout.write(
-      `Members of ${app.contract.name}\n\n${lines.join("")}`,
-    );
-  }
+  emitMembers(app, { schemaVersion: 1, status: "ok", members });
 }
 
 async function shareRemove(app, configPath, account, email) {
@@ -931,14 +950,44 @@ async function shareRemove(app, configPath, account, email) {
     account,
     `DELETE FROM door_members WHERE email = ${sqlText(email)}`,
   );
-  const payload = { schemaVersion: 1, status: "removed", email };
-  if (jsonOutput) {
-    process.stdout.write(`${JSON.stringify(payload)}\n`);
-  } else {
-    process.stdout.write(
-      `Removed ${email}. Their session stops working when it expires.\n`,
-    );
-  }
+  emitRemoved({ schemaVersion: 1, status: "removed", email });
+}
+
+// The instant path never touches Wrangler: the control plane holds the
+// platform token that reaches the app's own D1, and the manage token in
+// .atrax/instant.json is what proves this machine owns the app.
+async function instantShareAdd(state, email) {
+  const result = await instantRequest(`/v1/apps/${state.appId}/members`, {
+    body: { email },
+    token: state.manageToken,
+  });
+  emitInvited({
+    schemaVersion: 1,
+    status: "invited",
+    email: result.email ?? email,
+    inviteUrl: result.inviteUrl,
+    expiresAt: result.expiresAt ?? null,
+  });
+}
+
+async function instantShareList(app, state) {
+  const result = await instantRequest(`/v1/apps/${state.appId}/members`, {
+    method: "GET",
+    token: state.manageToken,
+  });
+  emitMembers(app, {
+    schemaVersion: 1,
+    status: "ok",
+    members: result.members ?? [],
+  });
+}
+
+async function instantShareRemove(state, email) {
+  await instantRequest(
+    `/v1/apps/${state.appId}/members/${encodeURIComponent(email)}`,
+    { method: "DELETE", token: state.manageToken },
+  );
+  emitRemoved({ schemaVersion: 1, status: "removed", email });
 }
 
 async function share() {
@@ -963,6 +1012,16 @@ async function share() {
   const email = wantsEmail ? validateEmail(rest[0]) : null;
 
   const app = await loadSharedApp();
+  if (app.lock.mode === "instant") {
+    const { state } = await loadInstantState(
+      app,
+      "share",
+      "Run atrax deploy first so the instant app exists, then run atrax share add <email>.",
+    );
+    if (action === "add") return instantShareAdd(state, email);
+    if (action === "list") return instantShareList(app, state);
+    return instantShareRemove(state, email);
+  }
   const account = await currentAccount(app, true);
   const { configPath } = await compileProviderConfig(
     app,
@@ -1171,22 +1230,6 @@ async function readInstantMigrations(directory, files) {
 }
 
 async function instantDeploy(app, announce) {
-  // Instant apps can hold secrets now, so DOOR_SESSION_SECRET is no longer the
-  // blocker. Member management is: atrax share writes invites straight into the
-  // app's D1 through `wrangler d1 execute`, which needs the deployer's own
-  // Cloudflare account. A shared instant app would be a locked door with no way
-  // to hand out keys, so the refusal stays until invites go through the
-  // control plane.
-  if (app.contract.visibility !== "public") {
-    throw new CliError(
-      `Atrax instant hosting supports public apps only: inviting members needs the Cloudflare account path today. This app is "${app.contract.visibility}".`,
-      {
-        visibility: app.contract.visibility,
-        recovery:
-          "atrax share writes invites to the app's database through Wrangler, so a shared app needs your own Cloudflare account: run wrangler login, then atrax deploy.",
-      },
-    );
-  }
   const files = await validateAppFiles(app);
   if (announce && !jsonOutput) {
     process.stdout.write(
@@ -1241,6 +1284,7 @@ async function instantDeploy(app, announce) {
     app.contract.web.health ?? "/.well-known/atrax.json",
   );
 
+  const access = app.contract.visibility === "shared" ? "shared" : "public";
   const payload = {
     schemaVersion: 1,
     status: "deployed",
@@ -1248,6 +1292,7 @@ async function instantDeploy(app, announce) {
     name: app.contract.name,
     url,
     appId,
+    access,
     ...(result.claimToken ? { claimToken: result.claimToken } : {}),
     expiresAt: result.expiresAt ?? null,
     resources: { tables: { name: tables } },
@@ -1257,9 +1302,20 @@ async function instantDeploy(app, announce) {
     return;
   }
   process.stdout.write(`\nDeployed ${app.contract.name}\nURL: ${url}\n`);
+  // Who can open this URL is the one thing a person cannot check by looking at
+  // it, so every instant deploy says it plainly.
+  if (access === "shared") {
+    process.stdout.write(
+      "Shared app: only invited members can open it. Invite someone: atrax share add <email>\n",
+    );
+  } else {
+    process.stdout.write(
+      "This app is public: anyone with the URL can open it.\n",
+    );
+  }
   if (result.claimToken) {
     process.stdout.write(
-      `\nThis app is unclaimed. It disappears in 30 days unless you claim it:\n\n  atrax claim ${result.claimToken}\n`,
+      `\nUnclaimed apps disappear after 30 days. Claim it to keep it and manage access:\n\n  atrax claim ${result.claimToken}\n`,
     );
   }
 }
@@ -1288,8 +1344,7 @@ async function claim() {
 // Both commands below act on the control plane with the manage token, so they
 // need an app that instant hosting owns rather than one in the caller's
 // Cloudflare account.
-async function loadInstantApp(name, recovery) {
-  const app = await loadApp();
+async function loadInstantState(app, name, recovery) {
   const statePath = join(app.root, ".atrax", "instant.json");
   if (!(await pathExists(statePath))) {
     throw new CliError(
@@ -1307,6 +1362,12 @@ async function loadInstantApp(name, recovery) {
       },
     );
   }
+  return { state, statePath };
+}
+
+async function loadInstantApp(name, recovery) {
+  const app = await loadApp();
+  const { state, statePath } = await loadInstantState(app, name, recovery);
   return { app, state, statePath };
 }
 

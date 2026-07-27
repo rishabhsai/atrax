@@ -32,6 +32,10 @@ const migrationPattern = /^\d+.*\.sql$/;
 const modulePattern = /^[A-Za-z0-9_.-]+\.(js|mjs)$/;
 const secretNamePattern = /^[A-Z][A-Z0-9_]{0,63}$/;
 const maxSecretChars = 1024;
+const inviteTtlMs = 14 * 24 * 60 * 60 * 1000;
+// The same pattern the CLI validates against, so a member address means the
+// same thing on both paths.
+const emailPattern = /^[^\s"'`\\;,@]+@[^\s"'`\\;,@]+\.[^\s"'`\\;,@]+$/;
 
 // Reserved ahead of <name>.atrax.run: every label Atrax needs for itself, plus
 // the ones a mail or DNS convention would claim. Compared case-insensitively
@@ -182,11 +186,17 @@ function readBundle(body) {
   if (!contract || typeof contract !== "object" || Array.isArray(contract)) {
     throw new CpError(400, "contract must be an object.");
   }
-  if (contract.visibility && contract.visibility !== "public") {
-    throw new CpError(400, "Instant hosting supports public apps only.", {
-      visibility: contract.visibility,
-      recovery: "Deploy shared apps with a Cloudflare account for now.",
-    });
+  const visibility = contract.visibility ?? "public";
+  if (visibility !== "public" && visibility !== "shared") {
+    throw new CpError(
+      400,
+      'Instant hosting supports visibility "public" and "shared".',
+      {
+        visibility: contract.visibility,
+        recovery:
+          'Set "visibility" to "public" or "shared" in atrax.json and deploy again.',
+      },
+    );
   }
   const modules = stringMap(body.modules, "modules", maxModules, (key) =>
     modulePattern.test(key),
@@ -201,7 +211,7 @@ function readBundle(body) {
       entry: contract.web?.entry ?? null,
     });
   }
-  return { contract, modules, assets, migrations, entry };
+  return { contract, modules, assets, migrations, entry, visibility };
 }
 
 async function checkRate(request, env) {
@@ -292,7 +302,7 @@ async function uploadScript(env, options) {
     bindings: [
       { type: "d1", name: "DB", id: options.databaseId },
       { type: "plain_text", name: "ATRAX_APP_NAME", text: options.name },
-      { type: "plain_text", name: "ATRAX_VISIBILITY", text: "public" },
+      { type: "plain_text", name: "ATRAX_VISIBILITY", text: options.visibility },
     ],
   };
   await cfApiFor(env)(
@@ -301,6 +311,22 @@ async function uploadScript(env, options) {
     `/accounts/${accountId(env)}/workers/scripts/${options.workerName}`,
     buildScriptUpload(metadata, files),
   );
+}
+
+// A shared app's Door gate signs its session cookies with DOOR_SESSION_SECRET.
+// The value is generated here, handed straight to Cloudflare as a Worker
+// secret, and never stored or returned; CP_DB records only that provisioning
+// happened, so a redeploy leaves live sessions and open invites working.
+// That marker is also what tells the member endpoints an app is shared.
+async function ensureDoorSecret(env, options) {
+  if (options.visibility !== "shared" || options.doorSecretSet) return false;
+  await cfApiFor(env)(
+    env,
+    "PUT",
+    `/accounts/${accountId(env)}/workers/scripts/${options.workerName}/secrets`,
+    { name: "DOOR_SESSION_SECRET", text: randomToken(), type: "secret_text" },
+  );
+  return true;
 }
 
 export async function createApp(request, env) {
@@ -343,6 +369,12 @@ export async function createApp(request, env) {
     databaseId,
     name,
     workerName,
+    visibility: bundle.visibility,
+  });
+  const doorSecretSet = await ensureDoorSecret(env, {
+    visibility: bundle.visibility,
+    workerName,
+    doorSecretSet: false,
   });
   await cfApiFor(env)(
     env,
@@ -360,8 +392,9 @@ export async function createApp(request, env) {
   await env.CP_DB.prepare(
     `INSERT INTO apps (
        app_id, name, worker_name, url, d1_id, d1_name, applied_migrations,
-       claim_hash, manage_hash, created_at, claimed_at, expires_at, last_deploy_at
-     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, ?, ?)`,
+       claim_hash, manage_hash, created_at, claimed_at, expires_at, last_deploy_at,
+       door_secret_set
+     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, ?, ?, ?)`,
   )
     .bind(
       appId,
@@ -376,6 +409,7 @@ export async function createApp(request, env) {
       now,
       expiresAt,
       now,
+      doorSecretSet ? 1 : null,
     )
     .run();
 
@@ -438,7 +472,21 @@ export async function redeployApp(request, env, appId) {
     databaseId: row.d1_id,
     name: row.name,
     workerName: row.worker_name,
+    visibility: bundle.visibility,
   });
+  if (
+    await ensureDoorSecret(env, {
+      visibility: bundle.visibility,
+      workerName: row.worker_name,
+      doorSecretSet: Boolean(row.door_secret_set),
+    })
+  ) {
+    await env.CP_DB.prepare(
+      `UPDATE apps SET door_secret_set = 1 WHERE app_id = ?`,
+    )
+      .bind(appId)
+      .run();
+  }
 
   const now = Date.now();
   await env.CP_DB.prepare(
@@ -542,6 +590,127 @@ export async function removeSecret(request, env, appId, name) {
   return json({ schemaVersion, status: "removed", name });
 }
 
+// Members of a shared instant app live in that app's own D1 `door_members`
+// table, exactly where the Cloudflare-account path puts them. The account path
+// gets there with `wrangler d1 execute`; here the control plane uses the same
+// platform token it provisions with, and D1's query endpoint takes bound
+// parameters, so nothing is escaped into the statement.
+async function appQuery(env, row, sql, params = []) {
+  const result = await cfApiFor(env)(
+    env,
+    "POST",
+    `/accounts/${accountId(env)}/d1/database/${row.d1_id}/query`,
+    { sql, params },
+  );
+  const first = Array.isArray(result) ? result[0] : result;
+  return Array.isArray(first?.results) ? first.results : [];
+}
+
+function assertShared(row) {
+  if (!row.door_secret_set) {
+    throw new CpError(409, "Members are only available on a shared app.", {
+      appId: row.app_id,
+      recovery:
+        'Set "visibility": "shared" in atrax.json, run atrax deploy, then invite members.',
+    });
+  }
+}
+
+// A malformed percent-escape is a bad address, not a control-plane crash: the
+// raw segment falls through to assertEmail and comes back as a 400.
+function decodePathSegment(value) {
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return value;
+  }
+}
+
+function assertEmail(value) {
+  const email = typeof value === "string" ? value.trim().toLowerCase() : "";
+  if (email.length < 3 || email.length > 254 || !emailPattern.test(email)) {
+    throw new CpError(
+      400,
+      "Enter one email address without quotes, commas, or whitespace.",
+      { email: typeof value === "string" ? value : null },
+    );
+  }
+  return email;
+}
+
+export async function addMember(request, env, appId) {
+  const row = await authorize(request, env, appId);
+  assertShared(row);
+  const body = await readBody(request);
+  const email = assertEmail(body.email);
+
+  const existing = await appQuery(
+    env,
+    row,
+    `SELECT id, joined_at FROM door_members WHERE email = ?`,
+    [email],
+  );
+  if (existing[0]?.joined_at) {
+    throw new CpError(409, `${email} has already joined this app.`, {
+      email,
+      recovery: `Run atrax share remove ${email} first if you need to send a new invitation.`,
+    });
+  }
+
+  // The invite token leaves in the response and nowhere else: only its
+  // SHA-256 hex reaches the app's database.
+  const token = randomToken();
+  const now = Date.now();
+  const expiresAt = now + inviteTtlMs;
+  await appQuery(
+    env,
+    row,
+    `INSERT INTO door_members (email, invite_hash, invite_expires_at, created_at)
+     VALUES (?, ?, ?, ?)
+     ON CONFLICT(email) DO UPDATE SET
+       invite_hash = excluded.invite_hash,
+       invite_expires_at = excluded.invite_expires_at`,
+    [email, await sha256Hex(token), expiresAt, now],
+  );
+
+  const inviteUrl = `${String(row.url).replace(/\/+$/, "")}/.door/join?token=${token}`;
+  return json({ schemaVersion, status: "invited", email, inviteUrl, expiresAt });
+}
+
+export async function listMembers(request, env, appId) {
+  const row = await authorize(request, env, appId);
+  assertShared(row);
+  const rows = await appQuery(
+    env,
+    row,
+    `SELECT email, joined_at, invite_expires_at FROM door_members ORDER BY email ASC`,
+  );
+  const now = Date.now();
+  const members = rows.map((member) => {
+    const joinedAt = member.joined_at ?? null;
+    const inviteExpiresAt = member.invite_expires_at ?? null;
+    return {
+      email: member.email,
+      state: joinedAt
+        ? "joined"
+        : inviteExpiresAt && inviteExpiresAt > now
+          ? "invited"
+          : "expired",
+      joinedAt,
+      inviteExpiresAt,
+    };
+  });
+  return json({ schemaVersion, status: "ok", members });
+}
+
+export async function removeMember(request, env, appId, rawEmail) {
+  const row = await authorize(request, env, appId);
+  assertShared(row);
+  const email = assertEmail(rawEmail);
+  await appQuery(env, row, `DELETE FROM door_members WHERE email = ?`, [email]);
+  return json({ schemaVersion, status: "removed", email });
+}
+
 // Shared by the daily sweep and by an explicit `atrax delete`, so both paths
 // tear down exactly the same resources in the same order.
 async function deleteAppResources(env, row) {
@@ -595,6 +764,24 @@ export async function handleRequest(request, env) {
     const deploys = path.match(/^\/v1\/apps\/([a-f0-9]{10})\/deploys$/);
     if (deploys && request.method === "POST") {
       return await redeployApp(request, env, deploys[1]);
+    }
+    const members = path.match(/^\/v1\/apps\/([a-f0-9]{10})\/members$/);
+    if (members && request.method === "POST") {
+      return await addMember(request, env, members[1]);
+    }
+    if (members && request.method === "GET") {
+      return await listMembers(request, env, members[1]);
+    }
+    const member = path.match(
+      /^\/v1\/apps\/([a-f0-9]{10})\/members\/([^/]{1,320})$/,
+    );
+    if (member && request.method === "DELETE") {
+      return await removeMember(
+        request,
+        env,
+        member[1],
+        decodePathSegment(member[2]),
+      );
     }
     const secret = path.match(/^\/v1\/apps\/([a-f0-9]{10})\/secrets\/([^/]{1,80})$/);
     if (secret && request.method === "PUT") {

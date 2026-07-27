@@ -21,7 +21,9 @@ await cp(join(root, "templates"), join(out, "templates"), { recursive: true });
 await cp(join(root, "README.md"), join(out, "README.md"));
 
 const manifest = {
-  name: "atrax",
+  // npm's similarity filter blocks bare "atrax" (vs "rax"); atrax-cloud is the
+  // published name. The bin stays "atrax", and `npx atrax-cloud` runs it.
+  name: "atrax-cloud",
   version: rootPackage.version,
   description:
     "A cloud for everyone. Deploy, inspect, and share small full-stack apps from one CLI — no account needed to start.",
@@ -44,4 +46,4 @@ await writeFile(
   join(out, "package.json"),
   `${JSON.stringify(manifest, null, 2)}\n`,
 );
-process.stdout.write(`Staged atrax@${manifest.version} in dist-npm/. Publish with: npm publish ./dist-npm\n`);
+process.stdout.write(`Staged ${manifest.name}@${manifest.version} in dist-npm/. Publish with: npm publish ./dist-npm --access=public\n`);

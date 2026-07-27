@@ -158,3 +158,68 @@ a key — strictly worse than refusing. So instant deploy still requires
 `visibility: "public"`, and its error now names member management rather than
 secrets. Shared instant apps unblock when invites move to a control-plane
 endpoint that writes to the app's D1 through `cfApi`.
+
+---
+
+# Follow-on slice — shared instant apps and the public-access line
+
+*2026-07-27. Decision 6 above is now fully superseded, and so is the "still
+refused, for a different reason" section: member management moved to the
+control plane, so instant hosting serves both visibilities.*
+
+## The one-line access warning
+
+Every instant deploy now says who can open the URL, because that is the one
+property of a deployed app a person cannot check by reading the link. A public
+app prints `This app is public: anyone with the URL can open it.` — with
+`Claim it to keep it and manage access: atrax claim <token>` appended on the
+deploy that mints the token — and a shared app prints `Shared app: only invited
+members can open it. Invite someone: atrax share add <email>`. The deploy JSON
+gains `"access": "public" | "shared"`. Nothing else was added: one line, once,
+at the moment the URL appears.
+
+## Shared visibility
+
+`POST /v1/apps` and `POST /v1/apps/:appId/deploys` accept `contract.visibility`
+of `"public"` or `"shared"`. The `ATRAX_VISIBILITY` binding follows the
+contract instead of being hardcoded to `public`.
+
+For a shared app the control plane generates `DOOR_SESSION_SECRET` itself — 32
+random bytes, base64url — and sets it through the same Workers-secrets call
+`atrax secret set` uses, immediately after the script upload. The value is
+never stored and never returned. `apps.door_secret_set` (migration
+`0002_door.sql`) records only that provisioning happened, so a redeploy leaves
+live sessions and open invites working, and one create means exactly one
+secrets call. That column is also the "this app is shared" flag the member
+endpoints check.
+
+## Member endpoints
+
+| Method | Path | Auth | Does |
+| --- | --- | --- | --- |
+| POST | `/v1/apps/:appId/members` | Bearer manageToken | upsert an invite, return `{status:"invited", email, inviteUrl, expiresAt}` |
+| GET | `/v1/apps/:appId/members` | Bearer manageToken | `{status:"ok", members:[{email, state, joinedAt, inviteExpiresAt}]}` |
+| DELETE | `/v1/apps/:appId/members/:email` | Bearer manageToken | `{status:"removed", email}` |
+
+They operate on the **app's own** D1 — the `d1_id` in the app row — through the
+same `cfApi` D1 query endpoint migrations use, with bound `params` rather than
+escaped literals. The SQL, the `door_members` table, the SHA-256 hex invite
+hash, the 14-day expiry, the upsert-unless-joined rule, and the lowercased
+email validation all match `atrax share` on the Cloudflare-account path exactly,
+so an app behaves the same whichever path deployed it. The raw invite token
+exists only in the response. On a public app all three return 409 naming the
+fix: set `"visibility": "shared"` and redeploy.
+
+On the CLI, `atrax share add/list/remove` now branches on the lockfile: an
+instant lock calls these endpoints with the manage token from
+`.atrax/instant.json`, an account lock still runs `wrangler d1 execute`. The
+JSON payloads and the human output are produced in one place, so the two paths
+are indistinguishable to the caller. `inspect`, `logs`, `plan`, and `drift`
+still refuse instant locks; `share` no longer does.
+
+## Claim stays token-based
+
+Claiming is still "run the `atrax claim <token>` line the deploy printed", and
+it will stay token-based until the account console exists — signing in to claim
+needs accounts and device auth, which is the Account Foundation slice, not this
+one.
