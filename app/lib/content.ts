@@ -181,9 +181,9 @@ export const solutions = {
     short: "Replace a fragile spreadsheet or recurring status chase with a focused app.",
     title: "Build the internal tool your team keeps working around.",
     summary:
-      "Start with one specific workflow. Deploy it publicly today, then add private sharing, connected tools, and Loops as those products land.",
+      "Start with one specific workflow. Deploy it publicly today, then share it like a doc, grant typed actions to company tools, and schedule the run as Door, Switchboard, and Loops land.",
     example: "Renewal review",
-    steps: ["Load account data", "Show one shared review", "Add company tools later", "Automate the weekly run later"],
+    steps: ["Load account data", "Show one shared review", "Grant narrow tool actions later", "Automate the weekly run later"],
     stack: ["launchpad", "tables", "door", "switchboard", "loops"],
   },
   "public-tools": {
@@ -217,9 +217,9 @@ export const solutions = {
     short: "Put recurring agent work inside an app people can inspect and supervise.",
     title: "Turn a recurring agent task into bounded software.",
     summary:
-      "Loops, Switchboard, Library, and Door are the planned foundation for scheduled work with company context, narrow tools, approval, and a visible run history.",
+      "An agent ships behind the same app contract as any other app. Loops, Switchboard, Library, and Door are the planned foundation for schedules, company knowledge, typed actions, approval, and a trace of every step.",
     example: "Customer risk review",
-    steps: ["Trigger a Loop", "Read approved knowledge", "Call narrow tools", "Pause before sensitive actions"],
+    steps: ["Trigger a Loop", "Read approved knowledge", "Call typed actions", "Pause before sensitive actions"],
     stack: ["loops", "switchboard", "library", "door", "tables"],
   },
 } as const;

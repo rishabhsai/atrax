@@ -16,9 +16,10 @@ export default function SolutionsPage() {
           <div>
             <h1>Start with one useful app.</h1>
             <p>
-              Public tools and prototypes work in v0. Private team apps and
-              operational software depend on Door, Library, Switchboard, and
-              Loops.
+              Public tools and prototypes work today on Launchpad and Tables.
+              Sharing like a doc, typed actions between apps, and scheduled
+              agent work are planned, and depend on Door, Switchboard, Library,
+              and Loops.
             </p>
           </div>
         </div>
