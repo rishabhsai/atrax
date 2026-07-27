@@ -1,3 +1,4 @@
+import { handleDoor } from "./door.js";
 import { validateMessage } from "./validation.js";
 
 const jsonHeaders = {
@@ -120,6 +121,8 @@ async function postMessage(request, env) {
 
 const worker = {
   async fetch(request, env) {
+    const gate = await handleDoor(request, env);
+    if (gate) return gate;
     const url = new URL(request.url);
     if (url.pathname === "/.well-known/tarantula.json") {
       return json({

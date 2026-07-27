@@ -11,6 +11,16 @@ Status: available
 - `tarantula inspect [--json]`
 - `tarantula logs [--json]`: JSON mode is a Wrangler NDJSON event stream.
 - `tarantula doctor [--json]`: checks declared files, bundle, account, and lock ownership.
+- `tarantula share add <email> [--json]`: invite someone to a shared app and return a single-use invite URL.
+- `tarantula share list [--json]`: list members as joined, invited, or expired.
+- `tarantula share remove <email> [--json]`: remove a member.
+
+The share commands need `"visibility": "shared"` in `tarantula.json` and a deployed app. Visibility `public` is the default and is unchanged: anyone with the URL can use the app. Visibility `shared` is a Door alpha slice: deploy provisions a Worker session secret, and only people who opened an invite link can reach the app. Tarantula prints the invite URL; sending it is up to you.
+
+```json
+{ "schemaVersion": 1, "status": "invited", "email": "ana@example.com",
+  "inviteUrl": "https://open-chat...workers.dev/.door/join?token=...", "expiresAt": 1790000000000 }
+```
 
 Finite JSON commands emit one versioned object and fail with a non-zero exit code. `logs --json` is the long-running NDJSON exception. Unknown options fail before any mutation. The first deploy records the Cloudflare account in `tarantula.lock.json`; later remote operations fail before mutation when the active account differs.
 

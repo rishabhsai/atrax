@@ -89,7 +89,26 @@ tarantula logs`,
           "tarantula inspect [--json]: inspect the live Worker and D1 database.",
           "tarantula logs [--json]: stream live Worker logs; JSON mode is Wrangler NDJSON, not a single result object.",
           "tarantula doctor [--json]: validate declared files, bundle, Wrangler, Cloudflare account, and lock ownership.",
+          "tarantula share add <email> [--json]: invite someone to a shared app and return a single-use invite URL.",
+          "tarantula share list [--json]: list members as joined, invited, or expired.",
+          "tarantula share remove <email> [--json]: remove a member from a shared app.",
         ],
+      },
+      {
+        heading: "Sharing",
+        paragraphs: [
+          "The share commands need visibility shared in tarantula.json and a deployed app. Deploy provisions the Worker session secret once. Tarantula prints the invite URL; sending it is up to you.",
+        ],
+        code: `tarantula share add ana@example.com --json
+
+{
+  "schemaVersion": 1,
+  "status": "invited",
+  "email": "ana@example.com",
+  "inviteUrl": "https://open-chat...workers.dev/.door/join?token=...",
+  "expiresAt": 1790000000000
+}`,
+        note: "This is the Door alpha slice: invite links only. Roles, teams, and email delivery are still planned.",
       },
       {
         heading: "JSON contract",
@@ -146,7 +165,7 @@ tarantula logs`,
   }
 }`,
         paragraphs: [
-          "v0 accepts one public Worker entry, one static-asset directory, and one ordered migration directory. All paths must remain inside the app and may not contain symlinks. The optional same-origin health path defaults to /.well-known/tarantula.json.",
+          "v0 accepts one Worker entry, one static-asset directory, and one ordered migration directory. visibility is public or shared; shared gates the app behind Door invite links. All paths must remain inside the app and may not contain symlinks. The optional same-origin health path defaults to /.well-known/tarantula.json.",
         ],
       },
       {
@@ -320,8 +339,18 @@ tarantula dev`,
       {
         heading: "Status",
         paragraphs: [
-          "Door is not available in v0. The current chat is intentionally public and has no visitor login.",
+          "Door is not available in v0. A deployed app is public by default and has no visitor login.",
         ],
+      },
+      {
+        heading: "Available alpha slice",
+        paragraphs: [
+          "Setting visibility shared in tarantula.json puts the deployed app behind an invite-only gate implemented in the template Worker. Deploy provisions the session secret once, and it never touches disk. Opening an invite URL sets a signed session cookie; members live in the app's own door_members table.",
+        ],
+        code: `tarantula share add ana@example.com --json
+tarantula share list --json
+tarantula share remove ana@example.com --json`,
+        note: "This is a template capability the CLI provisions, not the Door product. No roles, teams, email delivery, or central session revocation.",
       },
       {
         heading: "Planned scope",

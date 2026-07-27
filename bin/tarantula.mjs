@@ -10,7 +10,7 @@ import {
   stat,
   writeFile,
 } from "node:fs/promises";
-import { createHash } from "node:crypto";
+import { createHash, randomBytes } from "node:crypto";
 import { spawn } from "node:child_process";
 import { dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -91,6 +91,7 @@ function validateCommandArgs() {
     inspect: { flags: ["--json"], values: [], positionals: 0 },
     logs: { flags: ["--json"], values: [], positionals: 0 },
     doctor: { flags: ["--json"], values: [], positionals: 0 },
+    share: { flags: ["--json"], values: [], positionals: null },
     help: { flags: [], values: [], positionals: 0 },
     "--help": { flags: [], values: [], positionals: 0 },
     "-h": { flags: [], values: [], positionals: 0 },
@@ -116,7 +117,7 @@ function validateCommandArgs() {
     }
     positionalCount += 1;
   }
-  if (positionalCount !== spec.positionals) {
+  if (spec.positionals !== null && positionalCount !== spec.positionals) {
     throw new CliError(
       `${command} expects ${spec.positionals} positional argument${spec.positionals === 1 ? "" : "s"}`,
     );
@@ -194,9 +195,9 @@ function validateContract(contract) {
     throw new CliError("tarantula.json version must be 1");
   }
   validateName(contract.name);
-  if (contract.visibility !== "public") {
+  if (contract.visibility !== "public" && contract.visibility !== "shared") {
     throw new CliError(
-      'Tarantula v0 supports visibility "public". Private apps are not available yet.',
+      'Tarantula v0 supports visibility "public" and "shared". Private apps are not available yet.',
     );
   }
   if (!contract.web?.entry || !contract.web?.assets) {
@@ -335,7 +336,7 @@ async function validateAppFiles(app) {
   return { entry, assets, migrations, migrationFiles: migrationFiles.sort() };
 }
 
-async function compileProviderConfig(app, databaseId = null) {
+async function compileProviderConfig(app, databaseId = null, options = {}) {
   const configDir = join(app.root, ".tarantula");
   await mkdir(configDir, { recursive: true });
   const databaseName =
@@ -348,7 +349,12 @@ async function compileProviderConfig(app, databaseId = null) {
       directory: toConfigPath(app.root, configDir, app.contract.web.assets),
       binding: "ASSETS",
       not_found_handling: "single-page-application",
-      run_worker_first: ["/api/*", "/.well-known/*"],
+      // A shared app has to run the Worker before any asset is served, or the
+      // Door gate would never see requests for HTML, CSS, and JavaScript.
+      run_worker_first:
+        app.contract.visibility === "shared"
+          ? true
+          : ["/api/*", "/.well-known/*"],
     },
     d1_databases: [
       {
@@ -368,6 +374,10 @@ async function compileProviderConfig(app, databaseId = null) {
     vars: {
       TARANTULA_APP_NAME: app.contract.name,
       TARANTULA_VISIBILITY: app.contract.visibility,
+      // Only tarantula dev compiles this. A local run has no members and no
+      // session secret, so the Door gate stands down instead of locking the
+      // developer out of their own app. Deploy never writes it.
+      ...(options.local ? { TARANTULA_LOCAL: "1" } : {}),
     },
     observability: {
       enabled: true,
@@ -394,14 +404,21 @@ async function runWrangler(appRoot, args, options = {}) {
     WRANGLER_LOG_PATH: join(appRoot, ".tarantula", "wrangler.log"),
   };
 
+  const stdin = options.input === undefined ? "inherit" : "pipe";
+
   return new Promise((resolvePromise, rejectPromise) => {
     const child = spawn(process.execPath, [wranglerBin, ...args], {
       cwd: appRoot,
       env,
-      stdio: capture ? ["inherit", "pipe", "pipe"] : "inherit",
+      stdio: capture ? [stdin, "pipe", "pipe"] : [stdin, "inherit", "inherit"],
     });
     let stdout = "";
     let stderr = "";
+
+    if (options.input !== undefined) {
+      child.stdin.on("error", () => {});
+      child.stdin.end(options.input);
+    }
 
     if (capture) {
       child.stdout.on("data", (chunk) => {
@@ -653,10 +670,15 @@ async function waitForLive(url, healthPath) {
   if (healthUrl.origin !== baseUrl.origin) {
     throw new CliError("web.health must resolve on the deployed app origin.");
   }
+  // Offline harnesses point the readiness probe at a local stand-in. The
+  // deployed URL recorded in the lockfile is unaffected.
+  const probeUrl = process.env.TARANTULA_READINESS_ORIGIN
+    ? new URL(healthUrl.pathname + healthUrl.search, process.env.TARANTULA_READINESS_ORIGIN)
+    : healthUrl;
   let lastStatus = null;
   for (let attempt = 0; attempt < 20; attempt += 1) {
     try {
-      const response = await fetch(healthUrl, { cache: "no-store" });
+      const response = await fetch(probeUrl, { cache: "no-store" });
       lastStatus = response.status;
       if (response.ok) return;
     } catch {
@@ -687,6 +709,228 @@ function findFirstValue(value, keys) {
     }
   }
   return null;
+}
+
+const inviteTtlMs = 14 * 24 * 60 * 60 * 1000;
+
+// Door v0 talks to remote D1 through `wrangler d1 execute --command`, which has
+// no bind parameters. Emails are validated against a strict pattern that
+// excludes quotes and whitespace first, then single-quote escaped, so a member
+// address can never terminate the literal it sits in.
+function sqlText(value) {
+  return `'${String(value).replaceAll("'", "''")}'`;
+}
+
+function validateEmail(value) {
+  const email = typeof value === "string" ? value.trim().toLowerCase() : "";
+  if (
+    email.length < 3 ||
+    email.length > 254 ||
+    !/^[^\s"'`\\;,@]+@[^\s"'`\\;,@]+\.[^\s"'`\\;,@]+$/.test(email)
+  ) {
+    throw new CliError(
+      "Enter one email address without quotes, commas, or whitespace.",
+      { email: typeof value === "string" ? value : null },
+    );
+  }
+  return email;
+}
+
+async function loadSharedApp() {
+  const app = await loadApp();
+  if (app.contract.visibility !== "shared") {
+    throw new CliError(
+      `tarantula share needs visibility "shared" in tarantula.json. This app is "${app.contract.visibility}".`,
+      {
+        visibility: app.contract.visibility,
+        recovery:
+          'Set "visibility": "shared" in tarantula.json, run tarantula deploy, then run tarantula share add <email>.',
+      },
+    );
+  }
+  if (!app.lock) {
+    throw new CliError("This app has not been deployed. Run tarantula deploy.", {
+      recovery:
+        "Run tarantula deploy so the shared app and its member table exist, then run tarantula share add <email>.",
+    });
+  }
+  return app;
+}
+
+async function runQuery(app, configPath, account, sql) {
+  const result = await runWrangler(
+    app.root,
+    ["d1", "execute", "DB", "--remote", "--config", configPath, "--command", sql, "--json"],
+    {
+      capture: true,
+      quiet: true,
+      env: { CI: "1", CLOUDFLARE_ACCOUNT_ID: account.id },
+    },
+  );
+  const payload = parseJsonOutput(
+    `${result.stdout}\n${result.stderr}`,
+    "wrangler d1 execute",
+  );
+  const first = Array.isArray(payload) ? payload[0] : payload;
+  return Array.isArray(first?.results) ? first.results : [];
+}
+
+// The Worker must exist before a Worker secret can be attached to it, so this
+// runs after the first successful `wrangler deploy`. `wrangler secret put`
+// publishes a new Worker version carrying the secret; no second deploy is
+// needed. The secret is generated here, piped through stdin, and never written
+// to disk: the lockfile records only that provisioning happened.
+async function provisionDoorSecret(app, configPath, account) {
+  await runWrangler(
+    app.root,
+    ["secret", "put", "DOOR_SESSION_SECRET", "--config", configPath],
+    {
+      capture: true,
+      quiet: true,
+      input: `${randomBytes(32).toString("base64")}\n`,
+      env: { CI: "1", CLOUDFLARE_ACCOUNT_ID: account.id },
+    },
+  );
+}
+
+async function shareAdd(app, configPath, account, email) {
+  const workerUrl = app.lock.worker?.url;
+  if (!workerUrl) {
+    throw new CliError(
+      "This app has no recorded URL yet. Run tarantula deploy before inviting people.",
+    );
+  }
+  const existing = await runQuery(
+    app,
+    configPath,
+    account,
+    `SELECT id, joined_at FROM door_members WHERE email = ${sqlText(email)}`,
+  );
+  if (existing[0]?.joined_at) {
+    throw new CliError(`${email} has already joined this app.`, {
+      email,
+      recovery: `Run tarantula share remove ${email} first if you need to send a new invitation.`,
+    });
+  }
+
+  const token = randomBytes(32).toString("base64url");
+  const inviteHash = createHash("sha256").update(token).digest("hex");
+  const now = Date.now();
+  const expiresAt = now + inviteTtlMs;
+  await runQuery(
+    app,
+    configPath,
+    account,
+    `INSERT INTO door_members (email, invite_hash, invite_expires_at, created_at)
+     VALUES (${sqlText(email)}, ${sqlText(inviteHash)}, ${expiresAt}, ${now})
+     ON CONFLICT(email) DO UPDATE SET
+       invite_hash = excluded.invite_hash,
+       invite_expires_at = excluded.invite_expires_at`,
+  );
+
+  const inviteUrl = `${workerUrl.replace(/\/+$/, "")}/.door/join?token=${token}`;
+  const payload = {
+    schemaVersion: 1,
+    status: "invited",
+    email,
+    inviteUrl,
+    expiresAt,
+  };
+  if (jsonOutput) {
+    process.stdout.write(`${JSON.stringify(payload)}\n`);
+  } else {
+    process.stdout.write(
+      `Invited ${email}\n\n  ${inviteUrl}\n\nSend this link to ${email}. It works once and expires in 14 days.\n`,
+    );
+  }
+}
+
+async function shareList(app, configPath, account) {
+  const rows = await runQuery(
+    app,
+    configPath,
+    account,
+    `SELECT email, joined_at, invite_expires_at FROM door_members ORDER BY email ASC`,
+  );
+  const now = Date.now();
+  const members = rows.map((row) => {
+    const joinedAt = row.joined_at ?? null;
+    const inviteExpiresAt = row.invite_expires_at ?? null;
+    return {
+      email: row.email,
+      state: joinedAt
+        ? "joined"
+        : inviteExpiresAt && inviteExpiresAt > now
+          ? "invited"
+          : "expired",
+      joinedAt,
+      inviteExpiresAt,
+    };
+  });
+  const payload = { schemaVersion: 1, status: "ok", members };
+  if (jsonOutput) {
+    process.stdout.write(`${JSON.stringify(payload)}\n`);
+  } else if (!members.length) {
+    process.stdout.write(
+      `No members yet. Run tarantula share add <email> to invite someone.\n`,
+    );
+  } else {
+    const lines = members.map(
+      (item) => `  ${item.state.padEnd(8)} ${item.email}\n`,
+    );
+    process.stdout.write(
+      `Members of ${app.contract.name}\n\n${lines.join("")}`,
+    );
+  }
+}
+
+async function shareRemove(app, configPath, account, email) {
+  await runQuery(
+    app,
+    configPath,
+    account,
+    `DELETE FROM door_members WHERE email = ${sqlText(email)}`,
+  );
+  const payload = { schemaVersion: 1, status: "removed", email };
+  if (jsonOutput) {
+    process.stdout.write(`${JSON.stringify(payload)}\n`);
+  } else {
+    process.stdout.write(
+      `Removed ${email}. Their session stops working when it expires.\n`,
+    );
+  }
+}
+
+async function share() {
+  const [action, ...rest] = positionals();
+  if (!action) {
+    throw new CliError(
+      "Usage: tarantula share add <email> | tarantula share list | tarantula share remove <email>",
+    );
+  }
+  if (!["add", "list", "remove"].includes(action)) {
+    throw new CliError(`Unknown share action: ${action}`, {
+      recovery: "Use tarantula share add, tarantula share list, or tarantula share remove.",
+    });
+  }
+  const wantsEmail = action !== "list";
+  if (wantsEmail && rest.length !== 1) {
+    throw new CliError(`share ${action} expects one email address`);
+  }
+  if (!wantsEmail && rest.length) {
+    throw new CliError("share list expects no positional arguments");
+  }
+  const email = wantsEmail ? validateEmail(rest[0]) : null;
+
+  const app = await loadSharedApp();
+  const account = await currentAccount(app, true);
+  const { configPath } = await compileProviderConfig(
+    app,
+    app.lock.resources?.tables?.id ?? null,
+  );
+  if (action === "add") return shareAdd(app, configPath, account, email);
+  if (action === "list") return shareList(app, configPath, account);
+  return shareRemove(app, configPath, account, email);
 }
 
 async function replaceTemplateTokens(root, name) {
@@ -741,7 +985,7 @@ async function createApp() {
 async function develop() {
   const app = await loadApp();
   await validateAppFiles(app);
-  const { configPath } = await compileProviderConfig(app);
+  const { configPath } = await compileProviderConfig(app, null, { local: true });
   const persistPath = join(app.root, ".tarantula", "state");
   await runWrangler(
     app.root,
@@ -798,6 +1042,7 @@ async function deploy() {
   const account = await currentAccount(app, quiet);
   await assertWorkerNameAvailable(app, account);
   const database = await resolveDatabase(app, quiet);
+  const door = app.lock?.door ?? null;
   app.lock = {
     version: 1,
     provider: "cloudflare",
@@ -814,6 +1059,7 @@ async function deploy() {
         id: database.id,
       },
     },
+    ...(door ? { door } : {}),
   };
   await writeFile(app.lockPath, `${JSON.stringify(app.lock, null, 2)}\n`);
   const { configPath } = await compileProviderConfig(app, database.id);
@@ -839,6 +1085,14 @@ async function deploy() {
     quiet,
     env: { CI: "1", CLOUDFLARE_ACCOUNT_ID: account.id },
   });
+
+  if (
+    app.contract.visibility === "shared" &&
+    !app.lock.door?.secretProvisioned
+  ) {
+    await provisionDoorSecret(app, configPath, account);
+    app.lock.door = { secretProvisioned: true };
+  }
 
   const output = `${result.stdout}\n${result.stderr}`;
   const url =
@@ -881,6 +1135,7 @@ const actionMarks = {
   recreate: "+",
   update: "~",
   apply: "~",
+  provision: "+",
   keep: "=",
   none: "=",
 };
@@ -1029,6 +1284,18 @@ async function plan() {
     });
   }
 
+  if (app.contract.visibility === "shared") {
+    const provisioned = Boolean(app.lock?.door?.secretProvisioned);
+    actions.push({
+      product: "door",
+      resource: "session-secret",
+      action: provisioned ? "keep" : "provision",
+      reason: provisioned
+        ? "The Door session secret is already provisioned for this Worker."
+        : "Deploy would generate DOOR_SESSION_SECRET and store it as a Worker secret.",
+    });
+  }
+
   const changes = actions.some(
     (item) => item.action !== "keep" && item.action !== "none",
   );
@@ -1084,7 +1351,9 @@ async function drift() {
       reason:
         "The active Cloudflare account is not the account recorded in tarantula.lock.json.",
     });
-    for (const check of ["worker", "deployment", "url", "tables", "migrations"]) {
+    const skipped = ["worker", "deployment", "url", "tables", "migrations"];
+    if (app.contract.visibility === "shared") skipped.push("door");
+    for (const check of skipped) {
       checks.push({
         check,
         expected: null,
@@ -1239,6 +1508,46 @@ async function drift() {
           : null,
       });
     }
+
+    if (app.contract.visibility === "shared") {
+      const expected = app.lock.door?.secretProvisioned ? "present" : "absent";
+      try {
+        const secrets = await runWrangler(
+          app.root,
+          ["secret", "list", "--config", configPath, "--json"],
+          {
+            capture: true,
+            quiet: true,
+            env: { CI: "1", CLOUDFLARE_ACCOUNT_ID: account.id },
+          },
+        );
+        const observed = `${secrets.stdout}\n${secrets.stderr}`.includes(
+          "DOOR_SESSION_SECRET",
+        )
+          ? "present"
+          : "absent";
+        checks.push({
+          check: "door",
+          expected,
+          observed,
+          result: expected === observed ? "ok" : "drift",
+          reason:
+            expected === observed
+              ? null
+              : expected === "present"
+                ? "tarantula.lock.json records a Door session secret that the Worker no longer has. Existing invites and sessions will not work."
+                : "The Worker has a DOOR_SESSION_SECRET that Tarantula did not provision.",
+        });
+      } catch {
+        checks.push({
+          check: "door",
+          expected,
+          observed: null,
+          result: "unknown",
+          reason: "Cloudflare did not return the Worker secret list.",
+        });
+      }
+    }
   }
 
   const drifted = checks.some((item) => item.result === "drift");
@@ -1375,9 +1684,14 @@ Usage:
   tarantula logs [--json]
   tarantula doctor [--json]
 
+Sharing (alpha, needs "visibility": "shared"):
+  tarantula share add <email>     invite someone to a shared app
+  tarantula share list [--json]
+  tarantula share remove <email>
+
 plan previews what deploy would change. drift exits 2 when the provider no longer matches the lockfile.
 
-The deployer uses your Cloudflare account. Visitors to the chat template do not log in.
+The deployer uses your Cloudflare account. Visitors to a public chat template do not log in.
 `);
 }
 
@@ -1391,6 +1705,7 @@ try {
   else if (command === "inspect") await inspectApp();
   else if (command === "logs") await logs();
   else if (command === "doctor") await doctor();
+  else if (command === "share") await share();
   else if (command === "help" || command === "--help" || command === "-h") help();
   else if (command === "--version" || command === "-v") {
     process.stdout.write(`${packageJson.version}\n`);

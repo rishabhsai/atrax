@@ -33,7 +33,19 @@ Do not treat planned features as available. The docs label every feature as avai
 
 Exit codes: `0` success, `1` error (including a `plan` blocked by an unowned name conflict), `2` only from `drift` when the provider no longer matches the lockfile. Treat `2` as a state to report, not a crash.
 
-The v0 chat template is public: anyone with its URL can read and post. Never describe it as private or suitable for secrets.
+The v0 chat template is public by default: anyone with its URL can read and post. Never describe it as private or suitable for secrets.
+
+## Shared visibility (Door alpha slice)
+
+`tarantula.json` accepts `"visibility": "public"` (default) or `"visibility": "shared"`. A shared app is gated by the template's own Door module: deploy provisions a `DOOR_SESSION_SECRET` Worker secret once, and every request without a valid signed session cookie gets a 401 invitation page.
+
+```sh
+tarantula share add ana@example.com --json   # returns a single-use invite URL
+tarantula share list --json                  # joined | invited | expired
+tarantula share remove ana@example.com --json
+```
+
+Tarantula prints the invite URL. It does not send email; the owner shares the link. Members live in the app's own `door_members` table. This is an alpha slice, not the full Door product: no roles, teams, email delivery, or central session revocation. Do not describe a shared app as having sign-in, SSO, or roles.
 
 ## Common workflow
 
@@ -45,6 +57,7 @@ tarantula plan --json
 tarantula deploy --json
 tarantula inspect --json
 tarantula drift --json
+tarantula share add ana@example.com --json
 ```
 
 Return the stable app URL and important resource identities from JSON output. Keep provider noise out of user-facing summaries.

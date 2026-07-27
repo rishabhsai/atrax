@@ -1,5 +1,7 @@
 import assert from "node:assert/strict";
 import { mkdtemp, readFile, writeFile } from "node:fs/promises";
+import { createHash } from "node:crypto";
+import { createServer } from "node:http";
 import { execFile } from "node:child_process";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
@@ -34,12 +36,39 @@ async function runAllowFailure(args, cwd, env = {}) {
 }
 
 const fakeWranglerSource = `#!/usr/bin/env node
+import { appendFileSync } from "node:fs";
+import { join } from "node:path";
+
 const argv = process.argv.slice(2);
 const state = JSON.parse(process.env.TARANTULA_FAKE_STATE ?? "{}");
 const has = (...parts) => parts.every((part) => argv.includes(part));
 const out = (text) => process.stdout.write(text + "\\n");
+const sidecar = (name, value) => {
+  if (!process.env.TARANTULA_FAKE_DIR) return;
+  appendFileSync(join(process.env.TARANTULA_FAKE_DIR, name), JSON.stringify(value) + "\\n");
+};
+const readStdin = async () => {
+  let text = "";
+  for await (const chunk of process.stdin) text += chunk;
+  return text;
+};
 
-if (has("whoami")) {
+if (has("d1", "execute")) {
+  const sql = argv[argv.indexOf("--command") + 1] ?? "";
+  sidecar("sql.log", { sql });
+  const isSelect = /^\\s*select/i.test(sql);
+  out(JSON.stringify([
+    { success: true, results: isSelect ? (state.rows ?? []) : [], meta: { changes: 1 } },
+  ]));
+} else if (has("secret", "put")) {
+  const value = (await readStdin()).trim();
+  sidecar("secrets.log", { name: argv[argv.indexOf("put") + 1] ?? null, value });
+  out(JSON.stringify({ success: true }));
+} else if (has("secret", "list")) {
+  out(JSON.stringify(
+    (state.secrets ?? []).map((name) => ({ name, type: "secret_text" })),
+  ));
+} else if (has("whoami")) {
   out(JSON.stringify({
     accounts: [{ id: state.accountId ?? "account-1", name: "Fake Account" }],
   }));
@@ -73,6 +102,10 @@ if (has("whoami")) {
 } else if (has("deploy", "--dry-run")) {
   out("Total Upload: 1.00 KiB / gzip: 0.50 KiB");
   out("--dry-run: exiting now.");
+} else if (has("deploy")) {
+  out("Total Upload: 1.00 KiB / gzip: 0.50 KiB");
+  out("Deployed " + (state.workerName ?? "app") + " triggers");
+  out("  https://" + (state.workerName ?? "app") + ".fake.workers.dev");
 } else {
   out("");
 }
@@ -88,6 +121,62 @@ function fakeEnv(bin, state) {
   return {
     TARANTULA_WRANGLER_BIN: bin,
     TARANTULA_FAKE_STATE: JSON.stringify(state),
+  };
+}
+
+async function readSidecar(dir, name) {
+  let source;
+  try {
+    source = await readFile(join(dir, name), "utf8");
+  } catch {
+    return [];
+  }
+  return source
+    .split("\n")
+    .filter(Boolean)
+    .map((line) => JSON.parse(line));
+}
+
+async function setVisibility(appRoot, visibility) {
+  const contractPath = join(appRoot, "tarantula.json");
+  const contract = JSON.parse(await readFile(contractPath, "utf8"));
+  contract.visibility = visibility;
+  await writeFile(contractPath, `${JSON.stringify(contract, null, 2)}\n`);
+}
+
+async function writeLock(appRoot, name, extra = {}) {
+  await writeFile(
+    join(appRoot, "tarantula.lock.json"),
+    `${JSON.stringify(
+      {
+        version: 1,
+        provider: "cloudflare",
+        accountId: "account-1",
+        worker: {
+          name,
+          url: `https://${name}.fake.workers.dev`,
+          lastDeploymentId: "deployment-1",
+        },
+        resources: {
+          tables: { binding: "DB", name: `${name}-tables`, id: "db-1" },
+        },
+        ...extra,
+      },
+      null,
+      2,
+    )}\n`,
+  );
+}
+
+async function readinessServer() {
+  const server = createServer((request, response) => {
+    response.writeHead(200, { "content-type": "application/json" });
+    response.end("{}");
+  });
+  await new Promise((done) => server.listen(0, "127.0.0.1", done));
+  return {
+    origin: `http://127.0.0.1:${server.address().port}`,
+    close: () => new Promise((done) => server.close(done)),
   };
 }
 
@@ -240,6 +329,7 @@ test("plan describes the first deploy of a never-deployed app", async () => {
   assert.deepEqual(payload.migrations.pending, [
     "0001_messages.sql",
     "0002_public_chat_guardrails.sql",
+    "0003_door_members.sql",
   ]);
 });
 
@@ -370,4 +460,217 @@ test("logs requires a deployed lock before contacting Cloudflare", async () => {
     run(["logs"], join(root, "local-chat")),
     /has not been deployed/,
   );
+});
+
+test("share add invites a member and stores only the hashed invite token", async () => {
+  const root = await mkdtemp(join(tmpdir(), "tarantula-cli-"));
+  await run(["new", "shared-chat", "--template", "chat"], root);
+  const appRoot = join(root, "shared-chat");
+  await setVisibility(appRoot, "shared");
+  await writeLock(appRoot, "shared-chat", { door: { secretProvisioned: true } });
+  const bin = await fakeWrangler(root);
+
+  const invited = await run(["share", "add", "Ana@Example.com", "--json"], appRoot, {
+    ...fakeEnv(bin, {
+      workerExists: true,
+      databases: [{ uuid: "db-1", name: "shared-chat-tables" }],
+      rows: [],
+    }),
+    TARANTULA_FAKE_DIR: root,
+  });
+  const payload = JSON.parse(invited.stdout);
+  assert.equal(payload.schemaVersion, 1);
+  assert.equal(payload.status, "invited");
+  assert.equal(payload.email, "ana@example.com");
+  assert.ok(payload.expiresAt > Date.now());
+  assert.match(
+    payload.inviteUrl,
+    /^https:\/\/shared-chat\.fake\.workers\.dev\/\.door\/join\?token=[A-Za-z0-9_-]+$/,
+  );
+
+  const token = new URL(payload.inviteUrl).searchParams.get("token");
+  const hashed = createHash("sha256").update(token).digest("hex");
+  const executed = await readSidecar(root, "sql.log");
+  const upsert = executed.find((item) => item.sql.includes("INSERT INTO door_members"));
+  assert.ok(upsert, "share add should upsert into door_members");
+  assert.match(upsert.sql, /ON CONFLICT\(email\) DO UPDATE/);
+  assert.ok(upsert.sql.includes(hashed), "the SQL should store the hashed token");
+  assert.ok(!upsert.sql.includes(token), "the SQL must never contain the raw token");
+  assert.ok(upsert.sql.includes("'ana@example.com'"));
+});
+
+test("share list reports member state from the app database", async () => {
+  const root = await mkdtemp(join(tmpdir(), "tarantula-cli-"));
+  await run(["new", "list-chat", "--template", "chat"], root);
+  const appRoot = join(root, "list-chat");
+  await setVisibility(appRoot, "shared");
+  await writeLock(appRoot, "list-chat", { door: { secretProvisioned: true } });
+  const bin = await fakeWrangler(root);
+
+  const listed = await run(
+    ["share", "list", "--json"],
+    appRoot,
+    fakeEnv(bin, {
+      workerExists: true,
+      databases: [{ uuid: "db-1", name: "list-chat-tables" }],
+      rows: [
+        { email: "joined@example.com", joined_at: 1, invite_expires_at: null },
+        {
+          email: "pending@example.com",
+          joined_at: null,
+          invite_expires_at: Date.now() + 86_400_000,
+        },
+        { email: "stale@example.com", joined_at: null, invite_expires_at: 1 },
+      ],
+    }),
+  );
+  const payload = JSON.parse(listed.stdout);
+  assert.equal(payload.status, "ok");
+  assert.deepEqual(
+    payload.members.map((item) => [item.email, item.state]),
+    [
+      ["joined@example.com", "joined"],
+      ["pending@example.com", "invited"],
+      ["stale@example.com", "expired"],
+    ],
+  );
+});
+
+test("share refuses to run on a public app and explains the recovery", async () => {
+  const root = await mkdtemp(join(tmpdir(), "tarantula-cli-"));
+  await run(["new", "public-chat", "--template", "chat"], root);
+  const appRoot = join(root, "public-chat");
+  await writeLock(appRoot, "public-chat");
+  const bin = await fakeWrangler(root);
+
+  const failed = await runAllowFailure(
+    ["share", "add", "ana@example.com", "--json"],
+    appRoot,
+    fakeEnv(bin, { workerExists: true }),
+  );
+  assert.equal(failed.code, 1);
+  const payload = JSON.parse(failed.stdout);
+  assert.equal(payload.status, "error");
+  assert.match(payload.error, /needs visibility "shared"/);
+  assert.equal(payload.details.visibility, "public");
+  assert.match(payload.details.recovery, /Set "visibility": "shared".*tarantula deploy/s);
+});
+
+test("deploy provisions the Door session secret exactly once", async () => {
+  const root = await mkdtemp(join(tmpdir(), "tarantula-cli-"));
+  await run(["new", "secret-chat", "--template", "chat"], root);
+  const appRoot = join(root, "secret-chat");
+  await setVisibility(appRoot, "shared");
+  await writeLock(appRoot, "secret-chat");
+  const bin = await fakeWrangler(root);
+  const readiness = await readinessServer();
+  const env = {
+    ...fakeEnv(bin, {
+      workerExists: true,
+      workerName: "secret-chat",
+      databases: [{ uuid: "db-1", name: "secret-chat-tables" }],
+      pending: [],
+    }),
+    TARANTULA_FAKE_DIR: root,
+    TARANTULA_READINESS_ORIGIN: readiness.origin,
+  };
+
+  try {
+    const first = await run(["deploy", "--json"], appRoot, env);
+    assert.equal(JSON.parse(first.stdout).status, "deployed");
+    const afterFirst = await readSidecar(root, "secrets.log");
+    assert.equal(afterFirst.length, 1);
+    assert.equal(afterFirst[0].name, "DOOR_SESSION_SECRET");
+    assert.ok(afterFirst[0].value.length >= 40);
+
+    const lock = JSON.parse(
+      await readFile(join(appRoot, "tarantula.lock.json"), "utf8"),
+    );
+    assert.deepEqual(lock.door, { secretProvisioned: true });
+
+    await run(["deploy", "--json"], appRoot, env);
+    const afterSecond = await readSidecar(root, "secrets.log");
+    assert.equal(afterSecond.length, 1);
+  } finally {
+    await readiness.close();
+  }
+});
+
+test("plan and drift report the Door session secret for shared apps", async () => {
+  const root = await mkdtemp(join(tmpdir(), "tarantula-cli-"));
+  await run(["new", "door-chat", "--template", "chat"], root);
+  const appRoot = join(root, "door-chat");
+  await setVisibility(appRoot, "shared");
+  await writeLock(appRoot, "door-chat");
+  const bin = await fakeWrangler(root);
+  const state = {
+    workerExists: true,
+    databases: [{ uuid: "db-1", name: "door-chat-tables" }],
+    pending: [],
+    secrets: [],
+  };
+
+  const planned = await run(["plan", "--json"], appRoot, fakeEnv(bin, state));
+  const planPayload = JSON.parse(planned.stdout);
+  const secretAction = planPayload.actions.find(
+    (item) => item.resource === "session-secret",
+  );
+  assert.equal(secretAction.product, "door");
+  assert.equal(secretAction.action, "provision");
+  assert.equal(planPayload.changes, true);
+
+  const clean = await run(
+    ["drift", "--json"],
+    appRoot,
+    fakeEnv(bin, { ...state, secrets: [] }),
+  );
+  const doorCheck = JSON.parse(clean.stdout).checks.find(
+    (item) => item.check === "door",
+  );
+  assert.equal(doorCheck.expected, "absent");
+  assert.equal(doorCheck.observed, "absent");
+  assert.equal(doorCheck.result, "ok");
+
+  await writeLock(appRoot, "door-chat", { door: { secretProvisioned: true } });
+  const drifted = await runAllowFailure(
+    ["drift", "--json"],
+    appRoot,
+    fakeEnv(bin, { ...state, secrets: [] }),
+  );
+  assert.equal(drifted.code, 2);
+  const driftedCheck = JSON.parse(drifted.stdout).checks.find(
+    (item) => item.check === "door",
+  );
+  assert.equal(driftedCheck.expected, "present");
+  assert.equal(driftedCheck.observed, "absent");
+  assert.equal(driftedCheck.result, "drift");
+});
+
+test("the contract accepts shared visibility and still rejects anything else", async () => {
+  const root = await mkdtemp(join(tmpdir(), "tarantula-cli-"));
+  await run(["new", "visibility-chat", "--template", "chat"], root);
+  const appRoot = join(root, "visibility-chat");
+  const bin = await fakeWrangler(root);
+
+  await setVisibility(appRoot, "shared");
+  const checked = await run(
+    ["doctor", "--json"],
+    appRoot,
+    fakeEnv(bin, { workerExists: false, databases: [] }),
+  );
+  assert.equal(JSON.parse(checked.stdout).status, "ready");
+
+  const providerConfig = JSON.parse(
+    await readFile(join(appRoot, ".tarantula", "wrangler.jsonc"), "utf8"),
+  );
+  assert.equal(providerConfig.vars.TARANTULA_VISIBILITY, "shared");
+  assert.equal(providerConfig.assets.run_worker_first, true);
+
+  for (const visibility of ["private", "unlisted", "Public"]) {
+    await setVisibility(appRoot, visibility);
+    await assert.rejects(
+      run(["doctor"], appRoot, fakeEnv(bin, { workerExists: false })),
+      /supports visibility "public" and "shared"/,
+    );
+  }
 });

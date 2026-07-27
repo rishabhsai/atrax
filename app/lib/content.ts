@@ -78,7 +78,7 @@ export const products = {
     cardTitle: "Control who can open an app and what they can do.",
     title: "Give people access without rebuilding login.",
     summary:
-      "Door will add guest identity, sign-in, sessions, teams, invitations, roles, app identity, and one share control for every app.",
+      "Door will add guest identity, sign-in, sessions, teams, invitations, roles, app identity, and one share control for every app. An alpha slice ships today: shared visibility with invite links via tarantula share.",
     boundary:
       "Door owns identity, sessions, sharing, and roles. It never deploys or runs software; that is Launchpad. Switchboard owns external capabilities.",
     features: [
@@ -87,15 +87,15 @@ export const products = {
       ["Roles", "Apply the same role in the UI, API, and data layer."],
       ["App identity", "Give each deployed app its own narrow service identity."],
     ],
-    code: `Planned for a later alpha.
+    code: `tarantula share add ana@example.com --json
 
-The current chat template is public.
-Anyone with its URL can read and post.`,
-    codeLabel: "Roadmap status",
+Alpha slice only: invite links for a
+shared app. Roles and teams are planned.`,
+    codeLabel: "Alpha slice",
     spec: [
-      { property: "Command", value: "None yet" },
+      { property: "Command", value: "tarantula share add <email>", code: true },
       { property: "Owns", value: "Identity, sessions, sharing, roles" },
-      { property: "Today", value: "A deployed v0 app is public" },
+      { property: "Today", value: "Public apps, or shared apps behind invite links" },
       { property: "Foundation", value: "Cloudflare Access and app identity" },
       { property: "Status", value: "Planned" },
     ],

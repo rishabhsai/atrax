@@ -42,6 +42,9 @@ The chat is public. Anyone with the URL can read and post.
 - `tarantula inspect [--json]`
 - `tarantula logs [--json]`
 - `tarantula doctor [--json]`
+- `tarantula share add <email> [--json]`
+- `tarantula share list [--json]`
+- `tarantula share remove <email> [--json]`
 
 Finite JSON commands return one object with `schemaVersion: 1`. `logs --json` is a long-running Wrangler NDJSON event stream. Errors return a non-zero exit code, and unknown flags fail before mutation.
 
@@ -50,6 +53,19 @@ Finite JSON commands return one object with `schemaVersion: 1`. `logs --json` is
 `drift` is read-only and requires a lockfile. It emits `{ schemaVersion, status: "clean" | "drifted", name, checks[] }`, where each check is `{ check, expected, observed, result }` with a result of ok, drift, or unknown. Checks cover account, worker, deployment, url, tables, and migrations.
 
 Exit codes: `0` success, `1` error including a blocked plan, `2` only from `drift` when the provider no longer matches the lockfile.
+
+## Shared visibility
+
+`visibility` accepts `"public"` (default, unchanged) or `"shared"`. A shared app is gated inside the template Worker by a small Door module. Deploy provisions the `DOOR_SESSION_SECRET` Worker secret once and records `"door": { "secretProvisioned": true }` in the lockfile; the secret is never written to disk.
+
+`tarantula share add <email>` stores a hashed, single-use, 14-day invite token in the app's own `door_members` D1 table and returns the invite URL. `share list` reports each member as joined, invited, or expired. `share remove` deletes the row. Visiting `/.door/join?token=...` sets a 30-day HMAC-signed `__door_session` cookie and redirects to `/`. `/.door/whoami` returns the signed-in member. `/.well-known/*` stays reachable so readiness checks work. Every other request without a valid session gets a 401 invitation page.
+
+```json
+{ "schemaVersion": 1, "status": "invited", "email": "ana@example.com",
+  "inviteUrl": "https://open-chat...workers.dev/.door/join?token=...", "expiresAt": 1790000000000 }
+```
+
+This is the Door alpha slice, not the Door product. There are no roles, teams, email delivery, or central session revocation. `plan` reports a `door / session-secret` action and `drift` adds a `door` check for shared apps.
 
 ## App contract
 
@@ -69,6 +85,8 @@ Exit codes: `0` success, `1` error including a blocked plan, `2` only from `drif
 }
 ```
 
+`visibility` accepts `"public"` or `"shared"`. Nothing else validates.
+
 ## Infrastructure model
 
 Tarantula products are the public abstraction. Infrastructure-as-code is an internal reconciliation engine. `plan` and `drift` work today against the single implicit v0 environment. The planned model adds `stacks/dev.json` and `stacks/prod.json` for environment intent, remote locked state for authoritative observations and drift metadata, and stack-aware `plan`, `deploy`, and `drift`.
@@ -83,7 +101,7 @@ Tables v0 provisions D1, applies ordered local and remote migrations, keeps the 
 
 ## Planned products
 
-Door will own guest identity, sign-in, sharing, teams, roles, and app identity.
+Door will own guest identity, sign-in, sharing, teams, roles, and app identity. An alpha slice ships today: shared visibility with invite links via `tarantula share`.
 
 Library will own files and company knowledge, including collections, provenance, freshness, and permission-aware retrieval. It will not store credentials or perform actions.
 

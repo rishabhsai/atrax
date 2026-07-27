@@ -68,6 +68,7 @@ Tarantula products are the user-facing abstraction. Infrastructure-as-code is an
 ## Delivery stages
 
 - **Available v0:** public Worker + Static Assets, one D1 database, migrations, local development, deploy, readiness, stable URL, plan, drift, inspect, logs, committed lockfile, no-login chat.
+- **Available v0:** shared visibility with invite-link membership (Door alpha slice).
 - **Next foundation:** named stacks, remote locked state, immutable release history, preview and rollback.
 - **Account foundation:** Access-authenticated console, CLI device authorization, project registration, release and resource views, and activity ledger.
 - **Platform coverage:** Door, Library, Switchboard, Loops, custom domains, backup and restore, typed data access, hosted control panel.
