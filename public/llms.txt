@@ -4,6 +4,8 @@ Tarantula v0 is an agent-native CLI for public Cloudflare Worker apps with Stati
 
 Agent onboarding command: `curl -fsSL https://tarantula-9l0.pages.dev/agent`
 
+Deploy uses the caller's Cloudflare account. Without one, `tarantula deploy --instant` returns `{ "schemaVersion": 1, "status": "deployed", "mode": "instant", "url": "...", "appId": "...", "claimToken": "...", "expiresAt": 1790000000000 }`; the token is printed once and `tarantula claim <token>` returns `{ "schemaVersion": 1, "status": "claimed", "appId": "...", "url": "..." }`. Unclaimed apps are deleted after 30 days.
+
 ## Available
 
 - [Quickstart](https://tarantula-9l0.pages.dev/docs/quickstart/index.md)

@@ -37,6 +37,8 @@ The chat is public. Anyone with the URL can read and post.
 - `tarantula dev [--port 8787]`
 - `tarantula deploy [--json]`
 - `tarantula deploy --dry-run`
+- `tarantula deploy --instant`
+- `tarantula claim <token> [--json]`
 - `tarantula plan [--json]`
 - `tarantula drift [--json]`
 - `tarantula inspect [--json]`
@@ -53,6 +55,24 @@ Finite JSON commands return one object with `schemaVersion: 1`. `logs --json` is
 `drift` is read-only and requires a lockfile. It emits `{ schemaVersion, status: "clean" | "drifted", name, checks[] }`, where each check is `{ check, expected, observed, result }` with a result of ok, drift, or unknown. Checks cover account, worker, deployment, url, tables, and migrations.
 
 Exit codes: `0` success, `1` error including a blocked plan, `2` only from `drift` when the provider no longer matches the lockfile.
+
+## Instant hosting
+
+`tarantula deploy` uses Tarantula instant hosting when no Cloudflare account is detected; `--instant` forces it. The app runs on Tarantula's own Cloudflare account as one Worker plus one D1 database, on a real public `https://i-<appId>....workers.dev` URL. The claim token is printed exactly once, by the deploy that mints it: it is never written to disk and redeploys never reprint it. An unclaimed app is deleted 30 days after creation; `tarantula claim <token>` keeps the same URL and clears the expiry.
+
+```json
+{ "schemaVersion": 1, "status": "deployed", "mode": "instant", "name": "open-chat",
+  "url": "https://i-3f9a2c81be.<subdomain>.workers.dev", "appId": "3f9a2c81be",
+  "claimToken": "...", "expiresAt": 1790000000000,
+  "resources": { "tables": { "name": "i-3f9a2c81be-tables" } } }
+```
+
+```json
+{ "schemaVersion": 1, "status": "claimed", "appId": "3f9a2c81be",
+  "url": "https://i-3f9a2c81be.<subdomain>.workers.dev" }
+```
+
+`claimToken` and `expiresAt` (epoch milliseconds) appear only on the deploy that creates the app. Local state lives in `.tarantula/instant.json` (mode 0600, gitignored) as `{ appId, manageToken, url }`, and `tarantula.lock.json` records `{ "provider": "tarantula-instant", "mode": "instant", "appId", "worker": { "name", "url" } }`. Instant apps are always public: a shared app fails with a recovery line naming a Cloudflare account, because instant mode cannot provision the Door session secret. Creates are capped at 10 per day per IP. `inspect`, `logs`, `plan`, `drift`, and `share` refuse instant locks, since each reads Cloudflare through Wrangler against an account the deployer does not have.
 
 ## Shared visibility
 

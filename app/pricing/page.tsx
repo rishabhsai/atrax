@@ -43,7 +43,7 @@ export default function PricingPage() {
               <span>alpha</span>
             </div>
             <ChipGrid
-              note="Tarantula charges nothing today because there is nothing hosted to charge for. Cloudflare usage is billed by Cloudflare."
+              note="Tarantula charges nothing today. Instant hosting runs on Tarantula's own account and is free; a deploy into your Cloudflare account is billed by Cloudflare."
               rows={[
                 {
                   label: "Included today",
@@ -53,6 +53,7 @@ export default function PricingPage() {
                     "chat template",
                     "local dev",
                     "deploy to your account",
+                    "instant hosting",
                     "versioned JSON output",
                     "docs and agent files",
                   ],
@@ -74,6 +75,10 @@ export default function PricingPage() {
         </div>
         <div className="pricing-notes">
           <p>Cloudflare can bill Worker and D1 usage.</p>
+          <p>
+            Instant hosting costs nothing: run tarantula deploy --instant,
+            and an unclaimed app is deleted after 30 days. Limits may change.
+          </p>
           <p>There is no hosted Tarantula control plane yet.</p>
           <p>Door, Library, Switchboard, and Loops do not have prices yet.</p>
           <p>Pricing will be published before any hosted paid alpha.</p>

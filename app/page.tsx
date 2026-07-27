@@ -64,7 +64,10 @@ export default function Home() {
             <AgentCommand />
             <p className="hero-note">
               One read-only command gives your agent the docs, app contract,
-              safety rules, and machine-readable deployment workflow.{" "}
+              safety rules, and machine-readable deployment workflow. No
+              Cloudflare account? <code>tarantula deploy --instant</code> puts
+              the app on a public URL and prints a claim token — claim it, or it
+              disappears in 30 days.{" "}
               <Link href="/docs">Read the quickstart →</Link>
             </p>
           </div>

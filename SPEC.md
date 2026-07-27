@@ -69,6 +69,7 @@ Tarantula products are the user-facing abstraction. Infrastructure-as-code is an
 
 - **Available v0:** public Worker + Static Assets, one D1 database, migrations, local development, deploy, readiness, stable URL, plan, drift, inspect, logs, committed lockfile, no-login chat.
 - **Available v0:** shared visibility with invite-link membership (Door alpha slice).
+- **Available v0:** instant anonymous hosting with claim-or-expire (`tarantula deploy --instant`, `tarantula claim`).
 - **Next foundation:** named stacks, remote locked state, immutable release history, preview and rollback.
 - **Account foundation:** Access-authenticated console, CLI device authorization, project registration, release and resource views, and activity ledger.
 - **Platform coverage:** Door, Library, Switchboard, Loops, custom domains, backup and restore, typed data access, hosted control panel.

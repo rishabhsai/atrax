@@ -35,6 +35,35 @@ Exit codes: `0` success, `1` error (including a `plan` blocked by an unowned nam
 
 The v0 chat template is public by default: anyone with its URL can read and post. Never describe it as private or suitable for secrets.
 
+## Instant hosting (no Cloudflare account)
+
+`tarantula deploy` falls back to Tarantula instant hosting when no Cloudflare account is detected, and `--instant` forces it. The app lands on a real public URL owned by Tarantula's account. The claim token is printed once, by the deploy that mints it; it is never written to disk and redeploys never reprint it. Pass it to the user verbatim.
+
+```sh
+tarantula deploy --instant --json
+tarantula claim <token> --json
+```
+
+```json
+{
+  "schemaVersion": 1,
+  "status": "deployed",
+  "mode": "instant",
+  "name": "open-chat",
+  "url": "https://i-3f9a2c81be.<subdomain>.workers.dev",
+  "appId": "3f9a2c81be",
+  "claimToken": "...",
+  "expiresAt": 1790000000000,
+  "resources": { "tables": { "name": "i-3f9a2c81be-tables" } }
+}
+```
+
+```json
+{ "schemaVersion": 1, "status": "claimed", "appId": "3f9a2c81be", "url": "https://i-3f9a2c81be.<subdomain>.workers.dev" }
+```
+
+`claimToken` and `expiresAt` (epoch milliseconds) are present only on the deploy that creates the app; later deploys reuse `.tarantula/instant.json` and omit them. An unclaimed app is deleted 30 days after creation. Instant apps are always public: a `"visibility": "shared"` app fails with a recovery line pointing at a Cloudflare account, because instant mode has no secrets. Creates are limited to 10 per day per IP. `tarantula.lock.json` records `"mode": "instant"`, and `inspect`, `logs`, `plan`, `drift`, and `share` refuse instant locks.
+
 ## Shared visibility (Door alpha slice)
 
 `tarantula.json` accepts `"visibility": "public"` (default) or `"visibility": "shared"`. A shared app is gated by the template's own Door module: deploy provisions a `DOOR_SESSION_SECRET` Worker secret once, and every request without a valid signed session cookie gets a 401 invitation page.
