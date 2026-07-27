@@ -5,7 +5,6 @@ import { CompareStrip } from "./components/CompareStrip";
 import { Reveal } from "./components/Reveal";
 import {
   AccountPreview,
-  DeployTerminal,
   LoopTrace,
   OrgFabric,
   ProductMark,
@@ -33,12 +32,14 @@ const contractRows = [
       "versioned JSON",
       "logs",
       "lockfile",
+      "plan",
+      "drift",
     ],
   },
   {
     label: "Landing next",
     state: "planned" as const,
-    chips: ["stacks", "plan", "drift", "releases", "rollback"],
+    chips: ["stacks", "releases", "rollback"],
   },
   {
     label: "Planned products",
@@ -67,7 +68,6 @@ export default function Home() {
               <Link href="/docs">Read the quickstart →</Link>
             </p>
           </div>
-          <DeployTerminal compact sequence />
         </div>
         <div className="hero-rail" aria-label="Current capabilities">
           <span>Apps</span>

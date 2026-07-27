@@ -36,7 +36,9 @@ test("exports the six-product Tarantula site", async () => {
   assert.match(html, /Planned interface\. Not a recorded run\./);
   assert.doesNotMatch(html, /loops-agents\.png/);
   assert.doesNotMatch(html, /switchboard-apps\.png/);
-  assert.match(html, /deploy \/ production/);
+  assert.doesNotMatch(html, /deploy \/ production/);
+  const developersHtml = await readExportedPage("/developers");
+  assert.match(developersHtml, /deploy \/ production/);
   assert.doesNotMatch(html, /From an idea to running software\./);
   assert.doesNotMatch(html, /Six products\. Six responsibilities\./);
   assert.match(html, /\/docs/);

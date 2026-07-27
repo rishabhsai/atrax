@@ -545,6 +545,9 @@ h3 {
 
 .hero {
   position: relative;
+  min-height: calc(100svh - 54px);
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
   background:
     radial-gradient(circle at 50% 12%, color-mix(in oklch, var(--orange) 23%, transparent), transparent 36%),
@@ -564,12 +567,13 @@ h3 {
 
 .hero-grid {
   position: relative;
-  min-height: calc(100svh - 54px);
+  flex: 1 1 auto;
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: clamp(46px, 6vw, 74px);
-  padding-block: clamp(72px, 9.5vw, 122px) clamp(58px, 8vw, 96px);
+  padding-block: clamp(48px, 6vw, 84px) clamp(32px, 4vw, 56px);
 }
 
 .hero-copy {
@@ -2413,9 +2417,12 @@ h3 {
     grid-template-columns: 1fr;
   }
 
-  .hero-grid {
+  .hero {
     min-height: auto;
-    padding-block: 90px;
+  }
+
+  .hero-grid {
+    padding-block: 84px 56px;
   }
 
   .hero-copy {
