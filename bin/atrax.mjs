@@ -715,7 +715,9 @@ async function waitForLive(url, healthPath) {
     ? new URL(healthUrl.pathname + healthUrl.search, process.env.ATRAX_READINESS_ORIGIN)
     : healthUrl;
   let lastStatus = null;
-  for (let attempt = 0; attempt < 20; attempt += 1) {
+  // A brand-new workers.dev subdomain can take over a minute to propagate,
+  // so the probe waits well past the worst first-deploy delay seen so far.
+  for (let attempt = 0; attempt < 60; attempt += 1) {
     try {
       const response = await fetch(probeUrl, { cache: "no-store" });
       lastStatus = response.status;
@@ -723,9 +725,9 @@ async function waitForLive(url, healthPath) {
     } catch {
       lastStatus = "unreachable";
     }
-    await new Promise((resolvePromise) => setTimeout(resolvePromise, 1500));
+    await new Promise((resolvePromise) => setTimeout(resolvePromise, 2000));
   }
-  throw new CliError("The deployment did not become ready within 30 seconds.", {
+  throw new CliError("The deployment did not become ready within 2 minutes.", {
     url,
     lastStatus,
   });
