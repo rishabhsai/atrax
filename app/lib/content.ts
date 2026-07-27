@@ -25,6 +25,13 @@ export const products = {
   "resources": { "tables": { "name": "open-chat-tables" } }
 }`,
     codeLabel: "Working v0 command",
+    spec: [
+      { property: "Command", value: "tarantula deploy --json", code: true },
+      { property: "Output", value: "schemaVersion 1 JSON", code: true },
+      { property: "State", value: "tarantula.lock.json", code: true },
+      { property: "Runtime", value: "Worker plus static assets" },
+      { property: "Status", value: "Available in v0" },
+    ],
     related: ["tables", "door", "loops"],
   },
   tables: {
@@ -53,6 +60,13 @@ export const products = {
 
 # migrations/0001_messages.sql`,
     codeLabel: "Working v0 contract",
+    spec: [
+      { property: "Contract", value: "tables.migrations", code: true },
+      { property: "Resource", value: "One D1 database per app" },
+      { property: "Migrations", value: "Ordered SQL in migrations/", code: true },
+      { property: "State", value: "Non-secret database ID in the lockfile" },
+      { property: "Status", value: "Available in v0" },
+    ],
     related: ["launchpad", "door", "library"],
   },
   door: {
@@ -78,6 +92,13 @@ export const products = {
 The current chat template is public.
 Anyone with its URL can read and post.`,
     codeLabel: "Roadmap status",
+    spec: [
+      { property: "Command", value: "None yet" },
+      { property: "Owns", value: "Identity, sessions, sharing, roles" },
+      { property: "Today", value: "A deployed v0 app is public" },
+      { property: "Foundation", value: "Cloudflare Access and app identity" },
+      { property: "Status", value: "Planned" },
+    ],
     related: ["launchpad", "tables", "switchboard"],
   },
   library: {
@@ -104,6 +125,13 @@ R2          file bytes
 Vectorize   semantic retrieval
 Door        read permissions`,
     codeLabel: "Roadmap architecture",
+    spec: [
+      { property: "Command", value: "None yet" },
+      { property: "Owns", value: "Files, collections, permission-aware search" },
+      { property: "Today", value: "Apps store their own files" },
+      { property: "Foundation", value: "R2, Vectorize, and Door permissions" },
+      { property: "Status", value: "Planned" },
+    ],
     related: ["door", "switchboard", "loops"],
   },
   switchboard: {
@@ -131,6 +159,13 @@ OAuth           company connections
 Service binding typed app tools
 Audit log       actor and result`,
     codeLabel: "Roadmap architecture",
+    spec: [
+      { property: "Command", value: "None yet" },
+      { property: "Owns", value: "Credentials, typed actions, grants, ledger" },
+      { property: "Today", value: "Apps hold their own keys" },
+      { property: "Foundation", value: "Secrets Store, OAuth, service bindings" },
+      { property: "Status", value: "Planned" },
+    ],
     related: ["door", "library", "loops"],
   },
   loops: {
@@ -158,6 +193,13 @@ Audit log       actor and result`,
   approve: ["outreach.send"]
 })`,
     codeLabel: "Planned canonical API",
+    spec: [
+      { property: "Command", value: "None yet" },
+      { property: "Owns", value: "Triggers, durable steps, approval, traces" },
+      { property: "Today", value: "Launchpad deploys the agent app itself" },
+      { property: "Planned API", value: "loop({ on, run, tools, approve })", code: true },
+      { property: "Status", value: "Planned" },
+    ],
     related: ["switchboard", "library", "tables"],
   },
 } as const;

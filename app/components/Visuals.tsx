@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import { products, type ProductSlug } from "../lib/content";
 
 type ProductMarkProps = {
@@ -20,20 +21,19 @@ export function ProductMark({ type }: ProductMarkProps) {
   );
 }
 
-export function DeployTerminal({ compact = false }: { compact?: boolean }) {
-  return (
-    <div className={`deploy-terminal${compact ? " deploy-terminal-compact" : ""}`}>
-      <div className="terminal-bar">
-        <span><i /><i /><i /></span>
-        <span>deploy / production</span>
-        <span>ready</span>
-      </div>
-      <pre><code><span>$</span> curl -fsSL https://tarantula-9l0.pages.dev/llms-full.txt{"\n"}
-<b># agent reads the CLI and app contract</b>{"\n\n"}
-<span>$</span> tarantula new company-app --template chat{"\n"}
-<span>$</span> cd company-app{"\n"}
-<span>$</span> tarantula deploy --json{"\n\n"}
-<b>{`{
+type TerminalLine = { kind: "cmd" | "note" | "out" | "gap"; text?: string };
+
+const deployLines: readonly TerminalLine[] = [
+  { kind: "cmd", text: "curl -fsSL https://tarantula-9l0.pages.dev/llms-full.txt" },
+  { kind: "note", text: "# agent reads the CLI and app contract" },
+  { kind: "gap" },
+  { kind: "cmd", text: "tarantula new company-app --template chat" },
+  { kind: "cmd", text: "cd company-app" },
+  { kind: "cmd", text: "tarantula deploy --json" },
+  { kind: "gap" },
+  {
+    kind: "out",
+    text: `{
   "schemaVersion": 1,
   "status": "deployed",
   "name": "open-chat",
@@ -45,7 +45,49 @@ export function DeployTerminal({ compact = false }: { compact?: boolean }) {
       "name": "open-chat-tables"
     }
   }
-}`}</b></code></pre>
+}`,
+  },
+];
+
+type DeployTerminalProps = {
+  compact?: boolean;
+  /** Stagger the lines in once on load. Reduced motion shows the final state. */
+  sequence?: boolean;
+};
+
+export function DeployTerminal({
+  compact = false,
+  sequence = false,
+}: DeployTerminalProps) {
+  const className = [
+    "deploy-terminal",
+    compact ? "deploy-terminal-compact" : "",
+    sequence ? "deploy-terminal-sequence" : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  return (
+    <div className={className}>
+      <div className="terminal-bar">
+        <span><i /><i /><i /></span>
+        <span>deploy / production</span>
+        <span>ready</span>
+      </div>
+      <pre>
+        <code>
+          {deployLines.map((line, index) => (
+            <span
+              className={`term-line term-line-${line.kind}`}
+              key={line.text ?? `gap-${index}`}
+              style={{ "--term-index": index } as CSSProperties}
+            >
+              {line.kind === "cmd" ? <i aria-hidden="true">$ </i> : null}
+              {line.text}
+            </span>
+          ))}
+        </code>
+      </pre>
       <a href="/llms-full.txt">
         Open the complete agent reference <span aria-hidden="true">↗</span>
       </a>

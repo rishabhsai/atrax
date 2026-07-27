@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { ChipGrid } from "../components/ChipGrid";
+import { Reveal } from "../components/Reveal";
 import { ProductMark } from "../components/Visuals";
 import { productOrder, products } from "../lib/content";
 
@@ -7,6 +9,23 @@ export const metadata = {
   description:
     "Six products for releases, data, identity, knowledge, tools, and durable execution.",
 };
+
+const availabilityRows = [
+  {
+    label: "Available in v0",
+    state: "available" as const,
+    chips: productOrder
+      .filter((slug) => products[slug].availability === "available")
+      .map((slug) => products[slug].name),
+  },
+  {
+    label: "Planned",
+    state: "planned" as const,
+    chips: productOrder
+      .filter((slug) => products[slug].availability === "planned")
+      .map((slug) => products[slug].name),
+  },
+];
 
 export default function ProductsPage() {
   return (
@@ -48,18 +67,38 @@ export default function ProductsPage() {
         })}
       </section>
 
-      <section className="section shell product-rules">
-        <div className="section-intro">
-          <p className="eyebrow">No overlap</p>
-          <h2>The boundary is part of the product.</h2>
-        </div>
-        <div>
-          {productOrder.map((slug) => (
-            <p key={slug}>
-              <strong>{products[slug].name}</strong>
-              <span>{products[slug].boundary}</span>
+      <section className="section shell product-rules rule-top">
+        <div className="section-split">
+          <Reveal className="split-copy">
+            <p className="microlabel">
+              01 · <b>No overlap</b>
             </p>
-          ))}
+            <h2>The boundary is part of the product.</h2>
+            <p>
+              Each product owns one responsibility and hands the next one off by
+              name. That is what keeps the contract small enough for an agent to
+              hold, and what stops two products from becoming two sources of
+              truth.
+            </p>
+            <ChipGrid
+              note="A planned product has a written boundary and no shipped surface. It is not behind a flag."
+              rows={availabilityRows}
+            />
+          </Reveal>
+          <Reveal className="panel" delay={120}>
+            <div className="panel-head">
+              <span>Responsibility</span>
+              <span>Six products</span>
+            </div>
+            <dl className="spec-table">
+              {productOrder.map((slug) => (
+                <div key={slug}>
+                  <dt>{products[slug].name}</dt>
+                  <dd>{products[slug].boundary}</dd>
+                </div>
+              ))}
+            </dl>
+          </Reveal>
         </div>
       </section>
 

@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ChipGrid } from "../../components/ChipGrid";
+import { Reveal } from "../../components/Reveal";
 import {
   products,
   solutions,
@@ -43,23 +45,55 @@ export default async function SolutionPage({ params }: PageProps) {
       </section>
 
       <section className="section shell example-detail">
-        <div className="section-intro">
-          <p className="eyebrow">Example</p>
-          <h2>{solution.example}</h2>
-        </div>
-        <div className="example-steps">
-          {solution.steps.map((step, index) => (
-            <article key={step}>
-              <span>0{index + 1}</span>
-              <h3>{step}</h3>
-            </article>
-          ))}
+        <div className="section-split">
+          <Reveal className="split-copy">
+            <p className="microlabel">
+              01 · <b>Example</b>
+            </p>
+            <h2>{solution.example}</h2>
+            <p>{solution.short}</p>
+            <ol className="step-list">
+              {solution.steps.map((step, index) => (
+                <li key={step}>
+                  <span>0{index + 1}</span>
+                  {step}
+                </li>
+              ))}
+            </ol>
+          </Reveal>
+          <Reveal className="panel" delay={120}>
+            <div className="panel-head">
+              <span>Product stack</span>
+              <span>{solution.stack.length} products</span>
+            </div>
+            <ChipGrid
+              note="Steps that depend on a planned product cannot run yet. The available products still deploy the app itself."
+              rows={[
+                {
+                  label: "Available now",
+                  state: "available" as const,
+                  chips: solution.stack
+                    .filter((slug) => products[slug].availability === "available")
+                    .map((slug) => products[slug].name),
+                },
+                {
+                  label: "Planned",
+                  state: "planned" as const,
+                  chips: solution.stack
+                    .filter((slug) => products[slug].availability === "planned")
+                    .map((slug) => products[slug].name),
+                },
+              ].filter((row) => row.chips.length > 0)}
+            />
+          </Reveal>
         </div>
       </section>
 
       <section className="example-stack">
         <div className="shell">
-          <p className="eyebrow">Products involved</p>
+          <p className="microlabel">
+            02 · <b>Products involved</b>
+          </p>
           <div>
             {solution.stack.map((slug) => (
               <Link href={`/products/${slug}`} key={slug}>

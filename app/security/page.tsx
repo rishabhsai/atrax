@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { ChipGrid } from "../components/ChipGrid";
+import { Reveal } from "../components/Reveal";
 
 export const metadata = {
   title: "Security",
@@ -24,11 +26,54 @@ export default function SecurityPage() {
       </section>
 
       <section className="section shell security-now">
-        <div className="section-intro">
-          <p className="eyebrow">Implemented</p>
-          <h2>The v0 boundary.</h2>
+        <div className="section-split">
+          <Reveal className="split-copy">
+            <p className="microlabel">
+              01 · <b>Implemented</b>
+            </p>
+            <h2>The v0 boundary.</h2>
+            <p>
+              Everything below is enforced by the CLI or the generated app
+              today. The list on the right separates what already holds from
+              what is still only a written plan, because the difference matters
+              before you put anything real behind a URL.
+            </p>
+          </Reveal>
+          <Reveal className="panel" delay={120}>
+            <div className="panel-head">
+              <span>Boundary status</span>
+              <span>v0</span>
+            </div>
+            <ChipGrid
+              note="The generated chat is public by design. Nothing in v0 restricts who can open a deployed app."
+              rows={[
+                {
+                  label: "Enforced today",
+                  state: "available" as const,
+                  chips: [
+                    "account check",
+                    "credentials stay in Wrangler",
+                    "one D1 per app",
+                    "server-side input limits",
+                    "textContent rendering",
+                  ],
+                },
+                {
+                  label: "Not enforced yet",
+                  state: "planned" as const,
+                  chips: [
+                    "sign-in",
+                    "roles",
+                    "private sharing",
+                    "scoped grants",
+                    "action ledger",
+                  ],
+                },
+              ]}
+            />
+          </Reveal>
         </div>
-        <div className="security-ledger">
+        <div className="security-ledger security-ledger-below">
           {[
             ["Cloud account", "The CLI checks the active account against tarantula.lock.json before remote mutation."],
             ["Credentials", "Cloudflare credentials stay in Wrangler. Tarantula stores no API token."],
@@ -48,11 +93,13 @@ export default function SecurityPage() {
 
       <section className="security-roadmap">
         <div className="shell security-roadmap-grid">
-          <div>
-            <p className="eyebrow">Planned</p>
+          <Reveal>
+            <p className="microlabel">
+              02 · <b>Planned</b>
+            </p>
             <h2>Identity, capabilities, and execution.</h2>
-          </div>
-          <div>
+          </Reveal>
+          <Reveal delay={120}>
             <article>
               <strong>Door</strong>
               <p>Guest identity, private sharing, teams, roles, and app identity.</p>
@@ -65,7 +112,7 @@ export default function SecurityPage() {
               <strong>Loops</strong>
               <p>Retries, approval binding, idempotency, durable state, and complete traces.</p>
             </article>
-          </div>
+          </Reveal>
         </div>
       </section>
 

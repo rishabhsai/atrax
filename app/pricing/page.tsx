@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { ChipGrid } from "../components/ChipGrid";
+import { Reveal } from "../components/Reveal";
 
 export const metadata = {
   title: "Pricing",
@@ -22,19 +24,53 @@ export default function PricingPage() {
       </section>
 
       <section className="section shell pricing-now">
-        <div className="section-intro">
-          <p className="eyebrow">Current v0</p>
-          <h2>Bring your Cloudflare account.</h2>
-        </div>
-        <div className="pricing-line">
-          <strong>$0</strong>
-          <div>
-            <h3>Tarantula alpha software</h3>
-            <p>
-              Install it locally from the private repository. Your configured
-              Wrangler identity provisions and owns the deployed resources.
+        <div className="section-split section-split-center">
+          <Reveal className="split-copy pricing-figure">
+            <p className="microlabel">
+              01 · <b>Current v0</b>
             </p>
-          </div>
+            <strong>$0</strong>
+            <h2>Bring your Cloudflare account.</h2>
+            <p>
+              Install the alpha locally from the private repository. Your
+              configured Wrangler identity provisions and owns the deployed
+              resources, so Cloudflare bills you directly for what the app uses.
+            </p>
+          </Reveal>
+          <Reveal className="panel" delay={120}>
+            <div className="panel-head">
+              <span>What $0 covers</span>
+              <span>alpha</span>
+            </div>
+            <ChipGrid
+              note="Tarantula charges nothing today because there is nothing hosted to charge for. Cloudflare usage is billed by Cloudflare."
+              rows={[
+                {
+                  label: "Included today",
+                  state: "available" as const,
+                  chips: [
+                    "the CLI",
+                    "chat template",
+                    "local dev",
+                    "deploy to your account",
+                    "versioned JSON output",
+                    "docs and agent files",
+                  ],
+                },
+                {
+                  label: "Not priced yet",
+                  state: "planned" as const,
+                  chips: [
+                    "hosted control plane",
+                    "Door",
+                    "Library",
+                    "Switchboard",
+                    "Loops",
+                  ],
+                },
+              ]}
+            />
+          </Reveal>
         </div>
         <div className="pricing-notes">
           <p>Cloudflare can bill Worker and D1 usage.</p>

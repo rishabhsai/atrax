@@ -1,7 +1,11 @@
 import Link from "next/link";
 import { AgentCommand } from "./components/AgentCommand";
+import { ChipGrid } from "./components/ChipGrid";
+import { CompareStrip } from "./components/CompareStrip";
+import { Reveal } from "./components/Reveal";
 import {
   AccountPreview,
+  DeployTerminal,
   LoopTrace,
   OrgFabric,
   ProductMark,
@@ -14,6 +18,34 @@ export const metadata = {
   description:
     "Create, run, deploy, inspect, and debug small full-stack apps from one CLI.",
 };
+
+const contractRows = [
+  {
+    label: "In the contract today",
+    state: "available" as const,
+    chips: [
+      "worker runtime",
+      "static assets",
+      "D1 database",
+      "ordered migrations",
+      "local dev",
+      "stable URL",
+      "versioned JSON",
+      "logs",
+      "lockfile",
+    ],
+  },
+  {
+    label: "Landing next",
+    state: "planned" as const,
+    chips: ["stacks", "plan", "drift", "releases", "rollback"],
+  },
+  {
+    label: "Planned products",
+    state: "planned" as const,
+    chips: ["Door", "Library", "Switchboard", "Loops"],
+  },
+];
 
 export default function Home() {
   return (
@@ -35,6 +67,7 @@ export default function Home() {
               <Link href="/docs">Read the quickstart →</Link>
             </p>
           </div>
+          <DeployTerminal compact sequence />
         </div>
         <div className="hero-rail" aria-label="Current capabilities">
           <span>Apps</span>
@@ -72,9 +105,38 @@ export default function Home() {
         </div>
       </section>
 
+      <section className="compare-section">
+        <div className="shell section-split section-split-center">
+          <Reveal className="split-copy">
+            <p className="microlabel">
+              01 · <b>Operating surface</b>
+            </p>
+            <h2>Why an agent can operate it.</h2>
+            <p>
+              A conventional cloud spreads one app across a console, a policy
+              file, a set of provisioned pieces, and a secret store. An agent
+              has to hold all four and guess when they disagree.
+            </p>
+            <p>
+              Tarantula keeps the whole app in one declared contract. The deploy
+              command reconciles it and answers in versioned JSON, so the state
+              is readable without a browser.
+            </p>
+            <Link className="text-link" href="/docs/app-contract">
+              Read the app contract <span aria-hidden="true">→</span>
+            </Link>
+          </Reveal>
+          <Reveal delay={120}>
+            <CompareStrip />
+          </Reveal>
+        </div>
+      </section>
+
       <section className="fabric" id="fabric">
-        <div className="shell fabric-intro">
-          <p className="eyebrow">One workspace</p>
+        <Reveal className="shell fabric-intro">
+          <p className="microlabel">
+            02 · <b>One workspace</b>
+          </p>
           <h2>Every app can use every other app. On your terms.</h2>
           <p>
             An app publishes named actions instead of a database or an API key.
@@ -93,16 +155,18 @@ export default function Home() {
           <Link className="text-link" href="/products/switchboard">
             Read the Switchboard roadmap <span aria-hidden="true">→</span>
           </Link>
-        </div>
-        <div className="shell">
+        </Reveal>
+        <Reveal className="shell" delay={120}>
           <OrgFabric />
-        </div>
+        </Reveal>
       </section>
 
       <section className="products-stage" id="included">
         <div className="shell">
-          <div className="section-intro products-stage-intro">
-            <p className="eyebrow">Everything included</p>
+          <Reveal className="section-intro products-stage-intro">
+            <p className="microlabel">
+              03 · <b>Everything included</b>
+            </p>
             <h2>Six products. One contract. Nothing to assemble.</h2>
             <p>
               One `tarantula.json` declares the whole app: runtime, data,
@@ -110,8 +174,8 @@ export default function Home() {
               agent write the contract, and Tarantula reconciles it. Two
               products run today, four are planned, and each card says which.
             </p>
-          </div>
-          <div className="product-ledger">
+          </Reveal>
+          <Reveal className="product-ledger" delay={100}>
             {productOrder.map((slug) => {
               const product = products[slug];
               return (
@@ -129,14 +193,45 @@ export default function Home() {
                 </Link>
               );
             })}
-          </div>
+          </Reveal>
+        </div>
+      </section>
+
+      <section className="contract-section">
+        <div className="shell section-split">
+          <Reveal className="split-copy">
+            <p className="microlabel">
+              04 · <b>Status</b>
+            </p>
+            <h2>What ships today, and what lands next.</h2>
+            <p>
+              A filled square is in the working v0 contract and you can use it
+              from the CLI now. A hollow square is planned work with a written
+              boundary and no shipped surface.
+            </p>
+            <Link className="text-link" href="/docs/status">
+              Read the full status page <span aria-hidden="true">→</span>
+            </Link>
+          </Reveal>
+          <Reveal className="panel" delay={120}>
+            <div className="panel-head">
+              <span>tarantula.json</span>
+              <span>v0 contract</span>
+            </div>
+            <ChipGrid
+              note="Planned rows have no CLI surface yet. Nothing on this list is enabled by a flag you cannot see."
+              rows={contractRows}
+            />
+          </Reveal>
         </div>
       </section>
 
       <section className="share-story" id="sharing">
         <div className="shell share-grid">
-          <div className="share-copy">
-            <p className="eyebrow">Sharing</p>
+          <Reveal className="share-copy">
+            <p className="microlabel">
+              05 · <b>Sharing</b>
+            </p>
             <h2>Share an app the way you share a doc.</h2>
             <p>
               Invite a teammate by email, choose what they can do, and send one
@@ -155,15 +250,19 @@ export default function Home() {
             <Link className="text-link" href="/products/door">
               Read the Door roadmap <span aria-hidden="true">→</span>
             </Link>
-          </div>
-          <ShareSheet />
+          </Reveal>
+          <Reveal delay={120}>
+            <ShareSheet />
+          </Reveal>
         </div>
       </section>
 
       <section className="loop-story" id="agents">
         <div className="shell loop-grid">
-          <div className="loop-copy">
-            <p className="eyebrow">Agents as apps</p>
+          <Reveal className="loop-copy">
+            <p className="microlabel">
+              06 · <b>Agents as apps</b>
+            </p>
             <h2>Deploy an agent. Let it keep working.</h2>
             <p>
               An agent ships behind the same contract as any other app. Loops
@@ -182,13 +281,15 @@ export default function Home() {
             <Link className="text-link" href="/products/loops">
               Explore Loops <span aria-hidden="true">→</span>
             </Link>
-          </div>
-          <LoopTrace />
+          </Reveal>
+          <Reveal delay={120}>
+            <LoopTrace />
+          </Reveal>
         </div>
       </section>
 
       <section className="account-story">
-        <div className="shell account-story-copy">
+        <Reveal className="shell account-story-copy">
           <p className="eyebrow">Your Tarantula account</p>
           <h2>Everything you shipped. In one quiet place.</h2>
           <p>
@@ -196,15 +297,15 @@ export default function Home() {
             health, releases, resources, and recent activity, without opening a
             provider console.
           </p>
-        </div>
-        <div className="shell account-preview-wrap">
+        </Reveal>
+        <Reveal className="shell account-preview-wrap" delay={120}>
           <AccountPreview />
-        </div>
+        </Reveal>
       </section>
 
       <section className="agent-docs">
         <div className="shell agent-docs-grid">
-          <div>
+          <Reveal>
             <p className="eyebrow">A shared language</p>
             <h2>People and agents read the same cloud.</h2>
             <p>
@@ -214,13 +315,15 @@ export default function Home() {
             <Link className="text-link" href="/docs">
               Open the docs <span aria-hidden="true">→</span>
             </Link>
-          </div>
-          <div className="agent-files" aria-label="Agent documentation files">
-            <a href="/docs.json"><span>docs.json</span><small>page manifest</small></a>
-            <a href="/llms.txt"><span>llms.txt</span><small>agent index</small></a>
-            <a href="/llms-full.txt"><span>llms-full.txt</span><small>complete reference</small></a>
-            <Link href="/docs/app-contract"><span>tarantula.json</span><small>app contract</small></Link>
-          </div>
+          </Reveal>
+          <Reveal delay={120}>
+            <div className="agent-files" aria-label="Agent documentation files">
+              <a href="/docs.json"><span>docs.json</span><small>page manifest</small></a>
+              <a href="/llms.txt"><span>llms.txt</span><small>agent index</small></a>
+              <a href="/llms-full.txt"><span>llms-full.txt</span><small>complete reference</small></a>
+              <Link href="/docs/app-contract"><span>tarantula.json</span><small>app contract</small></Link>
+            </div>
+          </Reveal>
         </div>
       </section>
 

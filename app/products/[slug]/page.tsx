@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ChipGrid } from "../../components/ChipGrid";
+import { Reveal } from "../../components/Reveal";
+import { SpecTable } from "../../components/SpecTable";
 import { ProductConsole, ProductMark } from "../../components/Visuals";
 import {
   productOrder,
@@ -30,6 +33,8 @@ export default async function ProductPage({ params }: PageProps) {
   const { slug } = await params;
   const product = products[slug as ProductSlug];
   if (!product) notFound();
+
+  const available = product.availability === "available";
 
   return (
     <main>
@@ -66,34 +71,73 @@ export default async function ProductPage({ params }: PageProps) {
       </section>
 
       <section className="section shell product-capabilities">
-        <div className="section-intro">
-          <p className="eyebrow">
-            {product.availability === "available" ? "Included in v0" : "Planned scope"}
-          </p>
-          <h2>What belongs here.</h2>
-        </div>
-        <div className="capability-list">
-          {product.features.map(([name, copy], index) => (
-            <article key={name}>
-              <span>0{index + 1}</span>
-              <h3>{name}</h3>
-              <p>{copy}</p>
-            </article>
-          ))}
+        <div className="section-split">
+          <Reveal className="split-copy">
+            <p className="microlabel">
+              01 · <b>{available ? "Included in v0" : "Planned scope"}</b>
+            </p>
+            <h2>What belongs here.</h2>
+            <div className="capability-list">
+              {product.features.map(([name, copy], index) => (
+                <article key={name}>
+                  <span>0{index + 1}</span>
+                  <h3>{name}</h3>
+                  <p>{copy}</p>
+                </article>
+              ))}
+            </div>
+          </Reveal>
+          <Reveal className="product-spec" delay={120}>
+            <SpecTable
+              caption={
+                available
+                  ? "Implemented in the deployable chat template."
+                  : "Roadmap surface. No CLI command ships this yet."
+              }
+              meta={product.availability}
+              rows={product.spec}
+              title="Contract surface"
+            />
+            <div className="panel">
+              <div className="panel-head">
+                <span>Hands off to</span>
+              </div>
+              <ChipGrid
+                rows={[
+                  {
+                    label: "Available",
+                    state: "available" as const,
+                    chips: product.related
+                      .filter((s) => products[s].availability === "available")
+                      .map((s) => products[s].name),
+                  },
+                  {
+                    label: "Planned",
+                    state: "planned" as const,
+                    chips: product.related
+                      .filter((s) => products[s].availability === "planned")
+                      .map((s) => products[s].name),
+                  },
+                ].filter((row) => row.chips.length > 0)}
+              />
+            </div>
+          </Reveal>
         </div>
       </section>
 
       <section className="code-section">
         <div className="shell code-section-grid">
-          <div>
-            <p className="eyebrow">{product.codeLabel}</p>
+          <div className="split-copy">
+            <p className="microlabel">
+              02 · <b>{product.codeLabel}</b>
+            </p>
             <h2>
-              {product.availability === "available"
+              {available
                 ? "Use it from the app folder."
                 : "The target stays explicit."}
             </h2>
             <p>
-              {product.availability === "available"
+              {available
                 ? "This surface is implemented in the deployable chat template."
                 : "This is roadmap architecture, not an available CLI promise."}
             </p>
@@ -104,7 +148,9 @@ export default async function ProductPage({ params }: PageProps) {
 
       <section className="section shell related-products">
         <div className="section-intro">
-          <p className="eyebrow">Related products</p>
+          <p className="microlabel">
+            03 · <b>Related products</b>
+          </p>
           <h2>Clear handoffs.</h2>
         </div>
         <div>

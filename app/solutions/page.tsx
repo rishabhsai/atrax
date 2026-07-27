@@ -1,5 +1,7 @@
 import Link from "next/link";
-import { solutions } from "../lib/content";
+import { ChipGrid } from "../components/ChipGrid";
+import { Reveal } from "../components/Reveal";
+import { productOrder, products, solutions } from "../lib/content";
 
 export const metadata = {
   title: "Use cases",
@@ -39,17 +41,52 @@ export default function SolutionsPage() {
         ))}
       </section>
 
-      <section className="section shell fit-check">
-        <div className="section-intro">
-          <p className="eyebrow">Good v0 fit</p>
-          <h2>Public, focused, full-stack.</h2>
-        </div>
-        <div>
-          <p>One small interface</p>
-          <p>Structured data in D1</p>
-          <p>Public access by design</p>
-          <p>A stable URL matters</p>
-          <p>A coding agent should operate the deployment</p>
+      <section className="section shell fit-check rule-top">
+        <div className="section-split">
+          <Reveal className="split-copy">
+            <p className="microlabel">
+              01 · <b>Good v0 fit</b>
+            </p>
+            <h2>Public, focused, full-stack.</h2>
+            <p>
+              The alpha is narrow on purpose. If an app matches every row on the
+              right, the current CLI can take it from a folder to a URL today.
+              Anything that needs private access or scheduled work waits on a
+              planned product.
+            </p>
+            <div className="fit-chips">
+              <p>One small interface</p>
+              <p>Structured data in D1</p>
+              <p>Public access by design</p>
+              <p>A stable URL matters</p>
+              <p>A coding agent should operate the deployment</p>
+            </div>
+          </Reveal>
+          <Reveal className="panel" delay={120}>
+            <div className="panel-head">
+              <span>Product stack</span>
+              <span>v0 status</span>
+            </div>
+            <ChipGrid
+              note="A use case that needs sign-in, company knowledge, connected tools, or schedules depends on a planned product."
+              rows={[
+                {
+                  label: "Runs it today",
+                  state: "available" as const,
+                  chips: productOrder
+                    .filter((slug) => products[slug].availability === "available")
+                    .map((slug) => products[slug].name),
+                },
+                {
+                  label: "Planned",
+                  state: "planned" as const,
+                  chips: productOrder
+                    .filter((slug) => products[slug].availability === "planned")
+                    .map((slug) => products[slug].name),
+                },
+              ]}
+            />
+          </Reveal>
         </div>
       </section>
     </main>
