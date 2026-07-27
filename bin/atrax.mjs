@@ -7,6 +7,7 @@ import {
   mkdir,
   readFile,
   readdir,
+  rename,
   rm,
   stat,
   writeFile,
@@ -1003,6 +1004,11 @@ async function createApp() {
   await mkdir(target, { recursive: true });
   await cp(join(packageRoot, "templates", template), target, { recursive: true });
   await replaceTemplateTokens(target, name);
+  // npm strips .gitignore from published packages, so the template ships it
+  // as "gitignore" and the scaffold restores the real name.
+  if (await pathExists(join(target, "gitignore"))) {
+    await rename(join(target, "gitignore"), join(target, ".gitignore"));
+  }
 
   const payload = {
     schemaVersion: 1,
