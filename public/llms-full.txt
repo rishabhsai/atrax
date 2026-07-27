@@ -22,8 +22,10 @@ tarantula doctor --json
 tarantula new open-chat --template chat
 cd open-chat
 tarantula dev
+tarantula plan --json
 tarantula deploy --json
 tarantula inspect --json
+tarantula drift --json
 tarantula logs
 ```
 
@@ -35,11 +37,19 @@ The chat is public. Anyone with the URL can read and post.
 - `tarantula dev [--port 8787]`
 - `tarantula deploy [--json]`
 - `tarantula deploy --dry-run`
+- `tarantula plan [--json]`
+- `tarantula drift [--json]`
 - `tarantula inspect [--json]`
 - `tarantula logs [--json]`
 - `tarantula doctor [--json]`
 
 Finite JSON commands return one object with `schemaVersion: 1`. `logs --json` is a long-running Wrangler NDJSON event stream. Errors return a non-zero exit code, and unknown flags fail before mutation.
+
+`plan` is read-only. It emits `{ schemaVersion, status: "planned" | "blocked", name, changes, actions[], migrations: { pending[] }, conflicts[] }`, where each action is `{ product, resource, action, reason }` with an action of create, recreate, update, keep, apply, or none.
+
+`drift` is read-only and requires a lockfile. It emits `{ schemaVersion, status: "clean" | "drifted", name, checks[] }`, where each check is `{ check, expected, observed, result }` with a result of ok, drift, or unknown. Checks cover account, worker, deployment, url, tables, and migrations.
+
+Exit codes: `0` success, `1` error including a blocked plan, `2` only from `drift` when the provider no longer matches the lockfile.
 
 ## App contract
 
@@ -61,7 +71,7 @@ Finite JSON commands return one object with `schemaVersion: 1`. `logs --json` is
 
 ## Infrastructure model
 
-Tarantula products are the public abstraction. Infrastructure-as-code is an internal reconciliation engine. The planned model adds `stacks/dev.json` and `stacks/prod.json` for environment intent, remote locked state for authoritative observations and drift metadata, and `plan`, stack-aware `deploy`, and `drift` commands.
+Tarantula products are the public abstraction. Infrastructure-as-code is an internal reconciliation engine. `plan` and `drift` work today against the single implicit v0 environment. The planned model adds `stacks/dev.json` and `stacks/prod.json` for environment intent, remote locked state for authoritative observations and drift metadata, and stack-aware `plan`, `deploy`, and `drift`.
 
 Stateful infrastructure, immutable releases, and Switchboard secret/connection references have separate lifecycles. Provider engines remain replaceable implementation details.
 

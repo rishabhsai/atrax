@@ -19,7 +19,9 @@ const packageRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const packageJson = JSON.parse(
   await readFile(join(packageRoot, "package.json"), "utf8"),
 );
-const wranglerBin = join(packageRoot, "node_modules", "wrangler", "bin", "wrangler.js");
+const wranglerBin =
+  process.env.TARANTULA_WRANGLER_BIN ??
+  join(packageRoot, "node_modules", "wrangler", "bin", "wrangler.js");
 const argv = process.argv.slice(2);
 const command = argv[0] ?? "help";
 const commandArgs = argv.slice(1);
@@ -84,6 +86,8 @@ function validateCommandArgs() {
     new: { flags: ["--json"], values: ["--template"], positionals: 1 },
     dev: { flags: [], values: ["--port"], positionals: 0 },
     deploy: { flags: ["--json", "--dry-run"], values: [], positionals: 0 },
+    plan: { flags: ["--json"], values: [], positionals: 0 },
+    drift: { flags: ["--json"], values: [], positionals: 0 },
     inspect: { flags: ["--json"], values: [], positionals: 0 },
     logs: { flags: ["--json"], values: [], positionals: 0 },
     doctor: { flags: ["--json"], values: [], positionals: 0 },
@@ -559,8 +563,7 @@ async function resolveDatabase(app, quiet) {
   return identity;
 }
 
-async function assertWorkerNameAvailable(app, account) {
-  if (app.lock) return;
+async function workerExists(app, account) {
   try {
     await runWrangler(
       app.root,
@@ -576,10 +579,49 @@ async function assertWorkerNameAvailable(app, account) {
       error instanceof CliError &&
       error.details?.output?.includes("[code: 10007]")
     ) {
-      return;
+      return false;
     }
     throw error;
   }
+  return true;
+}
+
+const ansiPattern = new RegExp(`${String.fromCharCode(27)}\\[[0-9;]*m`, "g");
+
+function parsePendingMigrations(output, knownFiles) {
+  const text = output.replace(ansiPattern, "");
+  if (/no migrations to apply/i.test(text)) return [];
+  const names = [];
+  for (const line of text.split("\n")) {
+    if (!/[│|]/.test(line)) continue;
+    for (const cell of line.split(/[│|]/)) {
+      const value = cell.trim();
+      if (/^\d.*\.sql$/.test(value) && !names.includes(value)) names.push(value);
+    }
+  }
+  if (names.length) return names;
+  return knownFiles.filter((name) => text.includes(name));
+}
+
+async function pendingMigrations(app, configPath, account, knownFiles) {
+  const result = await runWrangler(
+    app.root,
+    ["d1", "migrations", "list", "DB", "--remote", "--config", configPath],
+    {
+      capture: true,
+      quiet: true,
+      env: { CI: "1", CLOUDFLARE_ACCOUNT_ID: account.id },
+    },
+  );
+  return parsePendingMigrations(
+    `${result.stdout}\n${result.stderr}`,
+    knownFiles,
+  );
+}
+
+async function assertWorkerNameAvailable(app, account) {
+  if (app.lock) return;
+  if (!(await workerExists(app, account))) return;
   throw new CliError(
     `A Worker named ${app.contract.name} already exists, but this app has no lockfile proving ownership.`,
     {
@@ -763,6 +805,7 @@ async function deploy() {
     worker: {
       name: app.contract.name,
       url: app.lock?.worker?.url ?? null,
+      lastDeploymentId: app.lock?.worker?.lastDeploymentId ?? null,
     },
     resources: {
       tables: {
@@ -812,6 +855,7 @@ async function deploy() {
     "id",
   ]);
   app.lock.worker.url = url;
+  app.lock.worker.lastDeploymentId = deploymentId ?? null;
   await writeFile(app.lockPath, `${JSON.stringify(app.lock, null, 2)}\n`);
   const payload = {
     schemaVersion: 1,
@@ -830,6 +874,398 @@ async function deploy() {
       `\nDeployed ${app.contract.name}\n${url ? `URL: ${url}\n` : ""}Tables: ${database.name}\n`,
     );
   }
+}
+
+const actionMarks = {
+  create: "+",
+  recreate: "+",
+  update: "~",
+  apply: "~",
+  keep: "=",
+  none: "=",
+};
+
+async function plan() {
+  const app = await loadApp();
+  const files = await validateAppFiles(app);
+  const quiet = jsonOutput;
+  const { configPath } = await compileProviderConfig(app);
+  await runWrangler(app.root, ["deploy", "--config", configPath, "--dry-run"], {
+    capture: true,
+    quiet,
+    env: { CI: "1" },
+  });
+
+  const account = await currentAccount(app, true);
+  const exists = await workerExists(app, account);
+  const locked = app.lock?.resources?.tables ?? null;
+  const databaseName = locked?.name ?? `${app.contract.name}-tables`;
+  const databases = await listDatabases(app, true);
+  const database = locked
+    ? databases.find(
+        (item) =>
+          (item.uuid ?? item.id) === locked.id && item.name === locked.name,
+      )
+    : databases.find((item) => item.name === databaseName);
+
+  const conflicts = [];
+  if (!app.lock && exists) {
+    conflicts.push({
+      resource: `worker/${app.contract.name}`,
+      name: app.contract.name,
+      reason: `A Worker named ${app.contract.name} already exists, but this app has no lockfile proving ownership.`,
+      recovery:
+        "Choose a different app name. Explicit resource adoption is not available in v0.",
+    });
+  }
+  if (!locked && database) {
+    conflicts.push({
+      resource: `d1/${databaseName}`,
+      name: databaseName,
+      reason: `A D1 database named ${databaseName} already exists, but this app has no lockfile proving ownership.`,
+      recovery:
+        "Choose a different app name. Explicit resource adoption is not available in v0.",
+    });
+  }
+
+  if (conflicts.length) {
+    const blocked = {
+      schemaVersion: 1,
+      status: "blocked",
+      name: app.contract.name,
+      changes: false,
+      actions: [],
+      migrations: { pending: [] },
+      conflicts,
+    };
+    if (jsonOutput) {
+      process.stdout.write(`${JSON.stringify(blocked)}\n`);
+    } else {
+      process.stderr.write(
+        `Plan blocked for ${app.contract.name}\n\n${conflicts
+          .map((item) => `  ! ${item.resource}\n    ${item.reason}\n    ${item.recovery}\n`)
+          .join("")}`,
+      );
+    }
+    process.exitCode = 1;
+    return;
+  }
+
+  const actions = [];
+  if (!app.lock) {
+    actions.push({
+      product: "launchpad",
+      resource: `worker/${app.contract.name}`,
+      action: "create",
+      reason: "No Worker with this name exists in the account yet.",
+    });
+  } else if (exists) {
+    actions.push({
+      product: "launchpad",
+      resource: `worker/${app.contract.name}`,
+      action: "update",
+      reason: "The locked Worker exists and would receive a new version.",
+    });
+  } else {
+    actions.push({
+      product: "launchpad",
+      resource: `worker/${app.contract.name}`,
+      action: "recreate",
+      reason:
+        "tarantula.lock.json records this Worker, but it is missing from the account. Deploy would create it again.",
+    });
+  }
+
+  if (locked && database) {
+    actions.push({
+      product: "tables",
+      resource: `d1/${databaseName}`,
+      action: "keep",
+      reason: "The locked D1 database is present and unchanged.",
+    });
+  } else if (!locked) {
+    actions.push({
+      product: "tables",
+      resource: `d1/${databaseName}`,
+      action: "create",
+      reason: "No D1 database with this name exists in the account yet.",
+    });
+  } else {
+    actions.push({
+      product: "tables",
+      resource: `d1/${databaseName}`,
+      action: "recreate",
+      reason:
+        "tarantula.lock.json records this D1 database, but it is missing from the account.",
+    });
+  }
+
+  let pending;
+  if (database) {
+    const remote = await compileProviderConfig(app, databaseIdentity(database).id);
+    pending = await pendingMigrations(
+      app,
+      remote.configPath,
+      account,
+      files.migrationFiles,
+    );
+  } else {
+    pending = [...files.migrationFiles];
+  }
+
+  if (pending.length) {
+    actions.push({
+      product: "tables",
+      resource: "migrations",
+      action: "apply",
+      reason: `${pending.length} migration${pending.length === 1 ? "" : "s"} would be applied remotely.`,
+    });
+  } else {
+    actions.push({
+      product: "tables",
+      resource: "migrations",
+      action: "none",
+      reason: "Every migration in the contract is already applied.",
+    });
+  }
+
+  const changes = actions.some(
+    (item) => item.action !== "keep" && item.action !== "none",
+  );
+  const payload = {
+    schemaVersion: 1,
+    status: "planned",
+    name: app.contract.name,
+    changes,
+    actions,
+    migrations: { pending },
+    conflicts: [],
+  };
+  if (jsonOutput) {
+    process.stdout.write(`${JSON.stringify(payload)}\n`);
+  } else {
+    const lines = actions.map(
+      (item) =>
+        `  ${actionMarks[item.action] ?? "?"} ${item.action.padEnd(8)} ${item.resource}\n`,
+    );
+    process.stdout.write(
+      `Plan for ${app.contract.name}\n\n${lines.join("")}\nPending migrations: ${pending.length}\n${
+        changes ? "" : "No changes.\n"
+      }`,
+    );
+  }
+}
+
+async function drift() {
+  const app = await loadApp();
+  if (!app.lock) {
+    throw new CliError("This app has not been deployed. Run tarantula deploy.");
+  }
+  const files = await validateAppFiles(app);
+  const checks = [];
+  let account = null;
+
+  try {
+    account = await currentAccount(app, true);
+    checks.push({
+      check: "account",
+      expected: app.lock.accountId ?? null,
+      observed: account.id,
+      result: "ok",
+      reason: null,
+    });
+  } catch (error) {
+    if (!(error instanceof CliError) || !error.details?.actual) throw error;
+    checks.push({
+      check: "account",
+      expected: error.details.expected,
+      observed: error.details.actual,
+      result: "drift",
+      reason:
+        "The active Cloudflare account is not the account recorded in tarantula.lock.json.",
+    });
+    for (const check of ["worker", "deployment", "url", "tables", "migrations"]) {
+      checks.push({
+        check,
+        expected: null,
+        observed: null,
+        result: "unknown",
+        reason: "Skipped because the active Cloudflare account does not match.",
+      });
+    }
+  }
+
+  if (account) {
+    const exists = await workerExists(app, account);
+    checks.push({
+      check: "worker",
+      expected: "present",
+      observed: exists ? "present" : "missing",
+      result: exists ? "ok" : "drift",
+      reason: exists
+        ? null
+        : "The locked Worker no longer exists in this Cloudflare account.",
+    });
+
+    const { configPath } = await compileProviderConfig(
+      app,
+      app.lock.resources?.tables?.id ?? null,
+    );
+
+    if (!exists) {
+      checks.push({
+        check: "deployment",
+        expected: app.lock.worker?.lastDeploymentId ?? null,
+        observed: null,
+        result: "unknown",
+        reason: "The Worker is missing, so no deployment can be read.",
+      });
+      checks.push({
+        check: "url",
+        expected: app.lock.worker?.url ?? null,
+        observed: null,
+        result: "unknown",
+        reason: "The Worker is missing, so no URL can be read.",
+      });
+    } else {
+      const status = await deploymentStatus(app, configPath, true);
+      const deploymentId = findFirstValue(status, [
+        "deployment_id",
+        "deploymentId",
+        "id",
+      ]);
+      const lockedDeploymentId = app.lock.worker?.lastDeploymentId ?? null;
+      if (!lockedDeploymentId) {
+        checks.push({
+          check: "deployment",
+          expected: null,
+          observed: deploymentId,
+          result: "unknown",
+          reason:
+            "tarantula.lock.json does not record a deployment id yet. Deploy once with this version of Tarantula to record it.",
+        });
+      } else {
+        checks.push({
+          check: "deployment",
+          expected: lockedDeploymentId,
+          observed: deploymentId,
+          result: lockedDeploymentId === deploymentId ? "ok" : "drift",
+          reason:
+            lockedDeploymentId === deploymentId
+              ? null
+              : "The live deployment was not created by this lockfile. Something deployed outside Tarantula.",
+        });
+      }
+
+      const observedUrl =
+        JSON.stringify(status).match(
+          /https:\/\/[a-zA-Z0-9.-]+\.workers\.dev/,
+        )?.[0] ?? null;
+      const lockedUrl = app.lock.worker?.url ?? null;
+      if (!observedUrl) {
+        checks.push({
+          check: "url",
+          expected: lockedUrl,
+          observed: null,
+          result: "unknown",
+          reason: "Cloudflare did not report a workers.dev URL for this Worker.",
+        });
+      } else {
+        checks.push({
+          check: "url",
+          expected: lockedUrl,
+          observed: observedUrl,
+          result: lockedUrl === observedUrl ? "ok" : "drift",
+          reason:
+            lockedUrl === observedUrl
+              ? null
+              : "The live URL is not the URL recorded in tarantula.lock.json.",
+        });
+      }
+    }
+
+    const locked = app.lock.resources?.tables ?? null;
+    const databases = await listDatabases(app, true);
+    const database = locked
+      ? databases.find((item) => (item.uuid ?? item.id) === locked.id)
+      : null;
+    const lockedTables = locked ? `${locked.name} (${locked.id})` : null;
+    if (!database) {
+      checks.push({
+        check: "tables",
+        expected: lockedTables,
+        observed: "missing",
+        result: "drift",
+        reason: "The locked D1 database is not present in this account.",
+      });
+    } else {
+      const identity = databaseIdentity(database);
+      const observedTables = `${identity.name} (${identity.id})`;
+      checks.push({
+        check: "tables",
+        expected: lockedTables,
+        observed: observedTables,
+        result: lockedTables === observedTables ? "ok" : "drift",
+        reason:
+          lockedTables === observedTables
+            ? null
+            : "The locked D1 database was renamed outside Tarantula.",
+      });
+    }
+
+    if (!database) {
+      checks.push({
+        check: "migrations",
+        expected: [],
+        observed: [],
+        result: "unknown",
+        reason:
+          "The locked D1 database is missing, so remote migration state cannot be read.",
+      });
+    } else {
+      const pending = await pendingMigrations(
+        app,
+        configPath,
+        account,
+        files.migrationFiles,
+      );
+      checks.push({
+        check: "migrations",
+        expected: [],
+        observed: pending,
+        result: pending.length ? "drift" : "ok",
+        reason: pending.length
+          ? `${pending.length} migration${pending.length === 1 ? "" : "s"} in the contract are not applied remotely.`
+          : null,
+      });
+    }
+  }
+
+  const drifted = checks.some((item) => item.result === "drift");
+  const payload = {
+    schemaVersion: 1,
+    status: drifted ? "drifted" : "clean",
+    name: app.contract.name,
+    checks,
+  };
+  if (jsonOutput) {
+    process.stdout.write(`${JSON.stringify(payload)}\n`);
+  } else {
+    const marks = { ok: "ok   ", drift: "DRIFT", unknown: "?    " };
+    const lines = checks.map((item) => {
+      const expected = Array.isArray(item.expected)
+        ? `${item.expected.length} pending`
+        : (item.expected ?? "none");
+      const observed = Array.isArray(item.observed)
+        ? `${item.observed.length} pending`
+        : (item.observed ?? "none");
+      return `  ${marks[item.result]} ${item.check.padEnd(11)} expected ${expected}, observed ${observed}\n`;
+    });
+    process.stdout.write(
+      `Drift for ${app.contract.name}\n\n${lines.join("")}\nStatus: ${payload.status}\n`,
+    );
+  }
+  if (drifted) process.exitCode = 2;
 }
 
 async function inspectApp() {
@@ -933,9 +1369,13 @@ Usage:
   tarantula new <name> --template chat
   tarantula dev [--port 8787]
   tarantula deploy [--json] [--dry-run]
+  tarantula plan [--json]
+  tarantula drift [--json]
   tarantula inspect [--json]
   tarantula logs [--json]
   tarantula doctor [--json]
+
+plan previews what deploy would change. drift exits 2 when the provider no longer matches the lockfile.
 
 The deployer uses your Cloudflare account. Visitors to the chat template do not log in.
 `);
@@ -946,6 +1386,8 @@ try {
   if (command === "new") await createApp();
   else if (command === "dev") await develop();
   else if (command === "deploy") await deploy();
+  else if (command === "plan") await plan();
+  else if (command === "drift") await drift();
   else if (command === "inspect") await inspectApp();
   else if (command === "logs") await logs();
   else if (command === "doctor") await doctor();

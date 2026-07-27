@@ -10,7 +10,9 @@ export const metadata = {
 const commands = [
   ["new", "tarantula new open-chat --template chat", "Write the app, migration, tests, and agent instructions."],
   ["dev", "tarantula dev", "Apply local migrations and run the Worker, assets, and D1 together."],
+  ["plan", "tarantula plan --json", "Preview what a deploy would create, update, keep, or apply. Changes nothing."],
   ["deploy", "tarantula deploy --json", "Provision remote D1, migrate, deploy, wait for readiness, and return the URL."],
+  ["drift", "tarantula drift --json", "Compare the provider with the lockfile. Exits 2 when they no longer match."],
   ["inspect", "tarantula inspect --json", "Read the real Worker deployment and D1 state."],
   ["logs", "tarantula logs", "Stream request outcomes from the deployed Worker."],
 ] as const;
@@ -22,7 +24,7 @@ export default function DevelopersPage() {
         <div className="shell page-hero-grid">
           <p className="eyebrow">The working CLI</p>
           <div>
-            <h1>The whole v0 loop fits in five commands.</h1>
+            <h1>The whole v0 loop fits in seven commands.</h1>
             <p>
               The CLI owns the app contract, Cloudflare account check, D1
               provisioning, migrations, deployment readiness, lockfile, and

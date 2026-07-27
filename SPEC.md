@@ -63,10 +63,12 @@ Tarantula products are the user-facing abstraction. Infrastructure-as-code is an
 
 `plan` compares desired architecture with locked remote state. `deploy` applies an approved change and emits an immutable release. `drift` reports provider changes made outside Tarantula.
 
+`plan` and `drift` ship in v0 against the single implicit environment; the `--stack` selector arrives with named stacks. Both are read-only. Exit codes are `0` success, `1` error including a plan blocked by an unowned name conflict, and `2` reserved for `drift` when the provider no longer matches the lockfile.
+
 ## Delivery stages
 
-- **Available v0:** public Worker + Static Assets, one D1 database, migrations, local development, deploy, readiness, stable URL, inspect, logs, committed lockfile, no-login chat.
-- **Next foundation:** named stacks, remote locked state, plan, drift, immutable release history, preview and rollback.
+- **Available v0:** public Worker + Static Assets, one D1 database, migrations, local development, deploy, readiness, stable URL, plan, drift, inspect, logs, committed lockfile, no-login chat.
+- **Next foundation:** named stacks, remote locked state, immutable release history, preview and rollback.
 - **Account foundation:** Access-authenticated console, CLI device authorization, project registration, release and resource views, and activity ledger.
 - **Platform coverage:** Door, Library, Switchboard, Loops, custom domains, backup and restore, typed data access, hosted control panel.
 

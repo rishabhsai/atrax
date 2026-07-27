@@ -24,10 +24,14 @@ Do not treat planned features as available. The docs label every feature as avai
 
 1. Read `tarantula.json` and the relevant docs.
 2. Run `tarantula doctor --json` before deployment work.
-3. Use `tarantula deploy --dry-run` before a remote deploy when validating changes.
-4. Use `tarantula deploy --json` only when the user asked to deploy.
-5. Verify remote state with `tarantula inspect --json`.
-6. Use `tarantula logs` for live request outcomes.
+3. Use `tarantula plan --json` to see what a deploy would change. It never creates, migrates, or deploys anything.
+4. Use `tarantula deploy --dry-run` before a remote deploy when validating changes.
+5. Use `tarantula deploy --json` only when the user asked to deploy.
+6. Verify remote state with `tarantula inspect --json`.
+7. Use `tarantula drift --json` to check whether the provider still matches `tarantula.lock.json`.
+8. Use `tarantula logs` for live request outcomes.
+
+Exit codes: `0` success, `1` error (including a `plan` blocked by an unowned name conflict), `2` only from `drift` when the provider no longer matches the lockfile. Treat `2` as a state to report, not a crash.
 
 The v0 chat template is public: anyone with its URL can read and post. Never describe it as private or suitable for secrets.
 
@@ -37,8 +41,10 @@ The v0 chat template is public: anyone with its URL can read and post. Never des
 tarantula new open-chat --template chat
 cd open-chat
 tarantula dev
+tarantula plan --json
 tarantula deploy --json
 tarantula inspect --json
+tarantula drift --json
 ```
 
 Return the stable app URL and important resource identities from JSON output. Keep provider noise out of user-facing summaries.

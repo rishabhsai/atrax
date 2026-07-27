@@ -84,6 +84,8 @@ tarantula logs`,
           "tarantula dev [--port 8787]: migrate and run locally with persistent state.",
           "tarantula deploy [--json]: provision, migrate, deploy, wait, lock, and return the URL.",
           "tarantula deploy --dry-run: validate the bundle without changing remote resources.",
+          "tarantula plan [--json]: preview what deploy would create, update, keep, or apply, without changing anything.",
+          "tarantula drift [--json]: compare the provider with the lockfile and report changes made outside Tarantula.",
           "tarantula inspect [--json]: inspect the live Worker and D1 database.",
           "tarantula logs [--json]: stream live Worker logs; JSON mode is Wrangler NDJSON, not a single result object.",
           "tarantula doctor [--json]: validate declared files, bundle, Wrangler, Cloudflare account, and lock ownership.",
@@ -104,6 +106,12 @@ tarantula logs`,
     "tables": { "id": "...", "name": "open-chat-tables" }
   }
 }`,
+      },
+      {
+        heading: "Exit codes",
+        paragraphs: [
+          "0 means success. 1 means the command failed, including a plan blocked by a name conflict it cannot own. 2 is reserved for tarantula drift and means the provider no longer matches the lockfile, so an agent can branch on drift without treating it as an error.",
+        ],
       },
       {
         heading: "Account safety",
@@ -188,13 +196,15 @@ tarantula logs`,
         ],
       },
       {
-        heading: "Planned workflow",
-        code: `tarantula plan --stack prod --json
-tarantula deploy --stack prod --json
-tarantula drift --stack prod --json`,
+        heading: "Reconciliation workflow",
+        code: `tarantula plan --json
+tarantula deploy --json
+tarantula drift --json`,
         paragraphs: [
           "Plan compares desired architecture with locked remote state. Deploy reconciles the approved change. Drift reports provider changes made outside Tarantula.",
+          "Plan and drift work in v0 against the single implicit environment. Plan exits 1 when a name conflict blocks it; drift exits 2 when the provider no longer matches the lockfile.",
         ],
+        note: "The --stack flag is roadmap architecture. v0 has one implicit stack.",
       },
       {
         heading: "Provider engines",
@@ -253,6 +263,7 @@ tarantula dev`,
           "Stable workers.dev URL through a committed lockfile.",
           "Readiness check against the deployed API.",
           "Deployment inspection and live logs.",
+          "Read-only plan and drift against the deployed app.",
         ],
       },
       {
@@ -447,7 +458,7 @@ tarantula dev`,
       {
         heading: "Available",
         bullets: [
-          "Scaffold, local development, deploy, inspect, and logs CLI.",
+          "Scaffold, local development, deploy, plan, drift, inspect, and logs CLI.",
           "Worker server endpoints and static browser client.",
           "D1 provisioning, migrations, persistence, and inspection.",
           "Unauthenticated public access with no login.",
@@ -464,7 +475,7 @@ tarantula dev`,
           "Database dump, export, and restore.",
           "Hosted environment and secrets sync.",
           "Tokens, domains, previews, rollback, and control-panel UI.",
-          "Named stacks, remote locked state, plan, and drift detection.",
+          "Named stacks and remote locked state. Plan and drift are available against the single v0 environment.",
         ],
       },
       {
