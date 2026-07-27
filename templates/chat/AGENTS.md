@@ -15,6 +15,16 @@ This is a Tarantula v0 app.
 
 The app is public by default. Anyone with the URL can read and post messages.
 
+## Instant deploys
+
+With no Cloudflare account available, `tarantula deploy` publishes through
+Tarantula instant hosting instead and prints a real public URL plus a one-time
+claim token. The app is anonymous and disappears after 30 days unless you run
+the `tarantula claim <token>` line the deploy prints; the token is never written
+to disk, so capture it from that output. `--instant` forces the path. Instant
+apps must be `"visibility": "public"` (no Worker secrets yet), and `inspect`,
+`logs`, `plan`, `drift`, and `share` are not available for them.
+
 ## Shared visibility (Door alpha)
 
 Set `"visibility": "shared"` in `tarantula.json` and run `tarantula deploy` to

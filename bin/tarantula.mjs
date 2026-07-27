@@ -12,7 +12,15 @@ import {
 } from "node:fs/promises";
 import { createHash, randomBytes } from "node:crypto";
 import { spawn } from "node:child_process";
-import { dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
+import {
+  basename,
+  dirname,
+  isAbsolute,
+  join,
+  relative,
+  resolve,
+  sep,
+} from "node:path";
 import { fileURLToPath } from "node:url";
 
 const packageRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -22,6 +30,8 @@ const packageJson = JSON.parse(
 const wranglerBin =
   process.env.TARANTULA_WRANGLER_BIN ??
   join(packageRoot, "node_modules", "wrangler", "bin", "wrangler.js");
+const instantOriginDefault = "https://tarantula-instant.rishabhsai-mdbar.workers.dev";
+const instantOrigin = process.env.TARANTULA_INSTANT_ORIGIN ?? instantOriginDefault;
 const argv = process.argv.slice(2);
 const command = argv[0] ?? "help";
 const commandArgs = argv.slice(1);
@@ -76,7 +86,8 @@ function positionals() {
       index += 1;
       continue;
     }
-    if (!value.startsWith("-")) values.push(value);
+    // A claim token is base64url and may legitimately begin with "-".
+    if (command === "claim" || !value.startsWith("-")) values.push(value);
   }
   return values;
 }
@@ -85,7 +96,12 @@ function validateCommandArgs() {
   const specs = {
     new: { flags: ["--json"], values: ["--template"], positionals: 1 },
     dev: { flags: [], values: ["--port"], positionals: 0 },
-    deploy: { flags: ["--json", "--dry-run"], values: [], positionals: 0 },
+    deploy: {
+      flags: ["--json", "--dry-run", "--instant"],
+      values: [],
+      positionals: 0,
+    },
+    claim: { flags: ["--json"], values: [], positionals: 1, rawPositionals: true },
     plan: { flags: ["--json"], values: [], positionals: 0 },
     drift: { flags: ["--json"], values: [], positionals: 0 },
     inspect: { flags: ["--json"], values: [], positionals: 0 },
@@ -112,7 +128,7 @@ function validateCommandArgs() {
       index += 1;
       continue;
     }
-    if (value.startsWith("-")) {
+    if (value.startsWith("-") && !spec.rawPositionals) {
       throw new CliError(`Unknown option for ${command}: ${value}`);
     }
     positionalCount += 1;
@@ -249,7 +265,9 @@ async function loadApp() {
   const lock = (await pathExists(lockPath))
     ? await readJson(lockPath, "tarantula.lock.json")
     : null;
-  if (lock && lock.worker?.name !== contract.name) {
+  // An instant app's Worker is named by the control plane (i-<appId>), not by
+  // the contract, so the ownership guard only applies to provider-named apps.
+  if (lock && lock.mode !== "instant" && lock.worker?.name !== contract.name) {
     throw new CliError(
       "tarantula.json name does not match the Worker recorded in tarantula.lock.json.",
       {
@@ -738,6 +756,7 @@ function validateEmail(value) {
 
 async function loadSharedApp() {
   const app = await loadApp();
+  rejectInstantLock(app, "share");
   if (app.contract.visibility !== "shared") {
     throw new CliError(
       `tarantula share needs visibility "shared" in tarantula.json. This app is "${app.contract.visibility}".`,
@@ -1015,6 +1034,225 @@ async function develop() {
   await runWrangler(app.root, args);
 }
 
+// Instant hosting: an anonymous deploy through the Tarantula control plane for
+// people who have no Cloudflare account yet. The app is real and public, but
+// unclaimed apps are deleted after 30 days.
+
+function rejectInstantLock(app, name) {
+  if (app.lock?.mode !== "instant") return;
+  throw new CliError(`tarantula ${name} is not available for instant apps yet.`, {
+    mode: "instant",
+    url: app.lock.worker?.url ?? null,
+    recovery:
+      "Claim the app with tarantula claim <token>, or deploy it with a Cloudflare account to use this command.",
+  });
+}
+
+// Conservative: only a genuinely absent Cloudflare login counts. Two accounts,
+// a locked account mismatch, or a broken Wrangler install must surface as
+// themselves rather than silently rerouting a deploy to instant hosting.
+function isMissingCloudflareAuth(error) {
+  if (!(error instanceof CliError)) return false;
+  if (error.message.startsWith("No Cloudflare account is available")) return true;
+  if (error.details?.command === "wrangler whoami --json") return true;
+  return (
+    error.message === "wrangler whoami did not return JSON" ||
+    error.message === "wrangler whoami returned unreadable JSON"
+  );
+}
+
+async function instantRequest(path, options = {}) {
+  const url = `${instantOrigin.replace(/\/+$/, "")}${path}`;
+  let response;
+  try {
+    response = await fetch(url, {
+      method: options.method ?? "POST",
+      cache: "no-store",
+      headers: {
+        "content-type": "application/json",
+        ...(options.token ? { authorization: `Bearer ${options.token}` } : {}),
+      },
+      body: options.body === undefined ? undefined : JSON.stringify(options.body),
+    });
+  } catch (error) {
+    throw new CliError(
+      `Tarantula instant hosting is unreachable at ${instantOrigin}.`,
+      {
+        cause: String(error?.message ?? error),
+        recovery:
+          "Check your network connection, or run wrangler login and deploy with your own Cloudflare account.",
+      },
+    );
+  }
+  const text = await response.text();
+  let payload = null;
+  try {
+    payload = text ? JSON.parse(text) : null;
+  } catch {
+    payload = null;
+  }
+  if (!response.ok) {
+    throw new CliError(
+      payload?.error ?? `Tarantula instant hosting returned ${response.status}.`,
+      payload?.details ?? { status: response.status },
+    );
+  }
+  if (!payload) {
+    throw new CliError("Tarantula instant hosting returned an unreadable response.");
+  }
+  return payload;
+}
+
+// The template keeps worker.js next to its helper modules in src/, and instant
+// hosting has no bundler, so every sibling module travels with the entry.
+async function readInstantModules(entryPath) {
+  const directory = dirname(entryPath);
+  const entryName = basename(entryPath);
+  const names = (await readdir(directory, { withFileTypes: true }))
+    .filter((item) => item.isFile() && /\.(js|mjs)$/.test(item.name))
+    .map((item) => item.name)
+    .sort();
+  if (!names.includes(entryName)) names.push(entryName);
+  const modules = {};
+  for (const name of names) {
+    modules[name] = await readFile(join(directory, name), "utf8");
+  }
+  return modules;
+}
+
+async function readInstantAssets(directory, prefix = "", into = {}) {
+  const entries = (await readdir(directory, { withFileTypes: true })).sort(
+    (left, right) => left.name.localeCompare(right.name),
+  );
+  for (const entry of entries) {
+    const pathname = join(directory, entry.name);
+    const key = `${prefix}/${entry.name}`;
+    if (entry.isDirectory()) {
+      await readInstantAssets(pathname, key, into);
+    } else if (entry.isFile()) {
+      into[key] = (await readFile(pathname)).toString("base64");
+    }
+  }
+  return into;
+}
+
+async function readInstantMigrations(directory, files) {
+  const migrations = {};
+  for (const name of files) {
+    migrations[name] = await readFile(join(directory, name), "utf8");
+  }
+  return migrations;
+}
+
+async function instantDeploy(app, announce) {
+  if (app.contract.visibility !== "public") {
+    throw new CliError(
+      `Tarantula instant hosting supports public apps only. This app is "${app.contract.visibility}".`,
+      {
+        visibility: app.contract.visibility,
+        recovery:
+          "Deploy shared apps with a Cloudflare account for now: run wrangler login, then tarantula deploy.",
+      },
+    );
+  }
+  const files = await validateAppFiles(app);
+  if (announce && !jsonOutput) {
+    process.stdout.write(
+      "No Cloudflare account detected — deploying to Tarantula instant hosting.\n",
+    );
+  }
+
+  const configDir = join(app.root, ".tarantula");
+  await mkdir(configDir, { recursive: true });
+  const statePath = join(configDir, "instant.json");
+  const state = (await pathExists(statePath))
+    ? await readJson(statePath, ".tarantula/instant.json")
+    : null;
+
+  const bundle = {
+    contract: app.contract,
+    modules: await readInstantModules(files.entry),
+    assets: await readInstantAssets(files.assets),
+    migrations: await readInstantMigrations(files.migrations, files.migrationFiles),
+  };
+
+  const result = state?.appId
+    ? await instantRequest(`/v1/apps/${state.appId}/deploys`, {
+        body: bundle,
+        token: state.manageToken,
+      })
+    : await instantRequest("/v1/apps", {
+        body: { name: app.contract.name, ...bundle },
+      });
+
+  const appId = result.appId;
+  const url = result.url;
+  const tables = result.resources?.tables?.name ?? `i-${appId}-tables`;
+  // The manage token is a credential; the claim token is deliberately never
+  // written down, so it exists only in the output of the deploy that minted it.
+  await writeFile(
+    statePath,
+    `${JSON.stringify({ appId, manageToken: state?.manageToken ?? result.manageToken, url }, null, 2)}\n`,
+    { mode: 0o600 },
+  );
+  app.lock = {
+    version: 1,
+    provider: "tarantula-instant",
+    mode: "instant",
+    appId,
+    worker: { name: `i-${appId}`, url },
+  };
+  await writeFile(app.lockPath, `${JSON.stringify(app.lock, null, 2)}\n`);
+
+  await waitForLive(
+    url,
+    app.contract.web.health ?? "/.well-known/tarantula.json",
+  );
+
+  const payload = {
+    schemaVersion: 1,
+    status: "deployed",
+    mode: "instant",
+    name: app.contract.name,
+    url,
+    appId,
+    ...(result.claimToken ? { claimToken: result.claimToken } : {}),
+    expiresAt: result.expiresAt ?? null,
+    resources: { tables: { name: tables } },
+  };
+  if (jsonOutput) {
+    process.stdout.write(`${JSON.stringify(payload)}\n`);
+    return;
+  }
+  process.stdout.write(`\nDeployed ${app.contract.name}\nURL: ${url}\n`);
+  if (result.claimToken) {
+    process.stdout.write(
+      `\nThis app is unclaimed. It disappears in 30 days unless you claim it:\n\n  tarantula claim ${result.claimToken}\n`,
+    );
+  }
+}
+
+async function claim() {
+  const [token] = positionals();
+  if (!token) throw new CliError("Usage: tarantula claim <token>");
+  const result = await instantRequest("/v1/claims", {
+    body: { claimToken: token },
+  });
+  const payload = {
+    schemaVersion: 1,
+    status: "claimed",
+    appId: result.appId,
+    url: result.url,
+  };
+  if (jsonOutput) {
+    process.stdout.write(`${JSON.stringify(payload)}\n`);
+  } else {
+    process.stdout.write(
+      `Claimed ${payload.appId}\n${payload.url ? `URL: ${payload.url}\n` : ""}\nThis app no longer expires.\n`,
+    );
+  }
+}
+
 async function deploy() {
   const app = await loadApp();
   await validateAppFiles(app);
@@ -1039,7 +1277,17 @@ async function deploy() {
     return;
   }
 
-  const account = await currentAccount(app, quiet);
+  if (hasFlag("--instant") || app.lock?.mode === "instant") {
+    return instantDeploy(app, false);
+  }
+
+  let account;
+  try {
+    account = await currentAccount(app, quiet);
+  } catch (error) {
+    if (app.lock || !isMissingCloudflareAuth(error)) throw error;
+    return instantDeploy(app, true);
+  }
   await assertWorkerNameAvailable(app, account);
   const database = await resolveDatabase(app, quiet);
   const door = app.lock?.door ?? null;
@@ -1142,6 +1390,7 @@ const actionMarks = {
 
 async function plan() {
   const app = await loadApp();
+  rejectInstantLock(app, "plan");
   const files = await validateAppFiles(app);
   const quiet = jsonOutput;
   const { configPath } = await compileProviderConfig(app);
@@ -1325,6 +1574,7 @@ async function plan() {
 
 async function drift() {
   const app = await loadApp();
+  rejectInstantLock(app, "drift");
   if (!app.lock) {
     throw new CliError("This app has not been deployed. Run tarantula deploy.");
   }
@@ -1579,6 +1829,7 @@ async function drift() {
 
 async function inspectApp() {
   const app = await loadApp();
+  rejectInstantLock(app, "inspect");
   if (!app.lock) {
     throw new CliError("This app has not been deployed. Run tarantula deploy.");
   }
@@ -1622,6 +1873,7 @@ async function inspectApp() {
 
 async function logs() {
   const app = await loadApp();
+  rejectInstantLock(app, "logs");
   if (!app.lock) {
     throw new CliError("This app has not been deployed. Run tarantula deploy.");
   }
@@ -1677,7 +1929,8 @@ function help() {
 Usage:
   tarantula new <name> --template chat
   tarantula dev [--port 8787]
-  tarantula deploy [--json] [--dry-run]
+  tarantula deploy [--json] [--dry-run] [--instant]
+  tarantula claim <token> [--json]
   tarantula plan [--json]
   tarantula drift [--json]
   tarantula inspect [--json]
@@ -1692,6 +1945,9 @@ Sharing (alpha, needs "visibility": "shared"):
 plan previews what deploy would change. drift exits 2 when the provider no longer matches the lockfile.
 
 The deployer uses your Cloudflare account. Visitors to a public chat template do not log in.
+
+Without a Cloudflare account, deploy uses Tarantula instant hosting: a real public URL that disappears in 30 days.
+Run the tarantula claim <token> line that deploy prints once to keep the app forever.
 `);
 }
 
@@ -1700,6 +1956,7 @@ try {
   if (command === "new") await createApp();
   else if (command === "dev") await develop();
   else if (command === "deploy") await deploy();
+  else if (command === "claim") await claim();
   else if (command === "plan") await plan();
   else if (command === "drift") await drift();
   else if (command === "inspect") await inspectApp();

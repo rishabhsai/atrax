@@ -1,0 +1,27 @@
+{
+  "$schema": "../node_modules/wrangler/config-schema.json",
+  "name": "tarantula-instant",
+  "main": "src/index.js",
+  "compatibility_date": "2026-07-25",
+  "vars": {
+    // Not a secret: the account that owns every instant app. The scoped
+    // platform token that acts on it is the secret CF_API_TOKEN, which a human
+    // sets with `wrangler secret put CF_API_TOKEN` before the first deploy.
+    "CP_ACCOUNT_ID": "95df823db0957b851ddb12b11b8e1ef7"
+  },
+  "d1_databases": [
+    {
+      "binding": "CP_DB",
+      "database_name": "tarantula-instant-apps",
+      "database_id": "e585c378-4fb6-41ec-9752-1e07b889e7fd",
+      "migrations_dir": "migrations"
+    }
+  ],
+  "triggers": {
+    "crons": ["0 3 * * *"]
+  },
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1
+  }
+}

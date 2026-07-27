@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtemp, readFile, writeFile } from "node:fs/promises";
+import { mkdtemp, readFile, stat, writeFile } from "node:fs/promises";
 import { createHash } from "node:crypto";
 import { createServer } from "node:http";
 import { execFile } from "node:child_process";
@@ -69,6 +69,10 @@ if (has("d1", "execute")) {
     (state.secrets ?? []).map((name) => ({ name, type: "secret_text" })),
   ));
 } else if (has("whoami")) {
+  if (state.whoamiFails) {
+    process.stderr.write("You are not authenticated. Run wrangler login.\\n");
+    process.exit(1);
+  }
   out(JSON.stringify({
     accounts: [{ id: state.accountId ?? "account-1", name: "Fake Account" }],
   }));
@@ -175,6 +179,90 @@ async function readinessServer() {
   });
   await new Promise((done) => server.listen(0, "127.0.0.1", done));
   return {
+    origin: `http://127.0.0.1:${server.address().port}`,
+    close: () => new Promise((done) => server.close(done)),
+  };
+}
+
+// Stands in for the hosted instant-hosting control plane. It records every
+// request so the tests can assert on what the CLI actually uploaded.
+async function instantServer() {
+  const requests = [];
+  const appId = "abc1234567";
+  const url = `https://i-${appId}.fake.workers.dev`;
+  const server = createServer((request, response) => {
+    const chunks = [];
+    request.on("data", (chunk) => chunks.push(chunk));
+    request.on("end", () => {
+      const raw = Buffer.concat(chunks).toString("utf8");
+      const body = raw ? JSON.parse(raw) : null;
+      requests.push({
+        method: request.method,
+        url: request.url,
+        headers: request.headers,
+        body,
+      });
+      const send = (status, value) => {
+        response.writeHead(status, { "content-type": "application/json" });
+        response.end(JSON.stringify(value));
+      };
+      const tables = { tables: { name: `i-${appId}-tables` } };
+      if (request.url === "/v1/apps" && request.method === "POST") {
+        return send(200, {
+          schemaVersion: 1,
+          status: "deployed",
+          appId,
+          name: body.name,
+          url,
+          claimToken: "claim-token-1",
+          manageToken: "manage-token-1",
+          expiresAt: Date.now() + 30 * 24 * 60 * 60 * 1000,
+          resources: tables,
+        });
+      }
+      if (
+        request.method === "POST" &&
+        new RegExp(`^/v1/apps/${appId}/deploys$`).test(request.url)
+      ) {
+        return send(200, {
+          schemaVersion: 1,
+          status: "deployed",
+          appId,
+          name: "instant-chat",
+          url,
+          expiresAt: Date.now() + 30 * 24 * 60 * 60 * 1000,
+          resources: tables,
+        });
+      }
+      if (request.url === "/v1/claims" && request.method === "POST") {
+        if (body?.claimToken !== "claim-token-1") {
+          return send(404, {
+            schemaVersion: 1,
+            status: "error",
+            error: "That claim token does not match an instant app.",
+            details: null,
+          });
+        }
+        return send(200, {
+          schemaVersion: 1,
+          status: "claimed",
+          appId,
+          url,
+        });
+      }
+      send(404, {
+        schemaVersion: 1,
+        status: "error",
+        error: `No such endpoint: ${request.method} ${request.url}`,
+        details: null,
+      });
+    });
+  });
+  await new Promise((done) => server.listen(0, "127.0.0.1", done));
+  return {
+    appId,
+    url,
+    requests,
     origin: `http://127.0.0.1:${server.address().port}`,
     close: () => new Promise((done) => server.close(done)),
   };
@@ -644,6 +732,205 @@ test("plan and drift report the Door session secret for shared apps", async () =
   assert.equal(driftedCheck.expected, "present");
   assert.equal(driftedCheck.observed, "absent");
   assert.equal(driftedCheck.result, "drift");
+});
+
+test("deploy without a Cloudflare account falls back to instant hosting", async () => {
+  const root = await mkdtemp(join(tmpdir(), "tarantula-cli-"));
+  await run(["new", "instant-chat", "--template", "chat"], root);
+  const appRoot = join(root, "instant-chat");
+  const bin = await fakeWrangler(root);
+  const control = await instantServer();
+  const readiness = await readinessServer();
+  const env = {
+    ...fakeEnv(bin, { whoamiFails: true }),
+    TARANTULA_INSTANT_ORIGIN: control.origin,
+    TARANTULA_READINESS_ORIGIN: readiness.origin,
+  };
+
+  try {
+    const first = await run(["deploy"], appRoot, env);
+    assert.match(
+      first.stdout,
+      /No Cloudflare account detected — deploying to Tarantula instant hosting\./,
+    );
+    assert.match(first.stdout, new RegExp(control.url.replaceAll(".", "\\.")));
+    assert.match(first.stdout, /This app is unclaimed\. It disappears in 30 days/);
+    assert.match(first.stdout, /tarantula claim claim-token-1/);
+
+    const created = control.requests.find((item) => item.url === "/v1/apps");
+    assert.equal(created.body.name, "instant-chat");
+    assert.equal(created.body.contract.visibility, "public");
+    assert.ok(created.body.modules["worker.js"].includes("handleDoor"));
+    assert.ok(created.body.modules["door.js"].includes("sessionCookieName"));
+    assert.ok(created.body.modules["validation.js"]);
+    assert.deepEqual(Object.keys(created.body.assets).sort(), [
+      "/app.js",
+      "/index.html",
+      "/styles.css",
+    ]);
+    assert.equal(
+      Buffer.from(created.body.assets["/index.html"], "base64")
+        .toString("utf8")
+        .includes("<!doctype html>"),
+      true,
+    );
+    assert.deepEqual(Object.keys(created.body.migrations), [
+      "0001_messages.sql",
+      "0002_public_chat_guardrails.sql",
+      "0003_door_members.sql",
+    ]);
+
+    const lock = JSON.parse(
+      await readFile(join(appRoot, "tarantula.lock.json"), "utf8"),
+    );
+    assert.deepEqual(lock, {
+      version: 1,
+      provider: "tarantula-instant",
+      mode: "instant",
+      appId: control.appId,
+      worker: { name: `i-${control.appId}`, url: control.url },
+    });
+
+    const statePath = join(appRoot, ".tarantula", "instant.json");
+    const state = JSON.parse(await readFile(statePath, "utf8"));
+    assert.deepEqual(state, {
+      appId: control.appId,
+      manageToken: "manage-token-1",
+      url: control.url,
+    });
+    assert.equal((await stat(statePath)).mode & 0o777, 0o600);
+
+    // A redeploy reuses the stored credential, never reprints the claim token,
+    // and never asks Cloudflare for an account it does not have.
+    const second = await run(["deploy", "--json"], appRoot, env);
+    const payload = JSON.parse(second.stdout);
+    assert.equal(payload.schemaVersion, 1);
+    assert.equal(payload.status, "deployed");
+    assert.equal(payload.mode, "instant");
+    assert.equal(payload.name, "instant-chat");
+    assert.equal(payload.appId, control.appId);
+    assert.equal(payload.url, control.url);
+    assert.equal(payload.claimToken, undefined);
+    assert.equal(payload.resources.tables.name, `i-${control.appId}-tables`);
+    assert.ok(!second.stdout.includes("claim-token-1"));
+
+    const redeploys = control.requests.filter((item) =>
+      item.url.endsWith("/deploys"),
+    );
+    assert.equal(redeploys.length, 1);
+    assert.equal(redeploys[0].url, `/v1/apps/${control.appId}/deploys`);
+    assert.equal(redeploys[0].headers.authorization, "Bearer manage-token-1");
+    assert.equal(redeploys[0].body.name, undefined);
+    assert.ok(redeploys[0].body.modules["worker.js"]);
+  } finally {
+    await control.close();
+    await readiness.close();
+  }
+});
+
+test("claim marks an instant app claimed from anywhere", async () => {
+  const root = await mkdtemp(join(tmpdir(), "tarantula-cli-"));
+  const control = await instantServer();
+  try {
+    const claimed = await run(["claim", "claim-token-1", "--json"], root, {
+      TARANTULA_INSTANT_ORIGIN: control.origin,
+    });
+    assert.deepEqual(JSON.parse(claimed.stdout), {
+      schemaVersion: 1,
+      status: "claimed",
+      appId: control.appId,
+      url: control.url,
+    });
+    const request = control.requests.find((item) => item.url === "/v1/claims");
+    assert.deepEqual(request.body, { claimToken: "claim-token-1" });
+
+    const failed = await runAllowFailure(["claim", "wrong", "--json"], root, {
+      TARANTULA_INSTANT_ORIGIN: control.origin,
+    });
+    assert.equal(failed.code, 1);
+    assert.match(
+      JSON.parse(failed.stdout).error,
+      /does not match an instant app/,
+    );
+  } finally {
+    await control.close();
+  }
+});
+
+test("instant hosting refuses a shared app and names the recovery", async () => {
+  const root = await mkdtemp(join(tmpdir(), "tarantula-cli-"));
+  await run(["new", "shared-instant", "--template", "chat"], root);
+  const appRoot = join(root, "shared-instant");
+  await setVisibility(appRoot, "shared");
+  const bin = await fakeWrangler(root);
+  const control = await instantServer();
+
+  try {
+    const failed = await runAllowFailure(["deploy", "--instant", "--json"], appRoot, {
+      ...fakeEnv(bin, { whoamiFails: true }),
+      TARANTULA_INSTANT_ORIGIN: control.origin,
+    });
+    assert.equal(failed.code, 1);
+    const payload = JSON.parse(failed.stdout);
+    assert.equal(payload.status, "error");
+    assert.match(payload.error, /supports public apps only/);
+    assert.equal(payload.details.visibility, "shared");
+    assert.match(payload.details.recovery, /Cloudflare account/);
+    assert.equal(control.requests.length, 0);
+  } finally {
+    await control.close();
+  }
+});
+
+test("commands that need a Cloudflare account refuse instant apps", async () => {
+  const root = await mkdtemp(join(tmpdir(), "tarantula-cli-"));
+  await run(["new", "locked-instant", "--template", "chat"], root);
+  const appRoot = join(root, "locked-instant");
+  await writeFile(
+    join(appRoot, "tarantula.lock.json"),
+    `${JSON.stringify(
+      {
+        version: 1,
+        provider: "tarantula-instant",
+        mode: "instant",
+        appId: "abc1234567",
+        worker: {
+          name: "i-abc1234567",
+          url: "https://i-abc1234567.fake.workers.dev",
+        },
+      },
+      null,
+      2,
+    )}\n`,
+  );
+  const bin = await fakeWrangler(root);
+
+  for (const command of ["inspect", "logs", "plan", "drift"]) {
+    const failed = await runAllowFailure(
+      [command, "--json"],
+      appRoot,
+      fakeEnv(bin, { workerExists: true }),
+    );
+    assert.equal(failed.code, 1, `${command} should exit 1`);
+    const payload = JSON.parse(failed.stdout);
+    assert.match(
+      payload.error,
+      new RegExp(`tarantula ${command} is not available for instant apps yet`),
+    );
+    assert.match(payload.details.recovery, /tarantula claim/);
+  }
+
+  await setVisibility(appRoot, "shared");
+  const share = await runAllowFailure(
+    ["share", "list", "--json"],
+    appRoot,
+    fakeEnv(bin, { workerExists: true }),
+  );
+  assert.equal(share.code, 1);
+  assert.match(
+    JSON.parse(share.stdout).error,
+    /tarantula share is not available for instant apps yet/,
+  );
 });
 
 test("the contract accepts shared visibility and still rejects anything else", async () => {
