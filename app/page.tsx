@@ -1,7 +1,12 @@
-import Image from "next/image";
 import Link from "next/link";
 import { AgentCommand } from "./components/AgentCommand";
-import { AccountPreview, ProductMark } from "./components/Visuals";
+import {
+  AccountPreview,
+  LoopTrace,
+  OrgFabric,
+  ProductMark,
+  ShareSheet,
+} from "./components/Visuals";
 import { productOrder, products } from "./lib/content";
 
 export const metadata = {
@@ -40,84 +45,71 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="agent-work">
-        <div className="shell agent-work-intro">
-          <p className="eyebrow">Software that keeps moving</p>
-          <h2>Deploy an agent. Let it get the work done.</h2>
-          <p>
-            Ship an agent behind the same small contract as any other app.
-            Tarantula keeps the release understandable—then gives the work a
-            place to continue.
+      <section className="thesis">
+        <div className="shell thesis-copy">
+          <p className="eyebrow">Why Tarantula</p>
+          <h2>
+            Clouds deploy apps. Tarantula runs the software your company works
+            in.
+          </h2>
+          <p className="thesis-summary">
+            Every app you ship lands in one workspace — where your team can open
+            it, your other apps can call it, and your agents can keep it
+            running. The first app is a tool. The tenth is an operating system
+            for your company.
           </p>
-        </div>
-        <div className="shell agent-work-stories">
-          <article className="agent-work-story">
-            <div className="agent-work-art">
-              <Image
-                alt="An orange continuous loop carrying three work nodes around a black platform"
-                height={800}
-                src="/loops-agents.png"
-                width={1600}
-              />
-            </div>
-            <div className="agent-work-copy">
-              <span>01 / Loops</span>
-              <h3>Your agent can keep working after the tab closes.</h3>
-              <p>
-                Deploy the agent with Launchpad today. Loops adds the
-                long-running layer for schedules, webhooks, queues, retries,
-                approvals, and traces—so useful work can finish on its own.
-              </p>
-              <Link href="/products/loops">
-                Explore Loops <span aria-hidden="true">↗</span>
-              </Link>
-            </div>
-          </article>
-
-          <article className="agent-work-story agent-work-story-reverse">
-            <div className="agent-work-art">
-              <Image
-                alt="Three black app planes joined through one orange connection layer"
-                height={800}
-                src="/switchboard-apps.png"
-                width={1600}
-              />
-            </div>
-            <div className="agent-work-copy">
-              <span>02 / Switchboard</span>
-              <h3>Then let your apps work together automatically.</h3>
-              <p>
-                One app exposes a typed action; another receives a narrow
-                grant. Switchboard connects them without copying credentials,
-                while every automatic action stays scoped and inspectable.
-              </p>
-              <Link href="/products/switchboard">
-                Explore Switchboard <span aria-hidden="true">↗</span>
-              </Link>
-            </div>
-          </article>
+          <p className="thesis-note">
+            Launchpad and Tables are available today. Door, Library,
+            Switchboard, and Loops are planned, and every section below says
+            where it stands.
+          </p>
+          <nav className="thesis-jump" aria-label="Jump to a section">
+            <a href="#fabric">Apps that work together</a>
+            <a href="#included">Everything included</a>
+            <a href="#sharing">Share like a doc</a>
+            <a href="#agents">Agents as apps</a>
+          </nav>
         </div>
       </section>
 
-      <section className="account-story">
-        <div className="shell account-story-copy">
-          <p className="eyebrow">Your Tarantula account</p>
-          <h2>Everything you shipped. In one quiet place.</h2>
+      <section className="fabric" id="fabric">
+        <div className="shell fabric-intro">
+          <p className="eyebrow">One workspace</p>
+          <h2>Every app can use every other app. On your terms.</h2>
           <p>
-            See projects, environments, health, releases, resources, and recent
-            activity without opening a provider console.
+            An app publishes named actions instead of a database or an API key.
+            Another app receives one action, on one resource, for as long as you
+            allow — and every call lands in a ledger you can read. Nothing is
+            copied, nothing is shared by accident.
           </p>
+          <p className="section-status">
+            <span className="status status-planned">planned</span>
+            <span>
+              Switchboard, which owns grants, typed tools, and the action
+              ledger, is not available yet. Launchpad and Tables run the apps
+              today.
+            </span>
+          </p>
+          <Link className="text-link" href="/products/switchboard">
+            Read the Switchboard roadmap <span aria-hidden="true">→</span>
+          </Link>
         </div>
-        <div className="shell account-preview-wrap">
-          <AccountPreview />
+        <div className="shell">
+          <OrgFabric />
         </div>
       </section>
 
-      <section className="products-stage">
+      <section className="products-stage" id="included">
         <div className="shell">
           <div className="section-intro products-stage-intro">
-            <p className="eyebrow">One cloud, clear parts</p>
-            <h2>Everything an app needs. Nothing overlapping.</h2>
+            <p className="eyebrow">Everything included</p>
+            <h2>Six products. One contract. Nothing to assemble.</h2>
+            <p>
+              One `tarantula.json` declares the whole app: runtime, data,
+              access, files, connected tools, and background work. You or your
+              agent write the contract, and Tarantula reconciles it. Two
+              products run today, four are planned, and each card says which.
+            </p>
           </div>
           <div className="product-ledger">
             {productOrder.map((slug) => {
@@ -138,6 +130,75 @@ export default function Home() {
               );
             })}
           </div>
+        </div>
+      </section>
+
+      <section className="share-story" id="sharing">
+        <div className="shell share-grid">
+          <div className="share-copy">
+            <p className="eyebrow">Sharing</p>
+            <h2>Share an app the way you share a doc.</h2>
+            <p>
+              Invite a teammate by email, choose what they can do, and send one
+              URL. No login screen to build, no sessions to store, no identity
+              provider to wire in. Access belongs to the platform instead of the
+              app code.
+            </p>
+            <p className="section-status">
+              <span className="status status-planned">planned</span>
+              <span>
+                Door owns sign-in, teams, roles, and one share control, and is
+                not available yet. A v0 app ships public today, so anyone with
+                its URL can open it.
+              </span>
+            </p>
+            <Link className="text-link" href="/products/door">
+              Read the Door roadmap <span aria-hidden="true">→</span>
+            </Link>
+          </div>
+          <ShareSheet />
+        </div>
+      </section>
+
+      <section className="loop-story" id="agents">
+        <div className="shell loop-grid">
+          <div className="loop-copy">
+            <p className="eyebrow">Agents as apps</p>
+            <h2>Deploy an agent. Let it keep working.</h2>
+            <p>
+              An agent ships behind the same contract as any other app. Loops
+              adds what a single request cannot hold: schedules, webhooks,
+              queues, retries, a pause for approval before a sensitive action,
+              and a trace of every step. The work continues after the tab
+              closes.
+            </p>
+            <p className="section-status">
+              <span className="status status-planned">planned</span>
+              <span>
+                Launchpad deploys the agent app today. The durable execution
+                layer shown here belongs to Loops, which is not available yet.
+              </span>
+            </p>
+            <Link className="text-link" href="/products/loops">
+              Explore Loops <span aria-hidden="true">→</span>
+            </Link>
+          </div>
+          <LoopTrace />
+        </div>
+      </section>
+
+      <section className="account-story">
+        <div className="shell account-story-copy">
+          <p className="eyebrow">Your Tarantula account</p>
+          <h2>Everything you shipped. In one quiet place.</h2>
+          <p>
+            The workspace where all of it shows up: projects, environments,
+            health, releases, resources, and recent activity, without opening a
+            provider console.
+          </p>
+        </div>
+        <div className="shell account-preview-wrap">
+          <AccountPreview />
         </div>
       </section>
 
