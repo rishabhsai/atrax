@@ -2,7 +2,7 @@
 //
 // This module is dependency-free and uses only WebCrypto plus the D1 binding.
 // It is inert unless the app contract sets "visibility": "shared", which
-// Tarantula compiles into the TARANTULA_VISIBILITY var. Public apps behave
+// Atrax compiles into the ATRAX_VISIBILITY var. Public apps behave
 // exactly as they did before this file existed.
 
 export const sessionCookieName = "__door_session";
@@ -235,10 +235,10 @@ async function whoami(request, env, secret) {
 
 // Returns a Response when Door handles the request, or null to let the app run.
 export async function handleDoor(request, env) {
-  if (env?.TARANTULA_VISIBILITY !== "shared") return null;
-  // tarantula dev sets TARANTULA_LOCAL. A local run has no member table worth
+  if (env?.ATRAX_VISIBILITY !== "shared") return null;
+  // atrax dev sets ATRAX_LOCAL. A local run has no member table worth
   // gating and no session secret, so the gate stands down. Deploy never sets it.
-  if (env.TARANTULA_LOCAL === "1") return null;
+  if (env.ATRAX_LOCAL === "1") return null;
   const url = new URL(request.url);
   if (url.pathname.startsWith("/.well-known/")) return null;
   const secret = env.DOOR_SESSION_SECRET ?? "";
@@ -257,7 +257,7 @@ export async function handleDoor(request, env) {
   const session = await currentSession(request, secret);
   if (session) {
     // A signed cookie alone is not membership: someone removed with
-    // `tarantula share remove` must lose access before the cookie expires.
+    // `atrax share remove` must lose access before the cookie expires.
     const member = await env.DB.prepare(
       `SELECT id FROM door_members WHERE id = ?`,
     )

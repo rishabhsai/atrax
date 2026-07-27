@@ -17,7 +17,7 @@ export const products = {
       ["Machine output", "Deploy and inspect commands return versioned JSON with real resource IDs."],
       ["Live logs", "Stream request outcomes from the deployed Worker through the CLI."],
     ],
-    code: `tarantula deploy --json
+    code: `atrax deploy --json
 
 {
   "status": "deployed",
@@ -26,9 +26,9 @@ export const products = {
 }`,
     codeLabel: "Working v0 command",
     spec: [
-      { property: "Command", value: "tarantula deploy --json", code: true },
+      { property: "Command", value: "atrax deploy --json", code: true },
       { property: "Output", value: "schemaVersion 1 JSON", code: true },
-      { property: "State", value: "tarantula.lock.json", code: true },
+      { property: "State", value: "atrax.lock.json", code: true },
       { property: "Runtime", value: "Worker plus static assets" },
       { property: "Status", value: "Available in v0" },
     ],
@@ -78,7 +78,7 @@ export const products = {
     cardTitle: "Control who can open an app and what they can do.",
     title: "Give people access without rebuilding login.",
     summary:
-      "Door will add guest identity, sign-in, sessions, teams, invitations, roles, app identity, and one share control for every app. An alpha slice ships today: shared visibility with invite links via tarantula share.",
+      "Door will add guest identity, sign-in, sessions, teams, invitations, roles, app identity, and one share control for every app. An alpha slice ships today: shared visibility with invite links via atrax share.",
     boundary:
       "Door owns identity, sessions, sharing, and roles. It never deploys or runs software; that is Launchpad. Switchboard owns external capabilities.",
     features: [
@@ -87,13 +87,13 @@ export const products = {
       ["Roles", "Apply the same role in the UI, API, and data layer."],
       ["App identity", "Give each deployed app its own narrow service identity."],
     ],
-    code: `tarantula share add ana@example.com --json
+    code: `atrax share add ana@example.com --json
 
 Alpha slice only: invite links for a
 shared app. Roles and teams are planned.`,
     codeLabel: "Alpha slice",
     spec: [
-      { property: "Command", value: "tarantula share add <email>", code: true },
+      { property: "Command", value: "atrax share add <email>", code: true },
       { property: "Owns", value: "Identity, sessions, sharing, roles" },
       { property: "Today", value: "Public apps, or shared apps behind invite links" },
       { property: "Foundation", value: "Cloudflare Access and app identity" },

@@ -36,7 +36,7 @@ export default function ProductsPage() {
           <div>
             <h1>Six products. One contract.</h1>
             <p>
-              One `tarantula.json` declares runtime, data, access, files,
+              One `atrax.json` declares runtime, data, access, files,
               connected tools, and background work, and each product owns one
               job inside it. Launchpad and Tables are available in v0. The
               other four are documented as roadmap so the product can be judged

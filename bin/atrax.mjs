@@ -7,6 +7,7 @@ import {
   mkdir,
   readFile,
   readdir,
+  rm,
   stat,
   writeFile,
 } from "node:fs/promises";
@@ -22,16 +23,33 @@ import {
   sep,
 } from "node:path";
 import { fileURLToPath } from "node:url";
+import { createRequire } from "node:module";
 
 const packageRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const packageJson = JSON.parse(
   await readFile(join(packageRoot, "package.json"), "utf8"),
 );
-const wranglerBin =
-  process.env.TARANTULA_WRANGLER_BIN ??
-  join(packageRoot, "node_modules", "wrangler", "bin", "wrangler.js");
+
+// npm may hoist wrangler next to atrax instead of nesting it, so resolve it
+// like a module before falling back to the in-repo layout.
+function resolveWranglerBin() {
+  try {
+    const require = createRequire(import.meta.url);
+    return join(
+      dirname(require.resolve("wrangler/package.json")),
+      "bin",
+      "wrangler.js",
+    );
+  } catch {
+    return join(packageRoot, "node_modules", "wrangler", "bin", "wrangler.js");
+  }
+}
+
+const wranglerBin = process.env.ATRAX_WRANGLER_BIN ?? resolveWranglerBin();
+// Atrax instant hosting. The deployed Worker still carries its original name,
+// so the origin below stays until api.atrax.run lands.
 const instantOriginDefault = "https://tarantula-instant.rishabhsai-mdbar.workers.dev";
-const instantOrigin = process.env.TARANTULA_INSTANT_ORIGIN ?? instantOriginDefault;
+const instantOrigin = process.env.ATRAX_INSTANT_ORIGIN ?? instantOriginDefault;
 const argv = process.argv.slice(2);
 const command = argv[0] ?? "help";
 const commandArgs = argv.slice(1);
@@ -56,7 +74,7 @@ function fail(error) {
       })}\n`,
     );
   } else {
-    process.stderr.write(`tarantula: ${message}\n`);
+    process.stderr.write(`atrax: ${message}\n`);
   }
   process.exitCode = 1;
 }
@@ -108,6 +126,8 @@ function validateCommandArgs() {
     logs: { flags: ["--json"], values: [], positionals: 0 },
     doctor: { flags: ["--json"], values: [], positionals: 0 },
     share: { flags: ["--json"], values: [], positionals: null },
+    secret: { flags: ["--json"], values: [], positionals: null },
+    delete: { flags: ["--json", "--yes"], values: [], positionals: 0 },
     help: { flags: [], values: [], positionals: 0 },
     "--help": { flags: [], values: [], positionals: 0 },
     "-h": { flags: [], values: [], positionals: 0 },
@@ -167,11 +187,11 @@ async function readJson(pathname, label) {
 async function findAppRoot(start = process.cwd()) {
   let current = resolve(start);
   while (true) {
-    if (await pathExists(join(current, "tarantula.json"))) return current;
+    if (await pathExists(join(current, "atrax.json"))) return current;
     const parent = dirname(current);
     if (parent === current) {
       throw new CliError(
-        "No tarantula.json found. Run this inside a Tarantula app.",
+        "No atrax.json found. Run this inside an Atrax app.",
       );
     }
     current = parent;
@@ -201,23 +221,23 @@ function rejectUnknownKeys(value, allowed, label) {
 }
 
 function validateContract(contract) {
-  assertObject(contract, "tarantula.json");
+  assertObject(contract, "atrax.json");
   rejectUnknownKeys(
     contract,
     ["$schema", "version", "name", "visibility", "web", "tables"],
-    "tarantula.json",
+    "atrax.json",
   );
   if (contract.version !== 1) {
-    throw new CliError("tarantula.json version must be 1");
+    throw new CliError("atrax.json version must be 1");
   }
   validateName(contract.name);
   if (contract.visibility !== "public" && contract.visibility !== "shared") {
     throw new CliError(
-      'Tarantula v0 supports visibility "public" and "shared". Private apps are not available yet.',
+      'Atrax v0 supports visibility "public" and "shared". Private apps are not available yet.',
     );
   }
   if (!contract.web?.entry || !contract.web?.assets) {
-    throw new CliError("tarantula.json needs web.entry and web.assets");
+    throw new CliError("atrax.json needs web.entry and web.assets");
   }
   assertObject(contract.web, "web");
   rejectUnknownKeys(contract.web, ["entry", "assets", "health"], "web");
@@ -239,7 +259,7 @@ function validateContract(contract) {
     );
   }
   if (!contract.tables?.migrations) {
-    throw new CliError("tarantula.json needs tables.migrations");
+    throw new CliError("atrax.json needs tables.migrations");
   }
   assertObject(contract.tables, "tables");
   rejectUnknownKeys(contract.tables, ["migrations"], "tables");
@@ -259,17 +279,17 @@ function localDatabaseId(name) {
 
 async function loadApp() {
   const root = await findAppRoot();
-  const contract = await readJson(join(root, "tarantula.json"), "tarantula.json");
+  const contract = await readJson(join(root, "atrax.json"), "atrax.json");
   validateContract(contract);
-  const lockPath = join(root, "tarantula.lock.json");
+  const lockPath = join(root, "atrax.lock.json");
   const lock = (await pathExists(lockPath))
-    ? await readJson(lockPath, "tarantula.lock.json")
+    ? await readJson(lockPath, "atrax.lock.json")
     : null;
   // An instant app's Worker is named by the control plane (i-<appId>), not by
   // the contract, so the ownership guard only applies to provider-named apps.
   if (lock && lock.mode !== "instant" && lock.worker?.name !== contract.name) {
     throw new CliError(
-      "tarantula.json name does not match the Worker recorded in tarantula.lock.json.",
+      "atrax.json name does not match the Worker recorded in atrax.lock.json.",
       {
         contractName: contract.name,
         lockedWorker: lock.worker?.name ?? null,
@@ -355,7 +375,7 @@ async function validateAppFiles(app) {
 }
 
 async function compileProviderConfig(app, databaseId = null, options = {}) {
-  const configDir = join(app.root, ".tarantula");
+  const configDir = join(app.root, ".atrax");
   await mkdir(configDir, { recursive: true });
   const databaseName =
     app.lock?.resources?.tables?.name ?? `${app.contract.name}-tables`;
@@ -390,12 +410,12 @@ async function compileProviderConfig(app, databaseId = null, options = {}) {
       },
     ],
     vars: {
-      TARANTULA_APP_NAME: app.contract.name,
-      TARANTULA_VISIBILITY: app.contract.visibility,
-      // Only tarantula dev compiles this. A local run has no members and no
+      ATRAX_APP_NAME: app.contract.name,
+      ATRAX_VISIBILITY: app.contract.visibility,
+      // Only atrax dev compiles this. A local run has no members and no
       // session secret, so the Door gate stands down instead of locking the
       // developer out of their own app. Deploy never writes it.
-      ...(options.local ? { TARANTULA_LOCAL: "1" } : {}),
+      ...(options.local ? { ATRAX_LOCAL: "1" } : {}),
     },
     observability: {
       enabled: true,
@@ -410,7 +430,7 @@ async function compileProviderConfig(app, databaseId = null, options = {}) {
 async function runWrangler(appRoot, args, options = {}) {
   if (!(await pathExists(wranglerBin))) {
     throw new CliError(
-      "Wrangler is missing from the Tarantula installation. Reinstall Tarantula.",
+      "Wrangler is missing from the Atrax installation. Reinstall Atrax.",
     );
   }
 
@@ -419,7 +439,7 @@ async function runWrangler(appRoot, args, options = {}) {
   const env = {
     ...process.env,
     ...(options.env ?? {}),
-    WRANGLER_LOG_PATH: join(appRoot, ".tarantula", "wrangler.log"),
+    WRANGLER_LOG_PATH: join(appRoot, ".atrax", "wrangler.log"),
   };
 
   const stdin = options.input === undefined ? "inherit" : "pipe";
@@ -577,7 +597,7 @@ async function resolveDatabase(app, quiet) {
 
   if (locked && !database) {
     throw new CliError(
-      "The D1 database in tarantula.lock.json was not found in this account.",
+      "The D1 database in atrax.lock.json was not found in this account.",
       { name: locked.name, id: locked.id },
     );
   }
@@ -690,8 +710,8 @@ async function waitForLive(url, healthPath) {
   }
   // Offline harnesses point the readiness probe at a local stand-in. The
   // deployed URL recorded in the lockfile is unaffected.
-  const probeUrl = process.env.TARANTULA_READINESS_ORIGIN
-    ? new URL(healthUrl.pathname + healthUrl.search, process.env.TARANTULA_READINESS_ORIGIN)
+  const probeUrl = process.env.ATRAX_READINESS_ORIGIN
+    ? new URL(healthUrl.pathname + healthUrl.search, process.env.ATRAX_READINESS_ORIGIN)
     : healthUrl;
   let lastStatus = null;
   for (let attempt = 0; attempt < 20; attempt += 1) {
@@ -759,18 +779,18 @@ async function loadSharedApp() {
   rejectInstantLock(app, "share");
   if (app.contract.visibility !== "shared") {
     throw new CliError(
-      `tarantula share needs visibility "shared" in tarantula.json. This app is "${app.contract.visibility}".`,
+      `atrax share needs visibility "shared" in atrax.json. This app is "${app.contract.visibility}".`,
       {
         visibility: app.contract.visibility,
         recovery:
-          'Set "visibility": "shared" in tarantula.json, run tarantula deploy, then run tarantula share add <email>.',
+          'Set "visibility": "shared" in atrax.json, run atrax deploy, then run atrax share add <email>.',
       },
     );
   }
   if (!app.lock) {
-    throw new CliError("This app has not been deployed. Run tarantula deploy.", {
+    throw new CliError("This app has not been deployed. Run atrax deploy.", {
       recovery:
-        "Run tarantula deploy so the shared app and its member table exist, then run tarantula share add <email>.",
+        "Run atrax deploy so the shared app and its member table exist, then run atrax share add <email>.",
     });
   }
   return app;
@@ -816,7 +836,7 @@ async function shareAdd(app, configPath, account, email) {
   const workerUrl = app.lock.worker?.url;
   if (!workerUrl) {
     throw new CliError(
-      "This app has no recorded URL yet. Run tarantula deploy before inviting people.",
+      "This app has no recorded URL yet. Run atrax deploy before inviting people.",
     );
   }
   const existing = await runQuery(
@@ -828,7 +848,7 @@ async function shareAdd(app, configPath, account, email) {
   if (existing[0]?.joined_at) {
     throw new CliError(`${email} has already joined this app.`, {
       email,
-      recovery: `Run tarantula share remove ${email} first if you need to send a new invitation.`,
+      recovery: `Run atrax share remove ${email} first if you need to send a new invitation.`,
     });
   }
 
@@ -891,7 +911,7 @@ async function shareList(app, configPath, account) {
     process.stdout.write(`${JSON.stringify(payload)}\n`);
   } else if (!members.length) {
     process.stdout.write(
-      `No members yet. Run tarantula share add <email> to invite someone.\n`,
+      `No members yet. Run atrax share add <email> to invite someone.\n`,
     );
   } else {
     const lines = members.map(
@@ -924,12 +944,12 @@ async function share() {
   const [action, ...rest] = positionals();
   if (!action) {
     throw new CliError(
-      "Usage: tarantula share add <email> | tarantula share list | tarantula share remove <email>",
+      "Usage: atrax share add <email> | atrax share list | atrax share remove <email>",
     );
   }
   if (!["add", "list", "remove"].includes(action)) {
     throw new CliError(`Unknown share action: ${action}`, {
-      recovery: "Use tarantula share add, tarantula share list, or tarantula share remove.",
+      recovery: "Use atrax share add, atrax share list, or atrax share remove.",
     });
   }
   const wantsEmail = action !== "list";
@@ -967,11 +987,11 @@ async function replaceTemplateTokens(root, name) {
 
 async function createApp() {
   const [name] = positionals();
-  if (!name) throw new CliError("Usage: tarantula new <name> --template chat");
+  if (!name) throw new CliError("Usage: atrax new <name> --template chat");
   validateName(name);
   const template = optionValue("--template") ?? "chat";
   if (template !== "chat") {
-    throw new CliError('Tarantula v0 includes one template: "chat"');
+    throw new CliError('Atrax v0 includes one template: "chat"');
   }
   const target = resolve(process.cwd(), name);
   if (await pathExists(target)) {
@@ -990,13 +1010,13 @@ async function createApp() {
     name,
     template,
     directory: target,
-    next: [`cd ${name}`, "tarantula dev", "tarantula deploy"],
+    next: [`cd ${name}`, "atrax dev", "atrax deploy"],
   };
   if (jsonOutput) {
     process.stdout.write(`${JSON.stringify(payload)}\n`);
   } else {
     process.stdout.write(
-      `Created ${name}\n\n  cd ${name}\n  tarantula dev\n\nDeploy when it is ready:\n\n  tarantula deploy\n`,
+      `Created ${name}\n\n  cd ${name}\n  atrax dev\n\nDeploy when it is ready:\n\n  atrax deploy\n`,
     );
   }
 }
@@ -1005,7 +1025,7 @@ async function develop() {
   const app = await loadApp();
   await validateAppFiles(app);
   const { configPath } = await compileProviderConfig(app, null, { local: true });
-  const persistPath = join(app.root, ".tarantula", "state");
+  const persistPath = join(app.root, ".atrax", "state");
   await runWrangler(
     app.root,
     [
@@ -1034,17 +1054,17 @@ async function develop() {
   await runWrangler(app.root, args);
 }
 
-// Instant hosting: an anonymous deploy through the Tarantula control plane for
+// Instant hosting: an anonymous deploy through the Atrax control plane for
 // people who have no Cloudflare account yet. The app is real and public, but
 // unclaimed apps are deleted after 30 days.
 
 function rejectInstantLock(app, name) {
   if (app.lock?.mode !== "instant") return;
-  throw new CliError(`tarantula ${name} is not available for instant apps yet.`, {
+  throw new CliError(`atrax ${name} is not available for instant apps yet.`, {
     mode: "instant",
     url: app.lock.worker?.url ?? null,
     recovery:
-      "Claim the app with tarantula claim <token>, or deploy it with a Cloudflare account to use this command.",
+      "Claim the app with atrax claim <token>, or deploy it with a Cloudflare account to use this command.",
   });
 }
 
@@ -1076,7 +1096,7 @@ async function instantRequest(path, options = {}) {
     });
   } catch (error) {
     throw new CliError(
-      `Tarantula instant hosting is unreachable at ${instantOrigin}.`,
+      `Atrax instant hosting is unreachable at ${instantOrigin}.`,
       {
         cause: String(error?.message ?? error),
         recovery:
@@ -1093,12 +1113,12 @@ async function instantRequest(path, options = {}) {
   }
   if (!response.ok) {
     throw new CliError(
-      payload?.error ?? `Tarantula instant hosting returned ${response.status}.`,
+      payload?.error ?? `Atrax instant hosting returned ${response.status}.`,
       payload?.details ?? { status: response.status },
     );
   }
   if (!payload) {
-    throw new CliError("Tarantula instant hosting returned an unreadable response.");
+    throw new CliError("Atrax instant hosting returned an unreadable response.");
   }
   return payload;
 }
@@ -1145,28 +1165,34 @@ async function readInstantMigrations(directory, files) {
 }
 
 async function instantDeploy(app, announce) {
+  // Instant apps can hold secrets now, so DOOR_SESSION_SECRET is no longer the
+  // blocker. Member management is: atrax share writes invites straight into the
+  // app's D1 through `wrangler d1 execute`, which needs the deployer's own
+  // Cloudflare account. A shared instant app would be a locked door with no way
+  // to hand out keys, so the refusal stays until invites go through the
+  // control plane.
   if (app.contract.visibility !== "public") {
     throw new CliError(
-      `Tarantula instant hosting supports public apps only. This app is "${app.contract.visibility}".`,
+      `Atrax instant hosting supports public apps only: inviting members needs the Cloudflare account path today. This app is "${app.contract.visibility}".`,
       {
         visibility: app.contract.visibility,
         recovery:
-          "Deploy shared apps with a Cloudflare account for now: run wrangler login, then tarantula deploy.",
+          "atrax share writes invites to the app's database through Wrangler, so a shared app needs your own Cloudflare account: run wrangler login, then atrax deploy.",
       },
     );
   }
   const files = await validateAppFiles(app);
   if (announce && !jsonOutput) {
     process.stdout.write(
-      "No Cloudflare account detected — deploying to Tarantula instant hosting.\n",
+      "No Cloudflare account detected — deploying to Atrax instant hosting.\n",
     );
   }
 
-  const configDir = join(app.root, ".tarantula");
+  const configDir = join(app.root, ".atrax");
   await mkdir(configDir, { recursive: true });
   const statePath = join(configDir, "instant.json");
   const state = (await pathExists(statePath))
-    ? await readJson(statePath, ".tarantula/instant.json")
+    ? await readJson(statePath, ".atrax/instant.json")
     : null;
 
   const bundle = {
@@ -1197,7 +1223,7 @@ async function instantDeploy(app, announce) {
   );
   app.lock = {
     version: 1,
-    provider: "tarantula-instant",
+    provider: "atrax-instant",
     mode: "instant",
     appId,
     worker: { name: `i-${appId}`, url },
@@ -1206,7 +1232,7 @@ async function instantDeploy(app, announce) {
 
   await waitForLive(
     url,
-    app.contract.web.health ?? "/.well-known/tarantula.json",
+    app.contract.web.health ?? "/.well-known/atrax.json",
   );
 
   const payload = {
@@ -1227,14 +1253,14 @@ async function instantDeploy(app, announce) {
   process.stdout.write(`\nDeployed ${app.contract.name}\nURL: ${url}\n`);
   if (result.claimToken) {
     process.stdout.write(
-      `\nThis app is unclaimed. It disappears in 30 days unless you claim it:\n\n  tarantula claim ${result.claimToken}\n`,
+      `\nThis app is unclaimed. It disappears in 30 days unless you claim it:\n\n  atrax claim ${result.claimToken}\n`,
     );
   }
 }
 
 async function claim() {
   const [token] = positionals();
-  if (!token) throw new CliError("Usage: tarantula claim <token>");
+  if (!token) throw new CliError("Usage: atrax claim <token>");
   const result = await instantRequest("/v1/claims", {
     body: { claimToken: token },
   });
@@ -1249,6 +1275,151 @@ async function claim() {
   } else {
     process.stdout.write(
       `Claimed ${payload.appId}\n${payload.url ? `URL: ${payload.url}\n` : ""}\nThis app no longer expires.\n`,
+    );
+  }
+}
+
+// Both commands below act on the control plane with the manage token, so they
+// need an app that instant hosting owns rather than one in the caller's
+// Cloudflare account.
+async function loadInstantApp(name, recovery) {
+  const app = await loadApp();
+  const statePath = join(app.root, ".atrax", "instant.json");
+  if (!(await pathExists(statePath))) {
+    throw new CliError(
+      `atrax ${name} works on instant apps only right now.`,
+      { recovery },
+    );
+  }
+  const state = await readJson(statePath, ".atrax/instant.json");
+  if (!state?.appId || !state?.manageToken) {
+    throw new CliError(
+      ".atrax/instant.json is missing appId or manageToken.",
+      {
+        recovery:
+          "Run atrax deploy to recreate the instant app, or delete .atrax/instant.json and atrax.lock.json to start over.",
+      },
+    );
+  }
+  return { app, state, statePath };
+}
+
+// The value is never an argv argument: process arguments are readable by every
+// other process on the machine and land in shell history. stdin is the only
+// channel that leaks neither.
+async function readSecretValue() {
+  if (process.stdin.isTTY) process.stderr.write("Value: ");
+  process.stdin.setEncoding("utf8");
+  let text = "";
+  for await (const chunk of process.stdin) text += chunk;
+  return text.replace(/\r?\n$/, "");
+}
+
+async function secret() {
+  const [action, ...rest] = positionals();
+  if (!action) {
+    throw new CliError(
+      "Usage: atrax secret set <NAME> | atrax secret remove <NAME>",
+    );
+  }
+  if (action !== "set" && action !== "remove") {
+    throw new CliError(`Unknown secret action: ${action}`, {
+      recovery: "Use atrax secret set or atrax secret remove.",
+    });
+  }
+  if (rest.length !== 1) {
+    throw new CliError(`secret ${action} expects one name`);
+  }
+  const name = rest[0];
+  if (!/^[A-Z][A-Z0-9_]{0,63}$/.test(name)) {
+    throw new CliError(
+      "Secret names use 1 to 64 uppercase letters, numbers, and underscores, starting with a letter.",
+      { name },
+    );
+  }
+  const { app, state } = await loadInstantApp(
+    "secret",
+    "Use npx wrangler secret put <NAME> --config .atrax/wrangler.jsonc for account apps; atrax secret covers instant apps today.",
+  );
+
+  if (action === "remove") {
+    await instantRequest(`/v1/apps/${state.appId}/secrets/${name}`, {
+      method: "DELETE",
+      token: state.manageToken,
+    });
+    const payload = {
+      schemaVersion: 1,
+      status: "removed",
+      name,
+      appId: state.appId,
+    };
+    if (jsonOutput) {
+      process.stdout.write(`${JSON.stringify(payload)}\n`);
+    } else {
+      process.stdout.write(`Removed ${name} from ${app.contract.name}.\n`);
+    }
+    return;
+  }
+
+  const value = await readSecretValue();
+  if (!value) {
+    throw new CliError("The secret value was empty.", {
+      recovery: `Pipe the value in: printf %s "$VALUE" | atrax secret set ${name}`,
+    });
+  }
+  if (value.length > 1024) {
+    throw new CliError("Secret values are at most 1024 characters.", {
+      length: value.length,
+    });
+  }
+  await instantRequest(`/v1/apps/${state.appId}/secrets/${name}`, {
+    method: "PUT",
+    body: { value },
+    token: state.manageToken,
+  });
+  const payload = { schemaVersion: 1, status: "set", name, appId: state.appId };
+  if (jsonOutput) {
+    process.stdout.write(`${JSON.stringify(payload)}\n`);
+  } else {
+    process.stdout.write(
+      `Set ${name} on ${app.contract.name}. It reaches the app on the next deploy or request.\n`,
+    );
+  }
+}
+
+async function destroy() {
+  const { app, state, statePath } = await loadInstantApp(
+    "delete",
+    "Account apps are your own Cloudflare resources: remove them with npx wrangler delete --config .atrax/wrangler.jsonc until atrax destroy ships.",
+  );
+  if (!hasFlag("--yes")) {
+    throw new CliError(
+      "atrax delete permanently deletes the live app and everything in its Tables database.",
+      {
+        appId: state.appId,
+        url: state.url ?? null,
+        recovery: "Re-run with --yes when you are sure: atrax delete --yes",
+      },
+    );
+  }
+  await instantRequest(`/v1/apps/${state.appId}`, {
+    method: "DELETE",
+    token: state.manageToken,
+  });
+  await rm(statePath, { force: true });
+  await rm(app.lockPath, { force: true });
+  const payload = {
+    schemaVersion: 1,
+    status: "deleted",
+    appId: state.appId,
+    url: state.url ?? null,
+    removed: [".atrax/instant.json", "atrax.lock.json"],
+  };
+  if (jsonOutput) {
+    process.stdout.write(`${JSON.stringify(payload)}\n`);
+  } else {
+    process.stdout.write(
+      `Deleted ${app.contract.name} (${state.appId})\n${state.url ? `${state.url} is gone, along with its Tables database.\n` : ""}Removed .atrax/instant.json and atrax.lock.json.\n`,
     );
   }
 }
@@ -1348,7 +1519,7 @@ async function deploy() {
     app.lock.worker.url;
   await waitForLive(
     url,
-    app.contract.web.health ?? "/.well-known/tarantula.json",
+    app.contract.web.health ?? "/.well-known/atrax.json",
   );
   const status = await deploymentStatus(app, configPath, quiet);
   const deploymentId = findFirstValue(status, [
@@ -1476,7 +1647,7 @@ async function plan() {
       resource: `worker/${app.contract.name}`,
       action: "recreate",
       reason:
-        "tarantula.lock.json records this Worker, but it is missing from the account. Deploy would create it again.",
+        "atrax.lock.json records this Worker, but it is missing from the account. Deploy would create it again.",
     });
   }
 
@@ -1500,7 +1671,7 @@ async function plan() {
       resource: `d1/${databaseName}`,
       action: "recreate",
       reason:
-        "tarantula.lock.json records this D1 database, but it is missing from the account.",
+        "atrax.lock.json records this D1 database, but it is missing from the account.",
     });
   }
 
@@ -1576,7 +1747,7 @@ async function drift() {
   const app = await loadApp();
   rejectInstantLock(app, "drift");
   if (!app.lock) {
-    throw new CliError("This app has not been deployed. Run tarantula deploy.");
+    throw new CliError("This app has not been deployed. Run atrax deploy.");
   }
   const files = await validateAppFiles(app);
   const checks = [];
@@ -1599,7 +1770,7 @@ async function drift() {
       observed: error.details.actual,
       result: "drift",
       reason:
-        "The active Cloudflare account is not the account recorded in tarantula.lock.json.",
+        "The active Cloudflare account is not the account recorded in atrax.lock.json.",
     });
     const skipped = ["worker", "deployment", "url", "tables", "migrations"];
     if (app.contract.visibility === "shared") skipped.push("door");
@@ -1661,7 +1832,7 @@ async function drift() {
           observed: deploymentId,
           result: "unknown",
           reason:
-            "tarantula.lock.json does not record a deployment id yet. Deploy once with this version of Tarantula to record it.",
+            "atrax.lock.json does not record a deployment id yet. Deploy once with this version of Atrax to record it.",
         });
       } else {
         checks.push({
@@ -1672,7 +1843,7 @@ async function drift() {
           reason:
             lockedDeploymentId === deploymentId
               ? null
-              : "The live deployment was not created by this lockfile. Something deployed outside Tarantula.",
+              : "The live deployment was not created by this lockfile. Something deployed outside Atrax.",
         });
       }
 
@@ -1698,7 +1869,7 @@ async function drift() {
           reason:
             lockedUrl === observedUrl
               ? null
-              : "The live URL is not the URL recorded in tarantula.lock.json.",
+              : "The live URL is not the URL recorded in atrax.lock.json.",
         });
       }
     }
@@ -1728,7 +1899,7 @@ async function drift() {
         reason:
           lockedTables === observedTables
             ? null
-            : "The locked D1 database was renamed outside Tarantula.",
+            : "The locked D1 database was renamed outside Atrax.",
       });
     }
 
@@ -1785,8 +1956,8 @@ async function drift() {
             expected === observed
               ? null
               : expected === "present"
-                ? "tarantula.lock.json records a Door session secret that the Worker no longer has. Existing invites and sessions will not work."
-                : "The Worker has a DOOR_SESSION_SECRET that Tarantula did not provision.",
+                ? "atrax.lock.json records a Door session secret that the Worker no longer has. Existing invites and sessions will not work."
+                : "The Worker has a DOOR_SESSION_SECRET that Atrax did not provision.",
         });
       } catch {
         checks.push({
@@ -1831,7 +2002,7 @@ async function inspectApp() {
   const app = await loadApp();
   rejectInstantLock(app, "inspect");
   if (!app.lock) {
-    throw new CliError("This app has not been deployed. Run tarantula deploy.");
+    throw new CliError("This app has not been deployed. Run atrax deploy.");
   }
   const quiet = jsonOutput;
   await currentAccount(app, quiet);
@@ -1875,7 +2046,7 @@ async function logs() {
   const app = await loadApp();
   rejectInstantLock(app, "logs");
   if (!app.lock) {
-    throw new CliError("This app has not been deployed. Run tarantula deploy.");
+    throw new CliError("This app has not been deployed. Run atrax deploy.");
   }
   await currentAccount(app, jsonOutput);
   const { configPath } = await compileProviderConfig(
@@ -1907,7 +2078,7 @@ async function doctor() {
     status: "ready",
     name: app.contract.name,
     node: process.version,
-    contract: join(app.root, "tarantula.json"),
+    contract: join(app.root, "atrax.json"),
     providerConfig: configPath,
     account,
     files,
@@ -1918,36 +2089,41 @@ async function doctor() {
     process.stdout.write(`${JSON.stringify(payload)}\n`);
   } else {
     process.stdout.write(
-      `Tarantula ${packageJson.version}\nApp: ${app.contract.name}\nNode: ${process.version}\nContract: valid\nBundle: valid\nCloudflare: ${account.name}\nDeployed: ${payload.deployed ? "yes" : "no"}\n`,
+      `Atrax ${packageJson.version}\nApp: ${app.contract.name}\nNode: ${process.version}\nContract: valid\nBundle: valid\nCloudflare: ${account.name}\nDeployed: ${payload.deployed ? "yes" : "no"}\n`,
     );
   }
 }
 
 function help() {
-  process.stdout.write(`Tarantula ${packageJson.version}
+  process.stdout.write(`Atrax ${packageJson.version}
 
 Usage:
-  tarantula new <name> --template chat
-  tarantula dev [--port 8787]
-  tarantula deploy [--json] [--dry-run] [--instant]
-  tarantula claim <token> [--json]
-  tarantula plan [--json]
-  tarantula drift [--json]
-  tarantula inspect [--json]
-  tarantula logs [--json]
-  tarantula doctor [--json]
+  atrax new <name> --template chat
+  atrax dev [--port 8787]
+  atrax deploy [--json] [--dry-run] [--instant]
+  atrax claim <token> [--json]
+  atrax plan [--json]
+  atrax drift [--json]
+  atrax inspect [--json]
+  atrax logs [--json]
+  atrax doctor [--json]
+
+Instant apps only:
+  atrax secret set <NAME> [--json]     value is read from stdin, never from argv
+  atrax secret remove <NAME> [--json]
+  atrax delete --yes [--json]          deletes the live app and its data
 
 Sharing (alpha, needs "visibility": "shared"):
-  tarantula share add <email>     invite someone to a shared app
-  tarantula share list [--json]
-  tarantula share remove <email>
+  atrax share add <email>     invite someone to a shared app
+  atrax share list [--json]
+  atrax share remove <email>
 
 plan previews what deploy would change. drift exits 2 when the provider no longer matches the lockfile.
 
 The deployer uses your Cloudflare account. Visitors to a public chat template do not log in.
 
-Without a Cloudflare account, deploy uses Tarantula instant hosting: a real public URL that disappears in 30 days.
-Run the tarantula claim <token> line that deploy prints once to keep the app forever.
+Without a Cloudflare account, deploy uses Atrax instant hosting: a real public URL that disappears in 30 days.
+Run the atrax claim <token> line that deploy prints once to keep the app forever.
 `);
 }
 
@@ -1963,6 +2139,8 @@ try {
   else if (command === "logs") await logs();
   else if (command === "doctor") await doctor();
   else if (command === "share") await share();
+  else if (command === "secret") await secret();
+  else if (command === "delete") await destroy();
   else if (command === "help" || command === "--help" || command === "-h") help();
   else if (command === "--version" || command === "-v") {
     process.stdout.write(`${packageJson.version}\n`);

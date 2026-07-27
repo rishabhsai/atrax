@@ -1,4 +1,4 @@
-# Tarantula
+# Atrax
 
 ## Tagline
 
@@ -14,7 +14,7 @@ Small companies building focused internal tools, customer portals, prototypes, a
 
 ## Product Purpose
 
-Tarantula is a cloud for everyone, operated through an agent-native CLI and a
+Atrax is a cloud for everyone, operated through an agent-native CLI and a
 quiet account console. A coding agent can create, run, inspect, and deploy a
 small full-stack app through one compact contract. The account shows projects,
 releases, resources, health, connections, and activity without becoming a

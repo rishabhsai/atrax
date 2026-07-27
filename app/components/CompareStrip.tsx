@@ -56,12 +56,12 @@ export function CompareStrip({ dark = false }: { dark?: boolean }) {
         <div className="compare-row">
           <p className="compare-row-head">
             <span className="microlabel">
-              <b>Tarantula</b>
+              <b>Atrax</b>
             </span>
             <small>one command, one contract</small>
           </p>
           <ol className="compare-track compare-track-accent">
-            <Segment delay={780} label="tarantula deploy --json" />
+            <Segment delay={780} label="atrax deploy --json" />
             <Segment
               className="compare-seg-result"
               delay={960}
@@ -73,7 +73,7 @@ export function CompareStrip({ dark = false }: { dark?: boolean }) {
         <p className="compare-caption">
           The deploy command provisions, migrates, waits for readiness, and
           returns the URL with a versioned JSON record of what it created. This
-          compares the number of surfaces you hold, not speed — Tarantula
+          compares the number of surfaces you hold, not speed — Atrax
           publishes no benchmark.
         </p>
       </div>

@@ -8,6 +8,7 @@ import {
   splitStatements,
 } from "../control-plane/src/index.js";
 import { buildAssetsModule, buildShim } from "../control-plane/src/shim.js";
+import { CpError } from "../control-plane/src/errors.js";
 
 function sha256Hex(value) {
   return createHash("sha256").update(value).digest("hex");
@@ -137,7 +138,7 @@ function fakeCfApi() {
       return { uuid: `d1-${databases}`, name: body.name };
     }
     if (method === "GET" && path.endsWith("/workers/subdomain")) {
-      return { subdomain: "tarantula-apps" };
+      return { subdomain: "atrax-apps" };
     }
     return {};
   };
@@ -184,11 +185,29 @@ function bundle(extra = {}) {
 }
 
 function post(path, body, headers = {}) {
-  return new Request(`https://instant.tarantula.dev${path}`, {
+  return new Request(`https://instant.atrax.dev${path}`, {
     method: "POST",
     headers: { "content-type": "application/json", ...headers },
     body: JSON.stringify(body),
   });
+}
+
+function request(method, path, body, headers = {}) {
+  return new Request(`https://instant.atrax.dev${path}`, {
+    method,
+    headers: { "content-type": "application/json", ...headers },
+    body: body === undefined ? undefined : JSON.stringify(body),
+  });
+}
+
+async function createdApp(env) {
+  const response = await handleRequest(
+    post("/v1/apps", { name: "open-chat", ...bundle() }),
+    env,
+  );
+  const payload = await response.json();
+  env.__cfApi.calls.length = 0;
+  return payload;
 }
 
 test("creates an instant app end to end", async () => {
@@ -208,7 +227,7 @@ test("creates an instant app end to end", async () => {
   assert.match(payload.appId, /^[a-f0-9]{10}$/);
   assert.equal(
     payload.url,
-    `https://i-${payload.appId}.tarantula-apps.workers.dev`,
+    `https://i-${payload.appId}.atrax-apps.workers.dev`,
   );
   assert.equal(payload.resources.tables.name, `i-${payload.appId}-tables`);
   assert.ok(payload.expiresAt > Date.now() + 29 * 24 * 60 * 60 * 1000);
@@ -252,20 +271,20 @@ test("creates an instant app end to end", async () => {
   );
   assert.match(upload.body.__contentType, /^multipart\/form-data; boundary=/);
   const form = upload.body.__body;
-  assert.ok(form.includes('"main_module":"_tarantula_shim.mjs"'));
+  assert.ok(form.includes('"main_module":"_atrax_shim.mjs"'));
   assert.ok(form.includes('"compatibility_date":"2026-07-25"'));
   assert.ok(form.includes('{"type":"d1","name":"DB","id":"d1-1"}'));
   assert.ok(
-    form.includes('{"type":"plain_text","name":"TARANTULA_APP_NAME","text":"open-chat"}'),
+    form.includes('{"type":"plain_text","name":"ATRAX_APP_NAME","text":"open-chat"}'),
   );
   assert.ok(
-    form.includes('{"type":"plain_text","name":"TARANTULA_VISIBILITY","text":"public"}'),
+    form.includes('{"type":"plain_text","name":"ATRAX_VISIBILITY","text":"public"}'),
   );
   for (const name of [
     "worker.js",
     "door.js",
-    "_tarantula_assets.mjs",
-    "_tarantula_shim.mjs",
+    "_atrax_assets.mjs",
+    "_atrax_shim.mjs",
   ]) {
     assert.ok(
       form.includes(`name="${name}"; filename="${name}"`),
@@ -276,7 +295,7 @@ test("creates an instant app end to end", async () => {
 
   const subdomain = calls.find((call) => call.path.endsWith("/subdomain") && call.method === "POST");
   assert.deepEqual(subdomain.body, { enabled: true });
-  assert.equal(env.CP_DB.meta.get("workers_subdomain"), "tarantula-apps");
+  assert.equal(env.CP_DB.meta.get("workers_subdomain"), "atrax-apps");
 });
 
 test("claiming an app is idempotent and clears the expiry", async () => {
@@ -370,7 +389,7 @@ test("redeploy authenticates, applies only new migrations, and re-uploads", asyn
   ]);
 
   const described = await handleRequest(
-    new Request(`https://instant.tarantula.dev/v1/apps/${created.appId}`, {
+    new Request(`https://instant.atrax.dev/v1/apps/${created.appId}`, {
       headers: { authorization: `Bearer ${created.manageToken}` },
     }),
     env,
@@ -514,17 +533,162 @@ test("rejects oversized bundles, bad names, and shared visibility", async () => 
   assert.match((await missingEntry.json()).error, /must include the file named by web\.entry/);
 
   const missing = await handleRequest(
-    new Request("https://instant.tarantula.dev/v1/nope"),
+    new Request("https://instant.atrax.dev/v1/nope"),
     env,
   );
   assert.equal(missing.status, 404);
   assert.equal(env.CP_DB.apps.length, 0);
 });
 
+test("rejects app names reserved for Atrax itself", async () => {
+  const env = environment();
+  for (const name of ["www", "api", "atrax", "ns1"]) {
+    const response = await handleRequest(
+      post("/v1/apps", { name, ...bundle() }),
+      env,
+    );
+    assert.equal(response.status, 400, `${name} should be rejected`);
+    const payload = await response.json();
+    assert.match(payload.error, /is reserved for Atrax itself/);
+    assert.equal(payload.details.name, name);
+  }
+  assert.equal(env.CP_DB.apps.length, 0);
+});
+
+test("secrets are set and removed on the app's script and never stored", async () => {
+  const env = environment();
+  const created = await createdApp(env);
+  const auth = { authorization: `Bearer ${created.manageToken}` };
+  const secretPath = `/v1/apps/${created.appId}/secrets/OPENAI_API_KEY`;
+
+  const anonymous = await handleRequest(
+    request("PUT", secretPath, { value: "sk-live-1" }),
+    env,
+  );
+  assert.equal(anonymous.status, 401);
+
+  const badName = await handleRequest(
+    request(
+      "PUT",
+      `/v1/apps/${created.appId}/secrets/openai-key`,
+      { value: "sk-live-1" },
+      auth,
+    ),
+    env,
+  );
+  assert.equal(badName.status, 400);
+  assert.match((await badName.json()).error, /Secret names use 1 to 64/);
+
+  const set = await handleRequest(
+    request("PUT", secretPath, { value: "sk-live-1" }, auth),
+    env,
+  );
+  assert.equal(set.status, 200);
+  assert.deepEqual(await set.json(), {
+    schemaVersion: 1,
+    status: "set",
+    name: "OPENAI_API_KEY",
+  });
+
+  const put = env.__cfApi.calls.find((call) => call.method === "PUT");
+  assert.equal(
+    put.path,
+    `/accounts/account-1/workers/scripts/i-${created.appId}/secrets`,
+  );
+  assert.deepEqual(put.body, {
+    name: "OPENAI_API_KEY",
+    text: "sk-live-1",
+    type: "secret_text",
+  });
+  assert.ok(!JSON.stringify(env.CP_DB.apps).includes("sk-live-1"));
+  assert.ok(!JSON.stringify(env.CP_DB.statements).includes("sk-live-1"));
+
+  const removed = await handleRequest(
+    request("DELETE", secretPath, undefined, auth),
+    env,
+  );
+  assert.equal(removed.status, 200);
+  assert.deepEqual(await removed.json(), {
+    schemaVersion: 1,
+    status: "removed",
+    name: "OPENAI_API_KEY",
+  });
+  const deleted = env.__cfApi.calls.find((call) => call.method === "DELETE");
+  assert.equal(
+    deleted.path,
+    `/accounts/account-1/workers/scripts/i-${created.appId}/secrets/OPENAI_API_KEY`,
+  );
+
+  // A 404 from Cloudflare becomes a clean "not set" rather than a 502.
+  env.__cfApi = async () => {
+    throw new CpError(502, "Cloudflare rejected an instant hosting operation.", {
+      status: 404,
+    });
+  };
+  const missing = await handleRequest(
+    request("DELETE", secretPath, undefined, auth),
+    env,
+  );
+  assert.equal(missing.status, 404);
+  assert.match((await missing.json()).error, /is not set on this app/);
+});
+
+test("delete tears down the script, the database, and the row", async () => {
+  const env = environment();
+  const created = await createdApp(env);
+
+  const wrongToken = await handleRequest(
+    request("DELETE", `/v1/apps/${created.appId}`, undefined, {
+      authorization: "Bearer not-the-token",
+    }),
+    env,
+  );
+  assert.equal(wrongToken.status, 404);
+  assert.equal(env.CP_DB.apps.length, 1);
+  assert.equal(env.__cfApi.calls.length, 0);
+
+  const response = await handleRequest(
+    request("DELETE", `/v1/apps/${created.appId}`, undefined, {
+      authorization: `Bearer ${created.manageToken}`,
+    }),
+    env,
+  );
+  assert.equal(response.status, 200);
+  assert.deepEqual(await response.json(), {
+    schemaVersion: 1,
+    status: "deleted",
+    appId: created.appId,
+  });
+  assert.deepEqual(
+    env.__cfApi.calls.filter((call) => call.method === "DELETE"),
+    [
+      {
+        method: "DELETE",
+        path: `/accounts/account-1/workers/scripts/i-${created.appId}?force=true`,
+        body: null,
+      },
+      {
+        method: "DELETE",
+        path: "/accounts/account-1/d1/database/d1-1",
+        body: null,
+      },
+    ],
+  );
+  assert.equal(env.CP_DB.apps.length, 0);
+
+  const again = await handleRequest(
+    request("DELETE", `/v1/apps/${created.appId}`, undefined, {
+      authorization: `Bearer ${created.manageToken}`,
+    }),
+    env,
+  );
+  assert.equal(again.status, 404);
+});
+
 test("the generated shim wires an ASSETS binding around the user's Worker", () => {
   const shim = buildShim("worker.js");
   assert.ok(shim.includes('import userWorker from "./worker.js";'));
-  assert.ok(shim.includes('from "./_tarantula_assets.mjs"'));
+  assert.ok(shim.includes('from "./_atrax_assets.mjs"'));
   assert.ok(shim.includes("const ASSETS = {"));
   assert.ok(shim.includes("userWorker.fetch(request, { ...env, ASSETS }, ctx)"));
   assert.ok(shim.includes('const indexPath = "/index.html";'));

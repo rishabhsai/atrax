@@ -1,10 +1,10 @@
-# Tarantula Docs
+# Atrax Docs
 
-Tarantula v0 is an agent-native CLI for public Cloudflare Worker apps with Static Assets and D1. Prefer the Markdown pages or docs.json when reading programmatically.
+Atrax v0 is an agent-native CLI for public Cloudflare Worker apps with Static Assets and D1. Prefer the Markdown pages or docs.json when reading programmatically.
 
 Agent onboarding command: `curl -fsSL https://tarantula-9l0.pages.dev/agent`
 
-Deploy uses the caller's Cloudflare account. Without one, `tarantula deploy --instant` returns `{ "schemaVersion": 1, "status": "deployed", "mode": "instant", "url": "...", "appId": "...", "claimToken": "...", "expiresAt": 1790000000000 }`; the token is printed once and `tarantula claim <token>` returns `{ "schemaVersion": 1, "status": "claimed", "appId": "...", "url": "..." }`. Unclaimed apps are deleted after 30 days.
+Deploy uses the caller's Cloudflare account. Without one, `atrax deploy --instant` returns `{ "schemaVersion": 1, "status": "deployed", "mode": "instant", "url": "...", "appId": "...", "claimToken": "...", "expiresAt": 1790000000000 }`; the token is printed once and `atrax claim <token>` returns `{ "schemaVersion": 1, "status": "claimed", "appId": "...", "url": "..." }`. Unclaimed apps are deleted after 30 days.
 
 ## Available
 

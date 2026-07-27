@@ -4,8 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "tarantula dev",
-    "deploy": "tarantula deploy",
+    "dev": "atrax dev",
+    "deploy": "atrax deploy",
     "test": "node --test"
   }
 }

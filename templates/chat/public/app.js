@@ -8,7 +8,7 @@ const copyLink = document.querySelector("#copy-link");
 let latestId = 0;
 let loading = false;
 
-nickname.value = localStorage.getItem("tarantula-chat-name") ?? "";
+nickname.value = localStorage.getItem("atrax-chat-name") ?? "";
 
 function appendMessage(message) {
   const item = document.createElement("li");
@@ -53,7 +53,7 @@ form.addEventListener("submit", async (event) => {
   error.textContent = "";
   const submit = form.querySelector('button[type="submit"]');
   submit.disabled = true;
-  localStorage.setItem("tarantula-chat-name", nickname.value.trim());
+  localStorage.setItem("atrax-chat-name", nickname.value.trim());
   try {
     const response = await fetch("/api/messages", {
       method: "POST",

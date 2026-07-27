@@ -2,13 +2,13 @@
 
 Status: available
 
-The template contains a static UI, Worker API, server validation, D1 migration, tests, `AGENTS.md`, and the Tarantula app contract.
+The template contains a static UI, Worker API, server validation, D1 migration, tests, `AGENTS.md`, and the Atrax app contract.
 
 ```bash
-tarantula new open-chat --template chat
+atrax new open-chat --template chat
 cd open-chat
-tarantula dev
-tarantula deploy --json
+atrax dev
+atrax deploy --json
 ```
 
 Two browsers see the same rows through short polling. Messages survive refresh and redeploy. User text is rendered with `textContent`.

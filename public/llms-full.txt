@@ -1,6 +1,6 @@
-# Tarantula v0 complete agent reference
+# Atrax v0 complete agent reference
 
-Tarantula creates, runs, deploys, inspects, and debugs small full-stack apps from one CLI. v0 deploys public Cloudflare Workers with Static Assets and one D1 database.
+Atrax creates, runs, deploys, inspects, and debugs small full-stack apps from one CLI. v0 deploys public Cloudflare Workers with Static Assets and one D1 database.
 
 Read-only agent onboarding: `curl -fsSL https://tarantula-9l0.pages.dev/agent`
 
@@ -13,40 +13,40 @@ git clone https://github.com/rishabhsai/tarantula.git
 cd tarantula
 npm install
 npm link
-tarantula doctor --json
+atrax doctor --json
 ```
 
 ## Create and deploy
 
 ```bash
-tarantula new open-chat --template chat
+atrax new open-chat --template chat
 cd open-chat
-tarantula dev
-tarantula plan --json
-tarantula deploy --json
-tarantula inspect --json
-tarantula drift --json
-tarantula logs
+atrax dev
+atrax plan --json
+atrax deploy --json
+atrax inspect --json
+atrax drift --json
+atrax logs
 ```
 
 The chat is public. Anyone with the URL can read and post.
 
 ## CLI
 
-- `tarantula new <name> --template chat`
-- `tarantula dev [--port 8787]`
-- `tarantula deploy [--json]`
-- `tarantula deploy --dry-run`
-- `tarantula deploy --instant`
-- `tarantula claim <token> [--json]`
-- `tarantula plan [--json]`
-- `tarantula drift [--json]`
-- `tarantula inspect [--json]`
-- `tarantula logs [--json]`
-- `tarantula doctor [--json]`
-- `tarantula share add <email> [--json]`
-- `tarantula share list [--json]`
-- `tarantula share remove <email> [--json]`
+- `atrax new <name> --template chat`
+- `atrax dev [--port 8787]`
+- `atrax deploy [--json]`
+- `atrax deploy --dry-run`
+- `atrax deploy --instant`
+- `atrax claim <token> [--json]`
+- `atrax plan [--json]`
+- `atrax drift [--json]`
+- `atrax inspect [--json]`
+- `atrax logs [--json]`
+- `atrax doctor [--json]`
+- `atrax share add <email> [--json]`
+- `atrax share list [--json]`
+- `atrax share remove <email> [--json]`
 
 Finite JSON commands return one object with `schemaVersion: 1`. `logs --json` is a long-running Wrangler NDJSON event stream. Errors return a non-zero exit code, and unknown flags fail before mutation.
 
@@ -58,7 +58,7 @@ Exit codes: `0` success, `1` error including a blocked plan, `2` only from `drif
 
 ## Instant hosting
 
-`tarantula deploy` uses Tarantula instant hosting when no Cloudflare account is detected; `--instant` forces it. The app runs on Tarantula's own Cloudflare account as one Worker plus one D1 database, on a real public `https://i-<appId>....workers.dev` URL. The claim token is printed exactly once, by the deploy that mints it: it is never written to disk and redeploys never reprint it. An unclaimed app is deleted 30 days after creation; `tarantula claim <token>` keeps the same URL and clears the expiry.
+`atrax deploy` uses Atrax instant hosting when no Cloudflare account is detected; `--instant` forces it. The app runs on Atrax's own Cloudflare account as one Worker plus one D1 database, on a real public `https://i-<appId>....workers.dev` URL. The claim token is printed exactly once, by the deploy that mints it: it is never written to disk and redeploys never reprint it. An unclaimed app is deleted 30 days after creation; `atrax claim <token>` keeps the same URL and clears the expiry.
 
 ```json
 { "schemaVersion": 1, "status": "deployed", "mode": "instant", "name": "open-chat",
@@ -72,13 +72,13 @@ Exit codes: `0` success, `1` error including a blocked plan, `2` only from `drif
   "url": "https://i-3f9a2c81be.<subdomain>.workers.dev" }
 ```
 
-`claimToken` and `expiresAt` (epoch milliseconds) appear only on the deploy that creates the app. Local state lives in `.tarantula/instant.json` (mode 0600, gitignored) as `{ appId, manageToken, url }`, and `tarantula.lock.json` records `{ "provider": "tarantula-instant", "mode": "instant", "appId", "worker": { "name", "url" } }`. Instant apps are always public: a shared app fails with a recovery line naming a Cloudflare account, because instant mode cannot provision the Door session secret. Creates are capped at 10 per day per IP. `inspect`, `logs`, `plan`, `drift`, and `share` refuse instant locks, since each reads Cloudflare through Wrangler against an account the deployer does not have.
+`claimToken` and `expiresAt` (epoch milliseconds) appear only on the deploy that creates the app. Local state lives in `.atrax/instant.json` (mode 0600, gitignored) as `{ appId, manageToken, url }`, and `atrax.lock.json` records `{ "provider": "atrax-instant", "mode": "instant", "appId", "worker": { "name", "url" } }`. Instant apps are always public: a shared app fails with a recovery line naming a Cloudflare account, because instant mode cannot provision the Door session secret. Creates are capped at 10 per day per IP. `inspect`, `logs`, `plan`, `drift`, and `share` refuse instant locks, since each reads Cloudflare through Wrangler against an account the deployer does not have.
 
 ## Shared visibility
 
 `visibility` accepts `"public"` (default, unchanged) or `"shared"`. A shared app is gated inside the template Worker by a small Door module. Deploy provisions the `DOOR_SESSION_SECRET` Worker secret once and records `"door": { "secretProvisioned": true }` in the lockfile; the secret is never written to disk.
 
-`tarantula share add <email>` stores a hashed, single-use, 14-day invite token in the app's own `door_members` D1 table and returns the invite URL. `share list` reports each member as joined, invited, or expired. `share remove` deletes the row. Visiting `/.door/join?token=...` sets a 30-day HMAC-signed `__door_session` cookie and redirects to `/`. `/.door/whoami` returns the signed-in member. `/.well-known/*` stays reachable so readiness checks work. Every other request without a valid session gets a 401 invitation page.
+`atrax share add <email>` stores a hashed, single-use, 14-day invite token in the app's own `door_members` D1 table and returns the invite URL. `share list` reports each member as joined, invited, or expired. `share remove` deletes the row. Visiting `/.door/join?token=...` sets a 30-day HMAC-signed `__door_session` cookie and redirects to `/`. `/.door/whoami` returns the signed-in member. `/.well-known/*` stays reachable so readiness checks work. Every other request without a valid session gets a 401 invitation page.
 
 ```json
 { "schemaVersion": 1, "status": "invited", "email": "ana@example.com",
@@ -89,7 +89,7 @@ This is the Door alpha slice, not the Door product. There are no roles, teams, e
 
 ## App contract
 
-`tarantula.json` is the provider-neutral desired architecture. `tarantula.lock.json` records stable non-secret resource identities and is safe to commit; it is not the future authoritative infrastructure state. Do not edit `.tarantula/wrangler.jsonc`; Tarantula generates it as a disposable provider artifact. Declared files must remain inside the app and may not contain symlinks.
+`atrax.json` is the provider-neutral desired architecture. `atrax.lock.json` records stable non-secret resource identities and is safe to commit; it is not the future authoritative infrastructure state. Do not edit `.atrax/wrangler.jsonc`; Atrax generates it as a disposable provider artifact. Declared files must remain inside the app and may not contain symlinks.
 
 ```json
 {
@@ -99,7 +99,7 @@ This is the Door alpha slice, not the Door product. There are no roles, teams, e
   "web": {
     "entry": "src/worker.js",
     "assets": "public",
-    "health": "/.well-known/tarantula.json"
+    "health": "/.well-known/atrax.json"
   },
   "tables": { "migrations": "migrations" }
 }
@@ -109,7 +109,7 @@ This is the Door alpha slice, not the Door product. There are no roles, teams, e
 
 ## Infrastructure model
 
-Tarantula products are the public abstraction. Infrastructure-as-code is an internal reconciliation engine. `plan` and `drift` work today against the single implicit v0 environment. The planned model adds `stacks/dev.json` and `stacks/prod.json` for environment intent, remote locked state for authoritative observations and drift metadata, and stack-aware `plan`, `deploy`, and `drift`.
+Atrax products are the public abstraction. Infrastructure-as-code is an internal reconciliation engine. `plan` and `drift` work today against the single implicit v0 environment. The planned model adds `stacks/dev.json` and `stacks/prod.json` for environment intent, remote locked state for authoritative observations and drift metadata, and stack-aware `plan`, `deploy`, and `drift`.
 
 Stateful infrastructure, immutable releases, and Switchboard secret/connection references have separate lifecycles. Provider engines remain replaceable implementation details.
 
@@ -121,7 +121,7 @@ Tables v0 provisions D1, applies ordered local and remote migrations, keeps the 
 
 ## Planned products
 
-Door will own guest identity, sign-in, sharing, teams, roles, and app identity. An alpha slice ships today: shared visibility with invite links via `tarantula share`.
+Door will own guest identity, sign-in, sharing, teams, roles, and app identity. An alpha slice ships today: shared visibility with invite links via `atrax share`.
 
 Library will own files and company knowledge, including collections, provenance, freshness, and permission-aware retrieval. It will not store credentials or perform actions.
 
@@ -141,4 +141,4 @@ Private access, vaulted third-party connections, approval binding, compliance re
 - `/llms.txt`
 - `/llms-full.txt`
 - `/schema/v0.json`
-- `/.well-known/tarantula.json` on generated apps
+- `/.well-known/atrax.json` on generated apps

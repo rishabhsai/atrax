@@ -34,44 +34,44 @@ export const docs: Record<string, DocPage> = {
       {
         heading: "Install the local alpha",
         paragraphs: [
-          "Tarantula v0 is installed from the private repository. It needs Node.js 22.13 or newer and an authenticated Wrangler session.",
+          "Atrax v0 is installed from the private repository. It needs Node.js 22.13 or newer and an authenticated Wrangler session.",
         ],
         code: `git clone https://github.com/rishabhsai/tarantula.git
 cd tarantula
 npm install
 npm link
-tarantula doctor --json`,
+atrax doctor --json`,
       },
       {
         heading: "Create the chat",
-        code: `tarantula new open-chat --template chat
+        code: `atrax new open-chat --template chat
 cd open-chat
-tarantula dev`,
+atrax dev`,
         paragraphs: [
           "Development applies ordered migrations to a persistent local D1 database, then starts the Worker and static assets together.",
         ],
       },
       {
         heading: "Deploy",
-        code: `tarantula deploy --json`,
+        code: `atrax deploy --json`,
         paragraphs: [
-          "The first deploy verifies the Cloudflare account, creates D1, applies remote migrations, deploys the Worker and assets, waits for the message API, writes tarantula.lock.json, and returns the URL.",
+          "The first deploy verifies the Cloudflare account, creates D1, applies remote migrations, deploys the Worker and assets, waits for the message API, writes atrax.lock.json, and returns the URL.",
         ],
         note: "The generated chat is public. Anyone with the URL can read and post.",
       },
       {
         heading: "Deploy without a Cloudflare account",
-        code: `tarantula deploy --instant
-tarantula claim <token>`,
+        code: `atrax deploy --instant
+atrax claim <token>`,
         paragraphs: [
-          "Deploy takes this path on its own when no Cloudflare account is detected; --instant forces it. Tarantula posts the app to its own hosted control plane and returns a real public URL plus a claim token, printed exactly once by the deploy that minted it. An unclaimed app is deleted 30 days after it was created. Claiming keeps the same URL and stops the expiry.",
+          "Deploy takes this path on its own when no Cloudflare account is detected; --instant forces it. Atrax posts the app to its own hosted control plane and returns a real public URL plus a claim token, printed exactly once by the deploy that minted it. An unclaimed app is deleted 30 days after it was created. Claiming keeps the same URL and stops the expiry.",
         ],
         note: "Instant apps are public only; shared visibility still needs a Cloudflare account. Instant deploys are capped at 10 per day per IP.",
       },
       {
         heading: "Inspect what exists",
-        code: `tarantula inspect --json
-tarantula logs`,
+        code: `atrax inspect --json
+atrax logs`,
         paragraphs: [
           "Inspect returns the active Worker deployment, stable URL, D1 binding, region, size, and query counters. Logs streams real request outcomes.",
         ],
@@ -82,35 +82,35 @@ tarantula logs`,
     slug: "cli",
     title: "CLI reference",
     description:
-      "The commands and machine-output guarantees available in Tarantula v0.",
+      "The commands and machine-output guarantees available in Atrax v0.",
     group: "Start",
     status: "available",
     sections: [
       {
         heading: "Commands",
         bullets: [
-          "tarantula new <name> --template chat: scaffold the documented chat app.",
-          "tarantula dev [--port 8787]: migrate and run locally with persistent state.",
-          "tarantula deploy [--json]: provision, migrate, deploy, wait, lock, and return the URL.",
-          "tarantula deploy --dry-run: validate the bundle without changing remote resources.",
-          "tarantula deploy --instant: deploy to Tarantula instant hosting instead of a Cloudflare account, and print a claim token once. Deploy chooses this path by itself when no Cloudflare account is detected.",
-          "tarantula claim <token> [--json]: claim an instant app so it stops expiring.",
-          "tarantula plan [--json]: preview what deploy would create, update, keep, or apply, without changing anything.",
-          "tarantula drift [--json]: compare the provider with the lockfile and report changes made outside Tarantula.",
-          "tarantula inspect [--json]: inspect the live Worker and D1 database.",
-          "tarantula logs [--json]: stream live Worker logs; JSON mode is Wrangler NDJSON, not a single result object.",
-          "tarantula doctor [--json]: validate declared files, bundle, Wrangler, Cloudflare account, and lock ownership.",
-          "tarantula share add <email> [--json]: invite someone to a shared app and return a single-use invite URL.",
-          "tarantula share list [--json]: list members as joined, invited, or expired.",
-          "tarantula share remove <email> [--json]: remove a member from a shared app.",
+          "atrax new <name> --template chat: scaffold the documented chat app.",
+          "atrax dev [--port 8787]: migrate and run locally with persistent state.",
+          "atrax deploy [--json]: provision, migrate, deploy, wait, lock, and return the URL.",
+          "atrax deploy --dry-run: validate the bundle without changing remote resources.",
+          "atrax deploy --instant: deploy to Atrax instant hosting instead of a Cloudflare account, and print a claim token once. Deploy chooses this path by itself when no Cloudflare account is detected.",
+          "atrax claim <token> [--json]: claim an instant app so it stops expiring.",
+          "atrax plan [--json]: preview what deploy would create, update, keep, or apply, without changing anything.",
+          "atrax drift [--json]: compare the provider with the lockfile and report changes made outside Atrax.",
+          "atrax inspect [--json]: inspect the live Worker and D1 database.",
+          "atrax logs [--json]: stream live Worker logs; JSON mode is Wrangler NDJSON, not a single result object.",
+          "atrax doctor [--json]: validate declared files, bundle, Wrangler, Cloudflare account, and lock ownership.",
+          "atrax share add <email> [--json]: invite someone to a shared app and return a single-use invite URL.",
+          "atrax share list [--json]: list members as joined, invited, or expired.",
+          "atrax share remove <email> [--json]: remove a member from a shared app.",
         ],
       },
       {
         heading: "Sharing",
         paragraphs: [
-          "The share commands need visibility shared in tarantula.json and a deployed app. Deploy provisions the Worker session secret once. Tarantula prints the invite URL; sending it is up to you.",
+          "The share commands need visibility shared in atrax.json and a deployed app. Deploy provisions the Worker session secret once. Atrax prints the invite URL; sending it is up to you.",
         ],
-        code: `tarantula share add ana@example.com --json
+        code: `atrax share add ana@example.com --json
 
 {
   "schemaVersion": 1,
@@ -140,7 +140,7 @@ tarantula logs`,
       {
         heading: "Exit codes",
         paragraphs: [
-          "0 means success. 1 means the command failed, including a plan blocked by a name conflict it cannot own. 2 is reserved for tarantula drift and means the provider no longer matches the lockfile, so an agent can branch on drift without treating it as an error.",
+          "0 means success. 1 means the command failed, including a plan blocked by a name conflict it cannot own. 2 is reserved for atrax drift and means the provider no longer matches the lockfile, so an agent can branch on drift without treating it as an error.",
         ],
       },
       {
@@ -155,12 +155,12 @@ tarantula logs`,
     slug: "app-contract",
     title: "App contract",
     description:
-      "tarantula.json is the app-owned source of truth; the provider configuration is generated.",
+      "atrax.json is the app-owned source of truth; the provider configuration is generated.",
     group: "Build",
     status: "available",
     sections: [
       {
-        heading: "tarantula.json",
+        heading: "atrax.json",
         code: `{
   "$schema": "https://tarantula-9l0.pages.dev/schema/v0.json",
   "version": 1,
@@ -169,18 +169,18 @@ tarantula logs`,
   "web": {
     "entry": "src/worker.js",
     "assets": "public",
-    "health": "/.well-known/tarantula.json"
+    "health": "/.well-known/atrax.json"
   },
   "tables": {
     "migrations": "migrations"
   }
 }`,
         paragraphs: [
-          "v0 accepts one Worker entry, one static-asset directory, and one ordered migration directory. visibility is public or shared; shared gates the app behind Door invite links. All paths must remain inside the app and may not contain symlinks. The optional same-origin health path defaults to /.well-known/tarantula.json.",
+          "v0 accepts one Worker entry, one static-asset directory, and one ordered migration directory. visibility is public or shared; shared gates the app behind Door invite links. All paths must remain inside the app and may not contain symlinks. The optional same-origin health path defaults to /.well-known/atrax.json.",
         ],
       },
       {
-        heading: "tarantula.lock.json",
+        heading: "atrax.lock.json",
         paragraphs: [
           "The generated lockfile contains stable non-secret resource identities: the Cloudflare account, Worker name and URL, and D1 name and ID. It is a portable identity cache, not the authoritative infrastructure state. Commit it so a fresh checkout targets the same app.",
         ],
@@ -188,7 +188,7 @@ tarantula logs`,
       {
         heading: "Generated provider config",
         paragraphs: [
-          "Tarantula writes .tarantula/wrangler.jsonc from the app contract and lockfile. Do not edit it. A second provider config is not a second source of truth.",
+          "Atrax writes .atrax/wrangler.jsonc from the app contract and lockfile. Do not edit it. A second provider config is not a second source of truth.",
         ],
       },
     ],
@@ -204,15 +204,15 @@ tarantula logs`,
       {
         heading: "The invariant",
         paragraphs: [
-          "Tarantula products are the user-facing abstraction. Infrastructure-as-code is an internal reconciliation engine. Provider files such as wrangler.jsonc are compiled artifacts and never become the product contract.",
+          "Atrax products are the user-facing abstraction. Infrastructure-as-code is an internal reconciliation engine. Provider files such as wrangler.jsonc are compiled artifacts and never become the product contract.",
         ],
       },
       {
         heading: "Four sources with distinct jobs",
         bullets: [
-          "tarantula.json: provider-neutral desired app architecture.",
+          "atrax.json: provider-neutral desired app architecture.",
           "stacks/dev.json and stacks/prod.json: environment-specific intent and non-secret references.",
-          "tarantula.lock.json: stable resource identities safe to commit.",
+          "atrax.lock.json: stable resource identities safe to commit.",
           "Remote locked state: authoritative observed infrastructure, ownership, and drift metadata.",
         ],
         note: "Stacks and remote state are roadmap architecture. v0 currently supports one implicit stack and a committed lockfile.",
@@ -227,11 +227,11 @@ tarantula logs`,
       },
       {
         heading: "Reconciliation workflow",
-        code: `tarantula plan --json
-tarantula deploy --json
-tarantula drift --json`,
+        code: `atrax plan --json
+atrax deploy --json
+atrax drift --json`,
         paragraphs: [
-          "Plan compares desired architecture with locked remote state. Deploy reconciles the approved change. Drift reports provider changes made outside Tarantula.",
+          "Plan compares desired architecture with locked remote state. Deploy reconciles the approved change. Drift reports provider changes made outside Atrax.",
           "Plan and drift work in v0 against the single implicit environment. Plan exits 1 when a name conflict blocks it; drift exits 2 when the provider no longer matches the lockfile.",
         ],
         note: "The --stack flag is roadmap architecture. v0 has one implicit stack.",
@@ -239,7 +239,7 @@ tarantula drift --json`,
       {
         heading: "Provider engines",
         paragraphs: [
-          "Wrangler is the v0 Cloudflare executor. A future reconciler may use Alchemy, direct Cloudflare APIs, or another engine behind an internal adapter. The engine is replaceable; Tarantula's contract and state semantics are not.",
+          "Wrangler is the v0 Cloudflare executor. A future reconciler may use Alchemy, direct Cloudflare APIs, or another engine behind an internal adapter. The engine is replaceable; Atrax's contract and state semantics are not.",
         ],
       },
     ],
@@ -267,13 +267,13 @@ tarantula drift --json`,
       },
       {
         heading: "Run it",
-        code: `tarantula new open-chat --template chat
+        code: `atrax new open-chat --template chat
 cd open-chat
-tarantula dev`,
+atrax dev`,
       },
       {
         heading: "Deploy it",
-        code: `tarantula deploy --json`,
+        code: `atrax deploy --json`,
         note: "Public means public. Do not use this template for private conversations.",
       },
     ],
@@ -356,11 +356,11 @@ tarantula dev`,
       {
         heading: "Available alpha slice",
         paragraphs: [
-          "Setting visibility shared in tarantula.json puts the deployed app behind an invite-only gate implemented in the template Worker. Deploy provisions the session secret once, and it never touches disk. Opening an invite URL sets a signed session cookie; members live in the app's own door_members table.",
+          "Setting visibility shared in atrax.json puts the deployed app behind an invite-only gate implemented in the template Worker. Deploy provisions the session secret once, and it never touches disk. Opening an invite URL sets a signed session cookie; members live in the app's own door_members table.",
         ],
-        code: `tarantula share add ana@example.com --json
-tarantula share list --json
-tarantula share remove ana@example.com --json`,
+        code: `atrax share add ana@example.com --json
+atrax share list --json
+atrax share remove ana@example.com --json`,
         note: "This is a template capability the CLI provisions, not the Door product. No roles, teams, email delivery, or central session revocation.",
       },
       {
@@ -502,7 +502,7 @@ tarantula share remove ana@example.com --json`,
           "Worker server endpoints and static browser client.",
           "D1 provisioning, migrations, persistence, and inspection.",
           "Unauthenticated public access with no login.",
-          "Instant anonymous hosting with claim-or-expire: tarantula deploy --instant and tarantula claim.",
+          "Instant anonymous hosting with claim-or-expire: atrax deploy --instant and atrax claim.",
           "Reference chat example.",
           "App contract, lockfile, docs.json, llms.txt, and llms-full.txt.",
         ],
@@ -520,7 +520,7 @@ tarantula share remove ana@example.com --json`,
         ],
       },
       {
-        heading: "Additional Tarantula roadmap",
+        heading: "Additional Atrax roadmap",
         bullets: [
           "Company knowledge in Library.",
           "Vaulted company connections and app-to-app tools in Switchboard.",

@@ -48,9 +48,9 @@ export function SiteHeader() {
   return (
     <header className="site-header">
       <div className="shell nav-shell">
-        <Link className="brand" href="/" aria-label="Tarantula home">
-          <span className="brand-mark" aria-hidden="true">T</span>
-          <span>tarantula</span>
+        <Link className="brand" href="/" aria-label="Atrax home">
+          <span className="brand-mark" aria-hidden="true">A</span>
+          <span>atrax</span>
           <small>v0</small>
         </Link>
 

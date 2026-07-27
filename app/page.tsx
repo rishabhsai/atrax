@@ -13,7 +13,7 @@ import {
 import { productOrder, products } from "./lib/content";
 
 export const metadata = {
-  title: "Tarantula | A cloud for everyone",
+  title: "Atrax | A cloud for everyone",
   description:
     "Create, run, deploy, inspect, and debug small full-stack apps from one CLI.",
 };
@@ -57,7 +57,7 @@ export default function Home() {
             <p className="eyebrow">The agent-native cloud</p>
             <h1>A cloud for everyone.</h1>
             <p className="hero-summary">
-              Tell your coding agent what to build. Tarantula deploys the app,
+              Tell your coding agent what to build. Atrax deploys the app,
               keeps its data, connects company tools, and shows you exactly
               what is running.
             </p>
@@ -65,7 +65,7 @@ export default function Home() {
             <p className="hero-note">
               One read-only command gives your agent the docs, app contract,
               safety rules, and machine-readable deployment workflow. No
-              Cloudflare account? <code>tarantula deploy --instant</code> puts
+              Cloudflare account? <code>atrax deploy --instant</code> puts
               the app on a public URL and prints a claim token — claim it, or it
               disappears in 30 days.{" "}
               <Link href="/docs">Read the quickstart →</Link>
@@ -83,9 +83,9 @@ export default function Home() {
 
       <section className="thesis">
         <div className="shell thesis-copy">
-          <p className="eyebrow">Why Tarantula</p>
+          <p className="eyebrow">Why Atrax</p>
           <h2>
-            Clouds deploy apps. Tarantula runs the software your company works
+            Clouds deploy apps. Atrax runs the software your company works
             in.
           </h2>
           <p className="thesis-summary">
@@ -121,7 +121,7 @@ export default function Home() {
               has to hold all four and guess when they disagree.
             </p>
             <p>
-              Tarantula keeps the whole app in one declared contract. The deploy
+              Atrax keeps the whole app in one declared contract. The deploy
               command reconciles it and answers in versioned JSON, so the state
               is readable without a browser.
             </p>
@@ -172,9 +172,9 @@ export default function Home() {
             </p>
             <h2>Six products. One contract. Nothing to assemble.</h2>
             <p>
-              One `tarantula.json` declares the whole app: runtime, data,
+              One `atrax.json` declares the whole app: runtime, data,
               access, files, connected tools, and background work. You or your
-              agent write the contract, and Tarantula reconciles it. Two
+              agent write the contract, and Atrax reconciles it. Two
               products run today, four are planned, and each card says which.
             </p>
           </Reveal>
@@ -218,7 +218,7 @@ export default function Home() {
           </Reveal>
           <Reveal className="panel" delay={120}>
             <div className="panel-head">
-              <span>tarantula.json</span>
+              <span>atrax.json</span>
               <span>v0 contract</span>
             </div>
             <ChipGrid
@@ -293,7 +293,7 @@ export default function Home() {
 
       <section className="account-story">
         <Reveal className="shell account-story-copy">
-          <p className="eyebrow">Your Tarantula account</p>
+          <p className="eyebrow">Your Atrax account</p>
           <h2>Everything you shipped. In one quiet place.</h2>
           <p>
             The workspace where all of it shows up: projects, environments,
@@ -324,7 +324,7 @@ export default function Home() {
               <a href="/docs.json"><span>docs.json</span><small>page manifest</small></a>
               <a href="/llms.txt"><span>llms.txt</span><small>agent index</small></a>
               <a href="/llms-full.txt"><span>llms-full.txt</span><small>complete reference</small></a>
-              <Link href="/docs/app-contract"><span>tarantula.json</span><small>app contract</small></Link>
+              <Link href="/docs/app-contract"><span>atrax.json</span><small>app contract</small></Link>
             </div>
           </Reveal>
         </div>
@@ -334,7 +334,7 @@ export default function Home() {
         <div className="shell final-cta-grid">
           <div>
             <p className="eyebrow">Shared context, instantly</p>
-            <h2>Teach your agent Tarantula.</h2>
+            <h2>Teach your agent Atrax.</h2>
           </div>
           <div>
             <code>curl -fsSL https://tarantula-9l0.pages.dev/agent</code>

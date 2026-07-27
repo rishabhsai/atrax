@@ -7,11 +7,11 @@ export function SiteFooter() {
       <div className="shell footer-main">
         <div className="footer-statement">
           <Link className="brand brand-footer" href="/">
-            <span className="brand-mark" aria-hidden="true">T</span>
-            <span>tarantula</span>
+            <span className="brand-mark" aria-hidden="true">A</span>
+            <span>atrax</span>
           </Link>
           <p>A cloud for everyone.</p>
-          <code>tarantula deploy --json</code>
+          <code>atrax deploy --json</code>
         </div>
 
         <div className="footer-columns">
@@ -42,7 +42,7 @@ export function SiteFooter() {
         </div>
       </div>
       <div className="shell footer-bottom">
-        <span>© 2026 Tarantula</span>
+        <span>© 2026 Atrax</span>
         <span>Launchpad and Tables are available. Four products are planned.</span>
       </div>
     </footer>

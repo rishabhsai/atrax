@@ -51,7 +51,7 @@ export function cfApiFor(env) {
 // user's modules, the generated shim, and the generated assets module whose
 // bytes are base64 string literals), so the body is built as a plain string.
 export function buildScriptUpload(metadata, modules) {
-  const boundary = `----tarantula${crypto.randomUUID().replaceAll("-", "")}`;
+  const boundary = `----atrax${crypto.randomUUID().replaceAll("-", "")}`;
   let body = `--${boundary}\r\n`;
   body += 'content-disposition: form-data; name="metadata"\r\n';
   body += "content-type: application/json\r\n\r\n";

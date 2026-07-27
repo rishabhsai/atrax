@@ -75,8 +75,8 @@ export default function SecurityPage() {
         </div>
         <div className="security-ledger security-ledger-below">
           {[
-            ["Cloud account", "The CLI checks the active account against tarantula.lock.json before remote mutation."],
-            ["Credentials", "Cloudflare credentials stay in Wrangler. Tarantula stores no API token."],
+            ["Cloud account", "The CLI checks the active account against atrax.lock.json before remote mutation."],
+            ["Credentials", "Cloudflare credentials stay in Wrangler. Atrax stores no API token."],
             ["App state", "Each generated app binds one named D1 database recorded by non-secret ID."],
             ["Input", "The chat validates nickname and message length on the server."],
             ["Rendering", "The browser renders user messages with textContent, not HTML."],

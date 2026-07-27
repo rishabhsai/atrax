@@ -27,9 +27,9 @@ const deployLines: readonly TerminalLine[] = [
   { kind: "cmd", text: "curl -fsSL https://tarantula-9l0.pages.dev/llms-full.txt" },
   { kind: "note", text: "# agent reads the CLI and app contract" },
   { kind: "gap" },
-  { kind: "cmd", text: "tarantula new company-app --template chat" },
+  { kind: "cmd", text: "atrax new company-app --template chat" },
   { kind: "cmd", text: "cd company-app" },
-  { kind: "cmd", text: "tarantula deploy --json" },
+  { kind: "cmd", text: "atrax deploy --json" },
   { kind: "gap" },
   {
     kind: "out",
@@ -97,11 +97,11 @@ export function DeployTerminal({
 
 export function AccountPreview() {
   return (
-    <div className="account-preview" aria-label="Tarantula account project view">
+    <div className="account-preview" aria-label="Atrax account project view">
       <div className="account-preview-sidebar">
         <div className="account-preview-brand">
-          <span className="brand-mark" aria-hidden="true">T</span>
-          <strong>tarantula</strong>
+          <span className="brand-mark" aria-hidden="true">A</span>
+          <strong>atrax</strong>
         </div>
         <nav aria-label="Account preview navigation">
           <span className="is-active">Projects</span>
@@ -132,7 +132,7 @@ export function AccountPreview() {
             <span className="account-orbit" aria-hidden="true"><i /></span>
             <strong>Your first deploy will appear here.</strong>
             <p>Projects register after an authenticated CLI deploy. No provider dashboard scraping.</p>
-            <code>tarantula deploy --stack prod</code>
+            <code>atrax deploy --stack prod</code>
           </div>
         </div>
       </div>
@@ -146,7 +146,7 @@ export function OrgFabric() {
       <div className="fabric-panel">
         <div className="fabric-panel-bar">
           <span className="fabric-panel-title">
-            <i aria-hidden="true">T</i> Company workspace
+            <i aria-hidden="true">A</i> Company workspace
           </span>
           <span className="fabric-panel-meta">4 apps · 4 grants</span>
           <span className="status status-planned">planned</span>

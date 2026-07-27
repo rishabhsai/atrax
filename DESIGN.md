@@ -1,5 +1,5 @@
 ---
-name: Tarantula
+name: Atrax
 description: A calm product interface for an agent-native cloud.
 colors:
   signal-orange: "oklch(0.69 0.2 42)"
@@ -17,7 +17,7 @@ rounded:
   window: "30px"
 ---
 
-# Design System: Tarantula
+# Design System: Atrax
 
 ## North star
 
@@ -26,7 +26,7 @@ rounded:
 The site borrows the clarity, pacing, and material restraint associated with
 Apple product pages without imitating Apple assets or typography. Large
 statements get ample space. One product interaction is shown at a time. The
-existing monospace family keeps Tarantula recognizably technical.
+existing monospace family keeps Atrax recognizably technical.
 
 ## Character
 

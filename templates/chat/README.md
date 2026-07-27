@@ -1,18 +1,18 @@
 # __APP_NAME__
 
-A public, login-free shared chat built with Tarantula.
+A public, login-free shared chat built with Atrax.
 
 ```bash
-tarantula dev
+atrax dev
 ```
 
 Deploy it through your configured Cloudflare account:
 
 ```bash
-tarantula deploy
+atrax deploy
 ```
 
-The command provisions Tables, applies migrations, deploys the Worker and static assets, writes `tarantula.lock.json`, and returns the public URL.
+The command provisions Tables, applies migrations, deploys the Worker and static assets, writes `atrax.lock.json`, and returns the public URL.
 
 Anyone with the URL can read and post messages. Do not use this template for private conversations.
 

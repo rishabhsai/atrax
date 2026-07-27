@@ -1,8 +1,8 @@
-// Tarantula instant hosting control plane.
+// Atrax instant hosting control plane.
 //
-// Anonymous, no-sign-in deploys. A `tarantula deploy` with no Cloudflare
+// Anonymous, no-sign-in deploys. A `atrax deploy` with no Cloudflare
 // account posts its bundle here; this Worker provisions D1 and a Worker script
-// in Tarantula's own Cloudflare account, hands back a URL and a claim token,
+// in Atrax's own Cloudflare account, hands back a URL and a claim token,
 // and deletes the app after 30 days unless somebody claims it.
 //
 // Two secrets are set by a human before the first deploy: CF_API_TOKEN (a
@@ -24,12 +24,50 @@ const maxBodyBytes = 3 * 1024 * 1024;
 const maxAssets = 40;
 const maxModules = 20;
 const maxCreatesPerDay = 10;
-const rateSalt = "tarantula-instant-rate-v1";
+const rateSalt = "atrax-instant-rate-v1";
 const rateRetentionDays = 2;
 const compatibilityDate = "2026-07-25";
 const namePattern = /^[a-z][a-z0-9-]{1,47}$/;
 const migrationPattern = /^\d+.*\.sql$/;
 const modulePattern = /^[A-Za-z0-9_.-]+\.(js|mjs)$/;
+const secretNamePattern = /^[A-Z][A-Z0-9_]{0,63}$/;
+const maxSecretChars = 1024;
+
+// Reserved ahead of <name>.atrax.run: every label Atrax needs for itself, plus
+// the ones a mail or DNS convention would claim. Compared case-insensitively
+// even though namePattern already forces lowercase.
+const reservedNames = new Set([
+  "www",
+  "api",
+  "docs",
+  "app",
+  "apps",
+  "mail",
+  "admin",
+  "account",
+  "accounts",
+  "status",
+  "blog",
+  "dev",
+  "staging",
+  "help",
+  "support",
+  "cdn",
+  "assets",
+  "atrax",
+  "instant",
+  "claim",
+  "dashboard",
+  "console",
+  "ftp",
+  "smtp",
+  "imap",
+  "ns1",
+  "ns2",
+  "root",
+  "ssl",
+  "test",
+]);
 
 const textEncoder = new TextEncoder();
 
@@ -70,7 +108,7 @@ function dayKey(timestamp) {
 function accountId(env) {
   const value = env.CP_ACCOUNT_ID;
   if (!value) {
-    throw new CpError(500, "Tarantula instant hosting is not configured yet.", {
+    throw new CpError(500, "Atrax instant hosting is not configured yet.", {
       recovery: "Set CP_ACCOUNT_ID and the CF_API_TOKEN secret on the control plane Worker.",
     });
   }
@@ -253,8 +291,8 @@ async function uploadScript(env, options) {
     compatibility_date: compatibilityDate,
     bindings: [
       { type: "d1", name: "DB", id: options.databaseId },
-      { type: "plain_text", name: "TARANTULA_APP_NAME", text: options.name },
-      { type: "plain_text", name: "TARANTULA_VISIBILITY", text: "public" },
+      { type: "plain_text", name: "ATRAX_APP_NAME", text: options.name },
+      { type: "plain_text", name: "ATRAX_VISIBILITY", text: "public" },
     ],
   };
   await cfApiFor(env)(
@@ -273,6 +311,12 @@ export async function createApp(request, env) {
       400,
       "App names use 2 to 48 lowercase letters, numbers, and hyphens, starting with a letter.",
     );
+  }
+  if (reservedNames.has(name.toLowerCase())) {
+    throw new CpError(400, `The name ${name} is reserved for Atrax itself.`, {
+      name,
+      recovery: "Choose a different app name in atrax.json and deploy again.",
+    });
   }
   const bundle = readBundle(body);
   await checkRate(request, env);
@@ -363,7 +407,7 @@ async function authorize(request, env, appId) {
     throw new CpError(404, "That instant app was not found.", {
       appId,
       recovery:
-        "Delete .tarantula/instant.json and tarantula.lock.json to deploy a new instant app.",
+        "Delete .atrax/instant.json and atrax.lock.json to deploy a new instant app.",
     });
   }
   return row;
@@ -445,6 +489,85 @@ export async function claimApp(request, env) {
   });
 }
 
+function assertSecretName(name) {
+  if (!secretNamePattern.test(name)) {
+    throw new CpError(
+      400,
+      "Secret names use 1 to 64 uppercase letters, numbers, and underscores, starting with a letter.",
+      { name },
+    );
+  }
+}
+
+// The value is forwarded to Cloudflare and nowhere else: it is never written to
+// CP_DB, never returned, and never part of an error message.
+export async function setSecret(request, env, appId, name) {
+  const row = await authorize(request, env, appId);
+  assertSecretName(name);
+  const body = await readBody(request);
+  const value = typeof body.value === "string" ? body.value : null;
+  if (!value) {
+    throw new CpError(400, "value must be a non-empty string.");
+  }
+  if (value.length > maxSecretChars) {
+    throw new CpError(400, "That secret value is too long.", {
+      limit: maxSecretChars,
+    });
+  }
+  await cfApiFor(env)(
+    env,
+    "PUT",
+    `/accounts/${accountId(env)}/workers/scripts/${row.worker_name}/secrets`,
+    { name, text: value, type: "secret_text" },
+  );
+  return json({ schemaVersion, status: "set", name });
+}
+
+export async function removeSecret(request, env, appId, name) {
+  const row = await authorize(request, env, appId);
+  assertSecretName(name);
+  try {
+    await cfApiFor(env)(
+      env,
+      "DELETE",
+      `/accounts/${accountId(env)}/workers/scripts/${row.worker_name}/secrets/${name}`,
+      null,
+    );
+  } catch (error) {
+    if (error instanceof CpError && error.details?.status === 404) {
+      throw new CpError(404, `${name} is not set on this app.`, { name });
+    }
+    throw error;
+  }
+  return json({ schemaVersion, status: "removed", name });
+}
+
+// Shared by the daily sweep and by an explicit `atrax delete`, so both paths
+// tear down exactly the same resources in the same order.
+async function deleteAppResources(env, row) {
+  await cfApiFor(env)(
+    env,
+    "DELETE",
+    `/accounts/${accountId(env)}/workers/scripts/${row.worker_name}?force=true`,
+    null,
+  );
+  await cfApiFor(env)(
+    env,
+    "DELETE",
+    `/accounts/${accountId(env)}/d1/database/${row.d1_id}`,
+    null,
+  );
+  await env.CP_DB.prepare(`DELETE FROM apps WHERE app_id = ?`)
+    .bind(row.app_id)
+    .run();
+}
+
+export async function deleteApp(request, env, appId) {
+  const row = await authorize(request, env, appId);
+  await deleteAppResources(env, row);
+  return json({ schemaVersion, status: "deleted", appId });
+}
+
 export async function describeApp(request, env, appId) {
   const row = await authorize(request, env, appId);
   return json({
@@ -473,9 +596,19 @@ export async function handleRequest(request, env) {
     if (deploys && request.method === "POST") {
       return await redeployApp(request, env, deploys[1]);
     }
+    const secret = path.match(/^\/v1\/apps\/([a-f0-9]{10})\/secrets\/([^/]{1,80})$/);
+    if (secret && request.method === "PUT") {
+      return await setSecret(request, env, secret[1], secret[2]);
+    }
+    if (secret && request.method === "DELETE") {
+      return await removeSecret(request, env, secret[1], secret[2]);
+    }
     const app = path.match(/^\/v1\/apps\/([a-f0-9]{10})$/);
     if (app && request.method === "GET") {
       return await describeApp(request, env, app[1]);
+    }
+    if (app && request.method === "DELETE") {
+      return await deleteApp(request, env, app[1]);
     }
     throw new CpError(404, `No such endpoint: ${request.method} ${path}`);
   } catch (error) {
@@ -494,7 +627,7 @@ export async function handleRequest(request, env) {
       {
         schemaVersion,
         status: "error",
-        error: "Tarantula instant hosting hit an unexpected error.",
+        error: "Atrax instant hosting hit an unexpected error.",
         details: { message: String(error?.message ?? error) },
       },
       500,
@@ -511,21 +644,7 @@ export async function runScheduled(env) {
     .all();
   const deleted = [];
   for (const row of expired?.results ?? []) {
-    await cfApiFor(env)(
-      env,
-      "DELETE",
-      `/accounts/${accountId(env)}/workers/scripts/${row.worker_name}?force=true`,
-      null,
-    );
-    await cfApiFor(env)(
-      env,
-      "DELETE",
-      `/accounts/${accountId(env)}/d1/database/${row.d1_id}`,
-      null,
-    );
-    await env.CP_DB.prepare(`DELETE FROM apps WHERE app_id = ?`)
-      .bind(row.app_id)
-      .run();
+    await deleteAppResources(env, row);
     deleted.push(row.app_id);
   }
   await env.CP_DB.prepare(`DELETE FROM rate WHERE day < ?`)

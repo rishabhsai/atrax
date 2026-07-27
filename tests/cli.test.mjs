@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtemp, readFile, stat, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, stat, writeFile } from "node:fs/promises";
 import { createHash } from "node:crypto";
 import { createServer } from "node:http";
 import { execFile } from "node:child_process";
@@ -9,22 +9,29 @@ import { promisify } from "node:util";
 import test from "node:test";
 
 const execFileAsync = promisify(execFile);
-const cli = resolve("bin/tarantula.mjs");
+const cli = resolve("bin/atrax.mjs");
 
-async function run(args, cwd, env = {}) {
-  const result = await execFileAsync(process.execPath, [cli, ...args], {
+// `input` closes the child's stdin with the given text, which is how a value
+// reaches `atrax secret set` without ever appearing in argv.
+async function run(args, cwd, env = {}, input) {
+  const pending = execFileAsync(process.execPath, [cli, ...args], {
     cwd,
     env: { ...process.env, NO_COLOR: "1", ...env },
   });
+  if (input !== undefined) {
+    pending.child.stdin.on("error", () => {});
+    pending.child.stdin.end(input);
+  }
+  const result = await pending;
   return {
     stdout: result.stdout.trim(),
     stderr: result.stderr.trim(),
   };
 }
 
-async function runAllowFailure(args, cwd, env = {}) {
+async function runAllowFailure(args, cwd, env = {}, input) {
   try {
-    const result = await run(args, cwd, env);
+    const result = await run(args, cwd, env, input);
     return { ...result, code: 0 };
   } catch (error) {
     return {
@@ -40,12 +47,12 @@ import { appendFileSync } from "node:fs";
 import { join } from "node:path";
 
 const argv = process.argv.slice(2);
-const state = JSON.parse(process.env.TARANTULA_FAKE_STATE ?? "{}");
+const state = JSON.parse(process.env.ATRAX_FAKE_STATE ?? "{}");
 const has = (...parts) => parts.every((part) => argv.includes(part));
 const out = (text) => process.stdout.write(text + "\\n");
 const sidecar = (name, value) => {
-  if (!process.env.TARANTULA_FAKE_DIR) return;
-  appendFileSync(join(process.env.TARANTULA_FAKE_DIR, name), JSON.stringify(value) + "\\n");
+  if (!process.env.ATRAX_FAKE_DIR) return;
+  appendFileSync(join(process.env.ATRAX_FAKE_DIR, name), JSON.stringify(value) + "\\n");
 };
 const readStdin = async () => {
   let text = "";
@@ -123,8 +130,8 @@ async function fakeWrangler(root) {
 
 function fakeEnv(bin, state) {
   return {
-    TARANTULA_WRANGLER_BIN: bin,
-    TARANTULA_FAKE_STATE: JSON.stringify(state),
+    ATRAX_WRANGLER_BIN: bin,
+    ATRAX_FAKE_STATE: JSON.stringify(state),
   };
 }
 
@@ -142,7 +149,7 @@ async function readSidecar(dir, name) {
 }
 
 async function setVisibility(appRoot, visibility) {
-  const contractPath = join(appRoot, "tarantula.json");
+  const contractPath = join(appRoot, "atrax.json");
   const contract = JSON.parse(await readFile(contractPath, "utf8"));
   contract.visibility = visibility;
   await writeFile(contractPath, `${JSON.stringify(contract, null, 2)}\n`);
@@ -150,7 +157,7 @@ async function setVisibility(appRoot, visibility) {
 
 async function writeLock(appRoot, name, extra = {}) {
   await writeFile(
-    join(appRoot, "tarantula.lock.json"),
+    join(appRoot, "atrax.lock.json"),
     `${JSON.stringify(
       {
         version: 1,
@@ -165,6 +172,31 @@ async function writeLock(appRoot, name, extra = {}) {
           tables: { binding: "DB", name: `${name}-tables`, id: "db-1" },
         },
         ...extra,
+      },
+      null,
+      2,
+    )}\n`,
+  );
+}
+
+// The state and lockfile an instant deploy would have left behind, written
+// directly so a test can exercise the commands that follow a deploy.
+async function writeInstantState(appRoot, appId, url) {
+  await mkdir(join(appRoot, ".atrax"), { recursive: true });
+  await writeFile(
+    join(appRoot, ".atrax", "instant.json"),
+    `${JSON.stringify({ appId, manageToken: "manage-token-1", url }, null, 2)}\n`,
+    { mode: 0o600 },
+  );
+  await writeFile(
+    join(appRoot, "atrax.lock.json"),
+    `${JSON.stringify(
+      {
+        version: 1,
+        provider: "atrax-instant",
+        mode: "instant",
+        appId,
+        worker: { name: `i-${appId}`, url },
       },
       null,
       2,
@@ -234,6 +266,26 @@ async function instantServer() {
           resources: tables,
         });
       }
+      const secret = request.url.match(
+        new RegExp(`^/v1/apps/${appId}/secrets/([^/]+)$`),
+      );
+      if (secret && request.method === "PUT") {
+        return send(200, {
+          schemaVersion: 1,
+          status: "set",
+          name: secret[1],
+        });
+      }
+      if (secret && request.method === "DELETE") {
+        return send(200, {
+          schemaVersion: 1,
+          status: "removed",
+          name: secret[1],
+        });
+      }
+      if (request.url === `/v1/apps/${appId}` && request.method === "DELETE") {
+        return send(200, { schemaVersion: 1, status: "deleted", appId });
+      }
       if (request.url === "/v1/claims" && request.method === "POST") {
         if (body?.claimToken !== "claim-token-1") {
           return send(404, {
@@ -269,7 +321,7 @@ async function instantServer() {
 }
 
 test("scaffolds the documented chat app and compiles its contract", async () => {
-  const root = await mkdtemp(join(tmpdir(), "tarantula-cli-"));
+  const root = await mkdtemp(join(tmpdir(), "atrax-cli-"));
   const created = await run(
     ["new", "open-chat", "--template", "chat", "--json"],
     root,
@@ -280,7 +332,7 @@ test("scaffolds the documented chat app and compiles its contract", async () => 
 
   const appRoot = join(root, "open-chat");
   const contract = JSON.parse(
-    await readFile(join(appRoot, "tarantula.json"), "utf8"),
+    await readFile(join(appRoot, "atrax.json"), "utf8"),
   );
   assert.equal(contract.name, "open-chat");
   assert.equal(contract.visibility, "public");
@@ -291,7 +343,7 @@ test("scaffolds the documented chat app and compiles its contract", async () => 
 
   const providerConfig = JSON.parse(
     await readFile(
-      join(appRoot, ".tarantula", "wrangler.jsonc"),
+      join(appRoot, ".atrax", "wrangler.jsonc"),
       "utf8",
     ),
   );
@@ -301,10 +353,10 @@ test("scaffolds the documented chat app and compiles its contract", async () => 
 });
 
 test("doctor rejects a contract whose declared files do not exist", async () => {
-  const root = await mkdtemp(join(tmpdir(), "tarantula-cli-"));
+  const root = await mkdtemp(join(tmpdir(), "atrax-cli-"));
   await run(["new", "broken-chat", "--template", "chat"], root);
   const appRoot = join(root, "broken-chat");
-  const contractPath = join(appRoot, "tarantula.json");
+  const contractPath = join(appRoot, "atrax.json");
   const contract = JSON.parse(await readFile(contractPath, "utf8"));
   contract.web.assets = "missing-assets";
   await writeFile(contractPath, `${JSON.stringify(contract, null, 2)}\n`);
@@ -315,7 +367,7 @@ test("doctor rejects a contract whose declared files do not exist", async () => 
 });
 
 test("rejects an invalid app name without creating a partial app", async () => {
-  const root = await mkdtemp(join(tmpdir(), "tarantula-cli-"));
+  const root = await mkdtemp(join(tmpdir(), "atrax-cli-"));
   await assert.rejects(
     run(["new", "Bad Name", "--template", "chat"], root),
     /App names use 2 to 48 lowercase/,
@@ -323,7 +375,7 @@ test("rejects an invalid app name without creating a partial app", async () => {
 });
 
 test("rejects unknown options before deploy work begins", async () => {
-  const root = await mkdtemp(join(tmpdir(), "tarantula-cli-"));
+  const root = await mkdtemp(join(tmpdir(), "atrax-cli-"));
   await run(["new", "safe-chat", "--template", "chat"], root);
   await assert.rejects(
     run(["deploy", "--dry-rn"], join(root, "safe-chat")),
@@ -364,21 +416,21 @@ test("rejects unknown contract fields, escaping paths, unsafe health URLs, and l
   ];
 
   for (const item of cases) {
-    const root = await mkdtemp(join(tmpdir(), "tarantula-cli-"));
+    const root = await mkdtemp(join(tmpdir(), "atrax-cli-"));
     await run(["new", item.name, "--template", "chat"], root);
     const appRoot = join(root, item.name);
-    const contractPath = join(appRoot, "tarantula.json");
+    const contractPath = join(appRoot, "atrax.json");
     const contract = JSON.parse(await readFile(contractPath, "utf8"));
     item.mutate(contract);
     await writeFile(contractPath, `${JSON.stringify(contract, null, 2)}\n`);
     await assert.rejects(run(["doctor"], appRoot), item.expected);
   }
 
-  const root = await mkdtemp(join(tmpdir(), "tarantula-cli-"));
+  const root = await mkdtemp(join(tmpdir(), "atrax-cli-"));
   await run(["new", "locked-chat", "--template", "chat"], root);
   const appRoot = join(root, "locked-chat");
   await writeFile(
-    join(appRoot, "tarantula.lock.json"),
+    join(appRoot, "atrax.lock.json"),
     `${JSON.stringify({
       version: 1,
       worker: { name: "different-worker" },
@@ -391,7 +443,7 @@ test("rejects unknown contract fields, escaping paths, unsafe health URLs, and l
 });
 
 test("plan describes the first deploy of a never-deployed app", async () => {
-  const root = await mkdtemp(join(tmpdir(), "tarantula-cli-"));
+  const root = await mkdtemp(join(tmpdir(), "atrax-cli-"));
   await run(["new", "plan-chat", "--template", "chat"], root);
   const appRoot = join(root, "plan-chat");
   const bin = await fakeWrangler(root);
@@ -422,7 +474,7 @@ test("plan describes the first deploy of a never-deployed app", async () => {
 });
 
 test("plan blocks on an unowned Worker with the same name", async () => {
-  const root = await mkdtemp(join(tmpdir(), "tarantula-cli-"));
+  const root = await mkdtemp(join(tmpdir(), "atrax-cli-"));
   await run(["new", "taken-chat", "--template", "chat"], root);
   const appRoot = join(root, "taken-chat");
   const bin = await fakeWrangler(root);
@@ -441,11 +493,11 @@ test("plan blocks on an unowned Worker with the same name", async () => {
 });
 
 test("drift reports a clean app when the provider matches the lockfile", async () => {
-  const root = await mkdtemp(join(tmpdir(), "tarantula-cli-"));
+  const root = await mkdtemp(join(tmpdir(), "atrax-cli-"));
   await run(["new", "clean-chat", "--template", "chat"], root);
   const appRoot = join(root, "clean-chat");
   await writeFile(
-    join(appRoot, "tarantula.lock.json"),
+    join(appRoot, "atrax.lock.json"),
     `${JSON.stringify(
       {
         version: 1,
@@ -488,12 +540,12 @@ test("drift reports a clean app when the provider matches the lockfile", async (
   assert.equal(byCheck.migrations.result, "ok");
 });
 
-test("drift exits 2 when something deployed outside Tarantula", async () => {
-  const root = await mkdtemp(join(tmpdir(), "tarantula-cli-"));
+test("drift exits 2 when something deployed outside Atrax", async () => {
+  const root = await mkdtemp(join(tmpdir(), "atrax-cli-"));
   await run(["new", "drift-chat", "--template", "chat"], root);
   const appRoot = join(root, "drift-chat");
   await writeFile(
-    join(appRoot, "tarantula.lock.json"),
+    join(appRoot, "atrax.lock.json"),
     `${JSON.stringify(
       {
         version: 1,
@@ -533,7 +585,7 @@ test("drift exits 2 when something deployed outside Tarantula", async () => {
 });
 
 test("drift requires a lockfile before contacting Cloudflare", async () => {
-  const root = await mkdtemp(join(tmpdir(), "tarantula-cli-"));
+  const root = await mkdtemp(join(tmpdir(), "atrax-cli-"));
   await run(["new", "fresh-chat", "--template", "chat"], root);
   await assert.rejects(
     run(["drift"], join(root, "fresh-chat")),
@@ -542,7 +594,7 @@ test("drift requires a lockfile before contacting Cloudflare", async () => {
 });
 
 test("logs requires a deployed lock before contacting Cloudflare", async () => {
-  const root = await mkdtemp(join(tmpdir(), "tarantula-cli-"));
+  const root = await mkdtemp(join(tmpdir(), "atrax-cli-"));
   await run(["new", "local-chat", "--template", "chat"], root);
   await assert.rejects(
     run(["logs"], join(root, "local-chat")),
@@ -551,7 +603,7 @@ test("logs requires a deployed lock before contacting Cloudflare", async () => {
 });
 
 test("share add invites a member and stores only the hashed invite token", async () => {
-  const root = await mkdtemp(join(tmpdir(), "tarantula-cli-"));
+  const root = await mkdtemp(join(tmpdir(), "atrax-cli-"));
   await run(["new", "shared-chat", "--template", "chat"], root);
   const appRoot = join(root, "shared-chat");
   await setVisibility(appRoot, "shared");
@@ -564,7 +616,7 @@ test("share add invites a member and stores only the hashed invite token", async
       databases: [{ uuid: "db-1", name: "shared-chat-tables" }],
       rows: [],
     }),
-    TARANTULA_FAKE_DIR: root,
+    ATRAX_FAKE_DIR: root,
   });
   const payload = JSON.parse(invited.stdout);
   assert.equal(payload.schemaVersion, 1);
@@ -588,7 +640,7 @@ test("share add invites a member and stores only the hashed invite token", async
 });
 
 test("share list reports member state from the app database", async () => {
-  const root = await mkdtemp(join(tmpdir(), "tarantula-cli-"));
+  const root = await mkdtemp(join(tmpdir(), "atrax-cli-"));
   await run(["new", "list-chat", "--template", "chat"], root);
   const appRoot = join(root, "list-chat");
   await setVisibility(appRoot, "shared");
@@ -625,7 +677,7 @@ test("share list reports member state from the app database", async () => {
 });
 
 test("share refuses to run on a public app and explains the recovery", async () => {
-  const root = await mkdtemp(join(tmpdir(), "tarantula-cli-"));
+  const root = await mkdtemp(join(tmpdir(), "atrax-cli-"));
   await run(["new", "public-chat", "--template", "chat"], root);
   const appRoot = join(root, "public-chat");
   await writeLock(appRoot, "public-chat");
@@ -641,11 +693,11 @@ test("share refuses to run on a public app and explains the recovery", async () 
   assert.equal(payload.status, "error");
   assert.match(payload.error, /needs visibility "shared"/);
   assert.equal(payload.details.visibility, "public");
-  assert.match(payload.details.recovery, /Set "visibility": "shared".*tarantula deploy/s);
+  assert.match(payload.details.recovery, /Set "visibility": "shared".*atrax deploy/s);
 });
 
 test("deploy provisions the Door session secret exactly once", async () => {
-  const root = await mkdtemp(join(tmpdir(), "tarantula-cli-"));
+  const root = await mkdtemp(join(tmpdir(), "atrax-cli-"));
   await run(["new", "secret-chat", "--template", "chat"], root);
   const appRoot = join(root, "secret-chat");
   await setVisibility(appRoot, "shared");
@@ -659,8 +711,8 @@ test("deploy provisions the Door session secret exactly once", async () => {
       databases: [{ uuid: "db-1", name: "secret-chat-tables" }],
       pending: [],
     }),
-    TARANTULA_FAKE_DIR: root,
-    TARANTULA_READINESS_ORIGIN: readiness.origin,
+    ATRAX_FAKE_DIR: root,
+    ATRAX_READINESS_ORIGIN: readiness.origin,
   };
 
   try {
@@ -672,7 +724,7 @@ test("deploy provisions the Door session secret exactly once", async () => {
     assert.ok(afterFirst[0].value.length >= 40);
 
     const lock = JSON.parse(
-      await readFile(join(appRoot, "tarantula.lock.json"), "utf8"),
+      await readFile(join(appRoot, "atrax.lock.json"), "utf8"),
     );
     assert.deepEqual(lock.door, { secretProvisioned: true });
 
@@ -685,7 +737,7 @@ test("deploy provisions the Door session secret exactly once", async () => {
 });
 
 test("plan and drift report the Door session secret for shared apps", async () => {
-  const root = await mkdtemp(join(tmpdir(), "tarantula-cli-"));
+  const root = await mkdtemp(join(tmpdir(), "atrax-cli-"));
   await run(["new", "door-chat", "--template", "chat"], root);
   const appRoot = join(root, "door-chat");
   await setVisibility(appRoot, "shared");
@@ -735,7 +787,7 @@ test("plan and drift report the Door session secret for shared apps", async () =
 });
 
 test("deploy without a Cloudflare account falls back to instant hosting", async () => {
-  const root = await mkdtemp(join(tmpdir(), "tarantula-cli-"));
+  const root = await mkdtemp(join(tmpdir(), "atrax-cli-"));
   await run(["new", "instant-chat", "--template", "chat"], root);
   const appRoot = join(root, "instant-chat");
   const bin = await fakeWrangler(root);
@@ -743,19 +795,19 @@ test("deploy without a Cloudflare account falls back to instant hosting", async 
   const readiness = await readinessServer();
   const env = {
     ...fakeEnv(bin, { whoamiFails: true }),
-    TARANTULA_INSTANT_ORIGIN: control.origin,
-    TARANTULA_READINESS_ORIGIN: readiness.origin,
+    ATRAX_INSTANT_ORIGIN: control.origin,
+    ATRAX_READINESS_ORIGIN: readiness.origin,
   };
 
   try {
     const first = await run(["deploy"], appRoot, env);
     assert.match(
       first.stdout,
-      /No Cloudflare account detected — deploying to Tarantula instant hosting\./,
+      /No Cloudflare account detected — deploying to Atrax instant hosting\./,
     );
     assert.match(first.stdout, new RegExp(control.url.replaceAll(".", "\\.")));
     assert.match(first.stdout, /This app is unclaimed\. It disappears in 30 days/);
-    assert.match(first.stdout, /tarantula claim claim-token-1/);
+    assert.match(first.stdout, /atrax claim claim-token-1/);
 
     const created = control.requests.find((item) => item.url === "/v1/apps");
     assert.equal(created.body.name, "instant-chat");
@@ -781,17 +833,17 @@ test("deploy without a Cloudflare account falls back to instant hosting", async 
     ]);
 
     const lock = JSON.parse(
-      await readFile(join(appRoot, "tarantula.lock.json"), "utf8"),
+      await readFile(join(appRoot, "atrax.lock.json"), "utf8"),
     );
     assert.deepEqual(lock, {
       version: 1,
-      provider: "tarantula-instant",
+      provider: "atrax-instant",
       mode: "instant",
       appId: control.appId,
       worker: { name: `i-${control.appId}`, url: control.url },
     });
 
-    const statePath = join(appRoot, ".tarantula", "instant.json");
+    const statePath = join(appRoot, ".atrax", "instant.json");
     const state = JSON.parse(await readFile(statePath, "utf8"));
     assert.deepEqual(state, {
       appId: control.appId,
@@ -829,11 +881,11 @@ test("deploy without a Cloudflare account falls back to instant hosting", async 
 });
 
 test("claim marks an instant app claimed from anywhere", async () => {
-  const root = await mkdtemp(join(tmpdir(), "tarantula-cli-"));
+  const root = await mkdtemp(join(tmpdir(), "atrax-cli-"));
   const control = await instantServer();
   try {
     const claimed = await run(["claim", "claim-token-1", "--json"], root, {
-      TARANTULA_INSTANT_ORIGIN: control.origin,
+      ATRAX_INSTANT_ORIGIN: control.origin,
     });
     assert.deepEqual(JSON.parse(claimed.stdout), {
       schemaVersion: 1,
@@ -845,7 +897,7 @@ test("claim marks an instant app claimed from anywhere", async () => {
     assert.deepEqual(request.body, { claimToken: "claim-token-1" });
 
     const failed = await runAllowFailure(["claim", "wrong", "--json"], root, {
-      TARANTULA_INSTANT_ORIGIN: control.origin,
+      ATRAX_INSTANT_ORIGIN: control.origin,
     });
     assert.equal(failed.code, 1);
     assert.match(
@@ -857,8 +909,127 @@ test("claim marks an instant app claimed from anywhere", async () => {
   }
 });
 
+test("secret set reads the value from stdin and never from argv", async () => {
+  const root = await mkdtemp(join(tmpdir(), "atrax-cli-"));
+  await run(["new", "secret-instant", "--template", "chat"], root);
+  const appRoot = join(root, "secret-instant");
+  const control = await instantServer();
+  await writeInstantState(appRoot, control.appId, control.url);
+  const env = { ATRAX_INSTANT_ORIGIN: control.origin };
+
+  try {
+    const set = await run(
+      ["secret", "set", "OPENAI_API_KEY", "--json"],
+      appRoot,
+      env,
+      "sk-live-value\n",
+    );
+    assert.deepEqual(JSON.parse(set.stdout), {
+      schemaVersion: 1,
+      status: "set",
+      name: "OPENAI_API_KEY",
+      appId: control.appId,
+    });
+
+    const put = control.requests.find((item) => item.method === "PUT");
+    assert.equal(put.url, `/v1/apps/${control.appId}/secrets/OPENAI_API_KEY`);
+    assert.equal(put.headers.authorization, "Bearer manage-token-1");
+    assert.deepEqual(put.body, { value: "sk-live-value" });
+
+    const removed = await run(
+      ["secret", "remove", "OPENAI_API_KEY", "--json"],
+      appRoot,
+      env,
+    );
+    assert.deepEqual(JSON.parse(removed.stdout), {
+      schemaVersion: 1,
+      status: "removed",
+      name: "OPENAI_API_KEY",
+      appId: control.appId,
+    });
+    const deleted = control.requests.find((item) => item.method === "DELETE");
+    assert.equal(
+      deleted.url,
+      `/v1/apps/${control.appId}/secrets/OPENAI_API_KEY`,
+    );
+
+    const badName = await runAllowFailure(
+      ["secret", "set", "openai-key", "--json"],
+      appRoot,
+      env,
+      "sk-live-value\n",
+    );
+    assert.equal(badName.code, 1);
+    assert.match(
+      JSON.parse(badName.stdout).error,
+      /Secret names use 1 to 64 uppercase/,
+    );
+  } finally {
+    await control.close();
+  }
+});
+
+test("secret refuses a Cloudflare-account app and points at wrangler", async () => {
+  const root = await mkdtemp(join(tmpdir(), "atrax-cli-"));
+  await run(["new", "account-chat", "--template", "chat"], root);
+  const appRoot = join(root, "account-chat");
+  await writeLock(appRoot, "account-chat");
+
+  const failed = await runAllowFailure(
+    ["secret", "set", "OPENAI_API_KEY", "--json"],
+    appRoot,
+    {},
+    "sk-live-value\n",
+  );
+  assert.equal(failed.code, 1);
+  const payload = JSON.parse(failed.stdout);
+  assert.match(payload.error, /works on instant apps only/);
+  assert.match(payload.details.recovery, /wrangler secret put <NAME>/);
+});
+
+test("delete needs --yes and then removes the app and its local state", async () => {
+  const root = await mkdtemp(join(tmpdir(), "atrax-cli-"));
+  await run(["new", "doomed-instant", "--template", "chat"], root);
+  const appRoot = join(root, "doomed-instant");
+  const control = await instantServer();
+  await writeInstantState(appRoot, control.appId, control.url);
+  const env = { ATRAX_INSTANT_ORIGIN: control.origin };
+
+  try {
+    const refused = await runAllowFailure(["delete", "--json"], appRoot, env);
+    assert.equal(refused.code, 1);
+    const refusal = JSON.parse(refused.stdout);
+    assert.match(refusal.error, /permanently deletes the live app/);
+    assert.match(refusal.details.recovery, /--yes/);
+    assert.equal(control.requests.length, 0);
+
+    const done = await run(["delete", "--yes", "--json"], appRoot, env);
+    const payload = JSON.parse(done.stdout);
+    assert.equal(payload.schemaVersion, 1);
+    assert.equal(payload.status, "deleted");
+    assert.equal(payload.appId, control.appId);
+    assert.deepEqual(payload.removed, [
+      ".atrax/instant.json",
+      "atrax.lock.json",
+    ]);
+
+    assert.equal(control.requests.length, 1);
+    assert.equal(control.requests[0].method, "DELETE");
+    assert.equal(control.requests[0].url, `/v1/apps/${control.appId}`);
+    assert.equal(
+      control.requests[0].headers.authorization,
+      "Bearer manage-token-1",
+    );
+
+    await assert.rejects(stat(join(appRoot, ".atrax", "instant.json")));
+    await assert.rejects(stat(join(appRoot, "atrax.lock.json")));
+  } finally {
+    await control.close();
+  }
+});
+
 test("instant hosting refuses a shared app and names the recovery", async () => {
-  const root = await mkdtemp(join(tmpdir(), "tarantula-cli-"));
+  const root = await mkdtemp(join(tmpdir(), "atrax-cli-"));
   await run(["new", "shared-instant", "--template", "chat"], root);
   const appRoot = join(root, "shared-instant");
   await setVisibility(appRoot, "shared");
@@ -868,7 +1039,7 @@ test("instant hosting refuses a shared app and names the recovery", async () => 
   try {
     const failed = await runAllowFailure(["deploy", "--instant", "--json"], appRoot, {
       ...fakeEnv(bin, { whoamiFails: true }),
-      TARANTULA_INSTANT_ORIGIN: control.origin,
+      ATRAX_INSTANT_ORIGIN: control.origin,
     });
     assert.equal(failed.code, 1);
     const payload = JSON.parse(failed.stdout);
@@ -883,15 +1054,15 @@ test("instant hosting refuses a shared app and names the recovery", async () => 
 });
 
 test("commands that need a Cloudflare account refuse instant apps", async () => {
-  const root = await mkdtemp(join(tmpdir(), "tarantula-cli-"));
+  const root = await mkdtemp(join(tmpdir(), "atrax-cli-"));
   await run(["new", "locked-instant", "--template", "chat"], root);
   const appRoot = join(root, "locked-instant");
   await writeFile(
-    join(appRoot, "tarantula.lock.json"),
+    join(appRoot, "atrax.lock.json"),
     `${JSON.stringify(
       {
         version: 1,
-        provider: "tarantula-instant",
+        provider: "atrax-instant",
         mode: "instant",
         appId: "abc1234567",
         worker: {
@@ -915,9 +1086,9 @@ test("commands that need a Cloudflare account refuse instant apps", async () => 
     const payload = JSON.parse(failed.stdout);
     assert.match(
       payload.error,
-      new RegExp(`tarantula ${command} is not available for instant apps yet`),
+      new RegExp(`atrax ${command} is not available for instant apps yet`),
     );
-    assert.match(payload.details.recovery, /tarantula claim/);
+    assert.match(payload.details.recovery, /atrax claim/);
   }
 
   await setVisibility(appRoot, "shared");
@@ -929,12 +1100,12 @@ test("commands that need a Cloudflare account refuse instant apps", async () => 
   assert.equal(share.code, 1);
   assert.match(
     JSON.parse(share.stdout).error,
-    /tarantula share is not available for instant apps yet/,
+    /atrax share is not available for instant apps yet/,
   );
 });
 
 test("the contract accepts shared visibility and still rejects anything else", async () => {
-  const root = await mkdtemp(join(tmpdir(), "tarantula-cli-"));
+  const root = await mkdtemp(join(tmpdir(), "atrax-cli-"));
   await run(["new", "visibility-chat", "--template", "chat"], root);
   const appRoot = join(root, "visibility-chat");
   const bin = await fakeWrangler(root);
@@ -948,9 +1119,9 @@ test("the contract accepts shared visibility and still rejects anything else", a
   assert.equal(JSON.parse(checked.stdout).status, "ready");
 
   const providerConfig = JSON.parse(
-    await readFile(join(appRoot, ".tarantula", "wrangler.jsonc"), "utf8"),
+    await readFile(join(appRoot, ".atrax", "wrangler.jsonc"), "utf8"),
   );
-  assert.equal(providerConfig.vars.TARANTULA_VISIBILITY, "shared");
+  assert.equal(providerConfig.vars.ATRAX_VISIBILITY, "shared");
   assert.equal(providerConfig.assets.run_worker_first, true);
 
   for (const visibility of ["private", "unlisted", "Public"]) {

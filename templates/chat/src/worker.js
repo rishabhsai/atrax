@@ -124,11 +124,11 @@ const worker = {
     const gate = await handleDoor(request, env);
     if (gate) return gate;
     const url = new URL(request.url);
-    if (url.pathname === "/.well-known/tarantula.json") {
+    if (url.pathname === "/.well-known/atrax.json") {
       return json({
         schemaVersion: 1,
-        name: env.TARANTULA_APP_NAME,
-        visibility: env.TARANTULA_VISIBILITY,
+        name: env.ATRAX_APP_NAME,
+        visibility: env.ATRAX_VISIBILITY,
         products: {
           launchpad: "available",
           tables: "available",

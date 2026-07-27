@@ -4,17 +4,17 @@ import { DeployTerminal } from "../components/Visuals";
 export const metadata = {
   title: "CLI",
   description:
-    "The working Tarantula CLI contract for creating, running, deploying, inspecting, and debugging an app.",
+    "The working Atrax CLI contract for creating, running, deploying, inspecting, and debugging an app.",
 };
 
 const commands = [
-  ["new", "tarantula new open-chat --template chat", "Write the app, migration, tests, and agent instructions."],
-  ["dev", "tarantula dev", "Apply local migrations and run the Worker, assets, and D1 together."],
-  ["plan", "tarantula plan --json", "Preview what a deploy would create, update, keep, or apply. Changes nothing."],
-  ["deploy", "tarantula deploy --json", "Provision remote D1, migrate, deploy, wait for readiness, and return the URL."],
-  ["drift", "tarantula drift --json", "Compare the provider with the lockfile. Exits 2 when they no longer match."],
-  ["inspect", "tarantula inspect --json", "Read the real Worker deployment and D1 state."],
-  ["logs", "tarantula logs", "Stream request outcomes from the deployed Worker."],
+  ["new", "atrax new open-chat --template chat", "Write the app, migration, tests, and agent instructions."],
+  ["dev", "atrax dev", "Apply local migrations and run the Worker, assets, and D1 together."],
+  ["plan", "atrax plan --json", "Preview what a deploy would create, update, keep, or apply. Changes nothing."],
+  ["deploy", "atrax deploy --json", "Provision remote D1, migrate, deploy, wait for readiness, and return the URL."],
+  ["drift", "atrax drift --json", "Compare the provider with the lockfile. Exits 2 when they no longer match."],
+  ["inspect", "atrax inspect --json", "Read the real Worker deployment and D1 state."],
+  ["logs", "atrax logs", "Stream request outcomes from the deployed Worker."],
 ] as const;
 
 export default function DevelopersPage() {
@@ -63,8 +63,8 @@ export default function DevelopersPage() {
         <div className="agent-contract-grid">
           <div>
             <h3>Predictable files</h3>
-            <pre><code>{`tarantula.json
-tarantula.lock.json
+            <pre><code>{`atrax.json
+atrax.lock.json
 src/worker.js
 public/
 migrations/

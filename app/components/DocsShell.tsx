@@ -7,7 +7,7 @@ export function DocsShell({ doc }: { doc: DocPage }) {
     <main className="docs-page">
       <div className="shell docs-layout">
         <aside className="docs-sidebar">
-          <Link className="docs-wordmark" href="/docs">Tarantula docs</Link>
+          <Link className="docs-wordmark" href="/docs">Atrax docs</Link>
           <nav aria-label="Documentation">
             {groups.map((group) => (
               <div key={group}>

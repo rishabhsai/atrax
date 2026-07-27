@@ -6,7 +6,7 @@
   "web": {
     "entry": "src/worker.js",
     "assets": "public",
-    "health": "/.well-known/tarantula.json"
+    "health": "/.well-known/atrax.json"
   },
   "tables": {
     "migrations": "migrations"

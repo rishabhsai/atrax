@@ -1,5 +1,6 @@
 {
   "$schema": "../node_modules/wrangler/config-schema.json",
+  // Deployed name stays until api.atrax.run lands; renaming would orphan the secret.
   "name": "tarantula-instant",
   "main": "src/index.js",
   "compatibility_date": "2026-07-25",
@@ -12,6 +13,7 @@
   "d1_databases": [
     {
       "binding": "CP_DB",
+      // Deployed D1 name stays for the same reason as the Worker name above.
       "database_name": "tarantula-instant-apps",
       "database_id": "e585c378-4fb6-41ec-9752-1e07b889e7fd",
       "migrations_dir": "migrations"

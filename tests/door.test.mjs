@@ -125,7 +125,7 @@ function database(members) {
 }
 
 test("passes every request through when the app is public", async () => {
-  const env = { TARANTULA_VISIBILITY: "public", DB: database([]) };
+  const env = { ATRAX_VISIBILITY: "public", DB: database([]) };
   assert.equal(
     await handleDoor(new Request("https://app.example/"), env),
     null,
@@ -138,13 +138,13 @@ test("passes every request through when the app is public", async () => {
 
 test("gates a shared app and lets the health contract through", async () => {
   const env = {
-    TARANTULA_VISIBILITY: "shared",
+    ATRAX_VISIBILITY: "shared",
     DOOR_SESSION_SECRET: secret,
     DB: database([{ id: 1, email: "owner@example.com", joined_at: 1 }]),
   };
   assert.equal(
     await handleDoor(
-      new Request("https://app.example/.well-known/tarantula.json"),
+      new Request("https://app.example/.well-known/atrax.json"),
       env,
     ),
     null,
@@ -172,8 +172,8 @@ test("gates a shared app and lets the health contract through", async () => {
 
 test("stands down during local development", async () => {
   const env = {
-    TARANTULA_VISIBILITY: "shared",
-    TARANTULA_LOCAL: "1",
+    ATRAX_VISIBILITY: "shared",
+    ATRAX_LOCAL: "1",
     DB: database([]),
   };
   assert.equal(await handleDoor(new Request("https://app.example/"), env), null);
@@ -191,7 +191,7 @@ test("redeems an invite once and then reports the member", async () => {
     },
   ];
   const env = {
-    TARANTULA_VISIBILITY: "shared",
+    ATRAX_VISIBILITY: "shared",
     DOOR_SESSION_SECRET: secret,
     DB: database(members),
   };
@@ -234,7 +234,7 @@ test("redeems an invite once and then reports the member", async () => {
 });
 
 test("refuses invites before the session secret is provisioned", async () => {
-  const env = { TARANTULA_VISIBILITY: "shared", DB: database([]) };
+  const env = { ATRAX_VISIBILITY: "shared", DB: database([]) };
   const response = await handleDoor(
     new Request("https://app.example/.door/join?token=anything"),
     env,
@@ -246,7 +246,7 @@ test("refuses invites before the session secret is provisioned", async () => {
 test("a removed member's live cookie no longer passes the gate", async () => {
   const members = [{ id: 4, email: "ana@example.com", joined_at: 1 }];
   const env = {
-    TARANTULA_VISIBILITY: "shared",
+    ATRAX_VISIBILITY: "shared",
     DOOR_SESSION_SECRET: secret,
     DB: database(members),
   };

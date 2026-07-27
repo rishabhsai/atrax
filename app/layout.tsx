@@ -26,31 +26,32 @@ const plexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
+  // Host moves to atrax.run once the domain is live.
   metadataBase: new URL("https://tarantula-9l0.pages.dev"),
   title: {
-    default: "Tarantula | A cloud for everyone",
-    template: "%s | Tarantula",
+    default: "Atrax | A cloud for everyone",
+    template: "%s | Atrax",
   },
   description:
     "Create, run, deploy, inspect, and debug small full-stack apps from one CLI.",
   openGraph: {
-    title: "Tarantula | A cloud for everyone",
+    title: "Atrax | A cloud for everyone",
     description:
       "Deploy a full-stack app from one CLI and get a URL to share.",
     type: "website",
-    siteName: "Tarantula",
+    siteName: "Atrax",
     images: [
       {
         url: "/og.png",
         width: 1200,
         height: 630,
-        alt: "Tarantula — A cloud for everyone.",
+        alt: "Atrax — A cloud for everyone.",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Tarantula | A cloud for everyone",
+    title: "Atrax | A cloud for everyone",
     description:
       "Deploy a full-stack app from one CLI and get a URL to share.",
     images: ["/og.png"],

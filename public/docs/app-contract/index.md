@@ -2,7 +2,7 @@
 
 Status: available
 
-`tarantula.json` is the app-owned source of truth.
+`atrax.json` is the app-owned source of truth.
 
 ```json
 {
@@ -12,7 +12,7 @@ Status: available
   "web": {
     "entry": "src/worker.js",
     "assets": "public",
-    "health": "/.well-known/tarantula.json"
+    "health": "/.well-known/atrax.json"
   },
   "tables": { "migrations": "migrations" }
 }
@@ -20,6 +20,6 @@ Status: available
 
 `visibility` accepts `"public"` or `"shared"`. Shared apps are gated behind Door invite links; see the CLI reference and the Door page.
 
-`tarantula.lock.json` records stable non-secret resource identities. It is a portable identity cache, not the authoritative infrastructure state. Commit it. `.tarantula/wrangler.jsonc` is generated and should not be edited.
+`atrax.lock.json` records stable non-secret resource identities. It is a portable identity cache, not the authoritative infrastructure state. Commit it. `.atrax/wrangler.jsonc` is generated and should not be edited.
 
-Declared files must stay inside the app and may not contain symlinks. `web.health` is optional and defaults to `/.well-known/tarantula.json`; it must remain on the deployed app's origin.
+Declared files must stay inside the app and may not contain symlinks. `web.health` is optional and defaults to `/.well-known/atrax.json`; it must remain on the deployed app's origin.

@@ -1,6 +1,6 @@
-# Tarantula agent reference
+# Atrax agent reference
 
-You are working with Tarantula, an agent-native CLI for small full-stack apps on Cloudflare Workers, Static Assets, and D1.
+You are working with Atrax, an agent-native CLI for small full-stack apps on Cloudflare Workers, Static Assets, and D1.
 
 ## Read the source of truth
 
@@ -15,21 +15,21 @@ Do not treat planned features as available. The docs label every feature as avai
 
 ## Preserve the contract
 
-- `tarantula.json` is the app-owned, provider-neutral source of truth.
-- `tarantula.lock.json` stores stable, non-secret remote identities and should be committed.
-- `.tarantula/wrangler.jsonc` is generated. Never edit it.
+- `atrax.json` is the app-owned, provider-neutral source of truth.
+- `atrax.lock.json` stores stable, non-secret remote identities and should be committed.
+- `.atrax/wrangler.jsonc` is generated. Never edit it.
 - Migrations are ordered and immutable after application. Add the next migration instead of rewriting an applied one.
 
 ## Work safely
 
-1. Read `tarantula.json` and the relevant docs.
-2. Run `tarantula doctor --json` before deployment work.
-3. Use `tarantula plan --json` to see what a deploy would change. It never creates, migrates, or deploys anything.
-4. Use `tarantula deploy --dry-run` before a remote deploy when validating changes.
-5. Use `tarantula deploy --json` only when the user asked to deploy.
-6. Verify remote state with `tarantula inspect --json`.
-7. Use `tarantula drift --json` to check whether the provider still matches `tarantula.lock.json`.
-8. Use `tarantula logs` for live request outcomes.
+1. Read `atrax.json` and the relevant docs.
+2. Run `atrax doctor --json` before deployment work.
+3. Use `atrax plan --json` to see what a deploy would change. It never creates, migrates, or deploys anything.
+4. Use `atrax deploy --dry-run` before a remote deploy when validating changes.
+5. Use `atrax deploy --json` only when the user asked to deploy.
+6. Verify remote state with `atrax inspect --json`.
+7. Use `atrax drift --json` to check whether the provider still matches `atrax.lock.json`.
+8. Use `atrax logs` for live request outcomes.
 
 Exit codes: `0` success, `1` error (including a `plan` blocked by an unowned name conflict), `2` only from `drift` when the provider no longer matches the lockfile. Treat `2` as a state to report, not a crash.
 
@@ -37,11 +37,11 @@ The v0 chat template is public by default: anyone with its URL can read and post
 
 ## Instant hosting (no Cloudflare account)
 
-`tarantula deploy` falls back to Tarantula instant hosting when no Cloudflare account is detected, and `--instant` forces it. The app lands on a real public URL owned by Tarantula's account. The claim token is printed once, by the deploy that mints it; it is never written to disk and redeploys never reprint it. Pass it to the user verbatim.
+`atrax deploy` falls back to Atrax instant hosting when no Cloudflare account is detected, and `--instant` forces it. The app lands on a real public URL owned by Atrax's account. The claim token is printed once, by the deploy that mints it; it is never written to disk and redeploys never reprint it. Pass it to the user verbatim.
 
 ```sh
-tarantula deploy --instant --json
-tarantula claim <token> --json
+atrax deploy --instant --json
+atrax claim <token> --json
 ```
 
 ```json
@@ -62,31 +62,31 @@ tarantula claim <token> --json
 { "schemaVersion": 1, "status": "claimed", "appId": "3f9a2c81be", "url": "https://i-3f9a2c81be.<subdomain>.workers.dev" }
 ```
 
-`claimToken` and `expiresAt` (epoch milliseconds) are present only on the deploy that creates the app; later deploys reuse `.tarantula/instant.json` and omit them. An unclaimed app is deleted 30 days after creation. Instant apps are always public: a `"visibility": "shared"` app fails with a recovery line pointing at a Cloudflare account, because instant mode has no secrets. Creates are limited to 10 per day per IP. `tarantula.lock.json` records `"mode": "instant"`, and `inspect`, `logs`, `plan`, `drift`, and `share` refuse instant locks.
+`claimToken` and `expiresAt` (epoch milliseconds) are present only on the deploy that creates the app; later deploys reuse `.atrax/instant.json` and omit them. An unclaimed app is deleted 30 days after creation. Instant apps are always public: a `"visibility": "shared"` app fails with a recovery line pointing at a Cloudflare account, because instant mode has no secrets. Creates are limited to 10 per day per IP. `atrax.lock.json` records `"mode": "instant"`, and `inspect`, `logs`, `plan`, `drift`, and `share` refuse instant locks.
 
 ## Shared visibility (Door alpha slice)
 
-`tarantula.json` accepts `"visibility": "public"` (default) or `"visibility": "shared"`. A shared app is gated by the template's own Door module: deploy provisions a `DOOR_SESSION_SECRET` Worker secret once, and every request without a valid signed session cookie gets a 401 invitation page.
+`atrax.json` accepts `"visibility": "public"` (default) or `"visibility": "shared"`. A shared app is gated by the template's own Door module: deploy provisions a `DOOR_SESSION_SECRET` Worker secret once, and every request without a valid signed session cookie gets a 401 invitation page.
 
 ```sh
-tarantula share add ana@example.com --json   # returns a single-use invite URL
-tarantula share list --json                  # joined | invited | expired
-tarantula share remove ana@example.com --json
+atrax share add ana@example.com --json   # returns a single-use invite URL
+atrax share list --json                  # joined | invited | expired
+atrax share remove ana@example.com --json
 ```
 
-Tarantula prints the invite URL. It does not send email; the owner shares the link. Members live in the app's own `door_members` table. This is an alpha slice, not the full Door product: no roles, teams, email delivery, or central session revocation. Do not describe a shared app as having sign-in, SSO, or roles.
+Atrax prints the invite URL. It does not send email; the owner shares the link. Members live in the app's own `door_members` table. This is an alpha slice, not the full Door product: no roles, teams, email delivery, or central session revocation. Do not describe a shared app as having sign-in, SSO, or roles.
 
 ## Common workflow
 
 ```sh
-tarantula new open-chat --template chat
+atrax new open-chat --template chat
 cd open-chat
-tarantula dev
-tarantula plan --json
-tarantula deploy --json
-tarantula inspect --json
-tarantula drift --json
-tarantula share add ana@example.com --json
+atrax dev
+atrax plan --json
+atrax deploy --json
+atrax inspect --json
+atrax drift --json
+atrax share add ana@example.com --json
 ```
 
 Return the stable app URL and important resource identities from JSON output. Keep provider noise out of user-facing summaries.

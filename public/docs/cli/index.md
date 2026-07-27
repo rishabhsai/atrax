@@ -2,29 +2,29 @@
 
 Status: available
 
-- `tarantula new <name> --template chat`
-- `tarantula dev [--port 8787]`
-- `tarantula deploy [--json]`
-- `tarantula deploy --dry-run`
-- `tarantula deploy --instant`: deploy to Tarantula instant hosting instead of a Cloudflare account. Deploy picks this path by itself when no Cloudflare account is detected.
-- `tarantula claim <token> [--json]`: claim an instant app so it stops expiring.
-- `tarantula plan [--json]`: read-only preview of what deploy would create, update, keep, or apply.
-- `tarantula drift [--json]`: read-only comparison of the provider against `tarantula.lock.json`.
-- `tarantula inspect [--json]`
-- `tarantula logs [--json]`: JSON mode is a Wrangler NDJSON event stream.
-- `tarantula doctor [--json]`: checks declared files, bundle, account, and lock ownership.
-- `tarantula share add <email> [--json]`: invite someone to a shared app and return a single-use invite URL.
-- `tarantula share list [--json]`: list members as joined, invited, or expired.
-- `tarantula share remove <email> [--json]`: remove a member.
+- `atrax new <name> --template chat`
+- `atrax dev [--port 8787]`
+- `atrax deploy [--json]`
+- `atrax deploy --dry-run`
+- `atrax deploy --instant`: deploy to Atrax instant hosting instead of a Cloudflare account. Deploy picks this path by itself when no Cloudflare account is detected.
+- `atrax claim <token> [--json]`: claim an instant app so it stops expiring.
+- `atrax plan [--json]`: read-only preview of what deploy would create, update, keep, or apply.
+- `atrax drift [--json]`: read-only comparison of the provider against `atrax.lock.json`.
+- `atrax inspect [--json]`
+- `atrax logs [--json]`: JSON mode is a Wrangler NDJSON event stream.
+- `atrax doctor [--json]`: checks declared files, bundle, account, and lock ownership.
+- `atrax share add <email> [--json]`: invite someone to a shared app and return a single-use invite URL.
+- `atrax share list [--json]`: list members as joined, invited, or expired.
+- `atrax share remove <email> [--json]`: remove a member.
 
-The share commands need `"visibility": "shared"` in `tarantula.json` and a deployed app. Visibility `public` is the default and is unchanged: anyone with the URL can use the app. Visibility `shared` is a Door alpha slice: deploy provisions a Worker session secret, and only people who opened an invite link can reach the app. Tarantula prints the invite URL; sending it is up to you.
+The share commands need `"visibility": "shared"` in `atrax.json` and a deployed app. Visibility `public` is the default and is unchanged: anyone with the URL can use the app. Visibility `shared` is a Door alpha slice: deploy provisions a Worker session secret, and only people who opened an invite link can reach the app. Atrax prints the invite URL; sending it is up to you.
 
 ```json
 { "schemaVersion": 1, "status": "invited", "email": "ana@example.com",
   "inviteUrl": "https://open-chat...workers.dev/.door/join?token=...", "expiresAt": 1790000000000 }
 ```
 
-Instant hosting needs no Cloudflare account. `claimToken` and `expiresAt` appear only on the deploy that creates the app; redeploys reuse `.tarantula/instant.json` and omit them.
+Instant hosting needs no Cloudflare account. `claimToken` and `expiresAt` appear only on the deploy that creates the app; redeploys reuse `.atrax/instant.json` and omit them.
 
 ```json
 { "schemaVersion": 1, "status": "deployed", "mode": "instant", "name": "open-chat",
@@ -38,7 +38,7 @@ Instant hosting needs no Cloudflare account. `claimToken` and `expiresAt` appear
   "url": "https://i-3f9a2c81be.<subdomain>.workers.dev" }
 ```
 
-Finite JSON commands emit one versioned object and fail with a non-zero exit code. `logs --json` is the long-running NDJSON exception. Unknown options fail before any mutation. The first deploy records the Cloudflare account in `tarantula.lock.json`; later remote operations fail before mutation when the active account differs.
+Finite JSON commands emit one versioned object and fail with a non-zero exit code. `logs --json` is the long-running NDJSON exception. Unknown options fail before any mutation. The first deploy records the Cloudflare account in `atrax.lock.json`; later remote operations fail before mutation when the active account differs.
 
 Exit codes: `0` success, `1` error (including a `plan` blocked by an unowned name conflict), `2` reserved for `drift` when the provider no longer matches the lockfile.
 

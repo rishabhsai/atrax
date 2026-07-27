@@ -3,7 +3,7 @@ import { AccountPreview } from "../components/Visuals";
 
 export const metadata = {
   title: "Account",
-  description: "The Tarantula account control plane for projects, releases, resources, and company connections.",
+  description: "The Atrax account control plane for projects, releases, resources, and company connections.",
 };
 
 export default function AccountPage() {
@@ -12,11 +12,11 @@ export default function AccountPage() {
       <section className="account-page-hero">
         <div className="shell account-page-grid">
           <div>
-            <p className="eyebrow">Tarantula account</p>
+            <p className="eyebrow">Atrax account</p>
             <h1>Your software, without the provider maze.</h1>
             <p>
               The account console will show every project deployed through
-              Tarantula, while the CLI remains the fastest way to change it.
+              Atrax, while the CLI remains the fastest way to change it.
             </p>
             <div className="account-auth-note">
               <span>Private alpha</span>
@@ -27,9 +27,9 @@ export default function AccountPage() {
             </div>
           </div>
           <div className="account-login-card">
-            <span className="account-login-mark" aria-hidden="true">T</span>
+            <span className="account-login-mark" aria-hidden="true">A</span>
             <p className="eyebrow">Secure account access</p>
-            <h2>Sign in to Tarantula</h2>
+            <h2>Sign in to Atrax</h2>
             <p>
               Account login activates with the private control-plane Worker.
               No password database and no provider credentials in the browser.
@@ -45,10 +45,10 @@ export default function AccountPage() {
         <div className="shell">
           <div className="section-intro">
             <p className="eyebrow">The project view</p>
-            <h2>Truth from Tarantula state.</h2>
+            <h2>Truth from Atrax state.</h2>
             <p>
               A project appears after an authenticated deploy. The console
-              reads Tarantula state rather than guessing from provider lists.
+              reads Atrax state rather than guessing from provider lists.
             </p>
           </div>
           <AccountPreview />
@@ -77,7 +77,7 @@ export default function AccountPage() {
             <h2>Deploy from the CLI.</h2>
           </div>
           <div>
-            <code>tarantula deploy --json</code>
+            <code>atrax deploy --json</code>
             <Link className="button button-orange" href="/docs/quickstart">
               Open the quickstart <span aria-hidden="true">→</span>
             </Link>

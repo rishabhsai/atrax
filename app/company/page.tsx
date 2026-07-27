@@ -3,7 +3,7 @@ import Link from "next/link";
 export const metadata = {
   title: "Company",
   description:
-    "Tarantula is building an agent-native cloud for small software.",
+    "Atrax is building an agent-native cloud for small software.",
 };
 
 export default function CompanyPage() {
@@ -11,11 +11,11 @@ export default function CompanyPage() {
     <main>
       <section className="page-hero page-hero-orange">
         <div className="shell page-hero-grid">
-          <p className="eyebrow">Tarantula</p>
+          <p className="eyebrow">Atrax</p>
           <div>
             <h1>Small software needs a smaller cloud.</h1>
             <p>
-              Coding agents can write an app quickly. Tarantula is reducing the
+              Coding agents can write an app quickly. Atrax is reducing the
               work between a folder and software people can keep using.
             </p>
           </div>

@@ -1,6 +1,6 @@
-# Tarantula
+# Atrax
 
-Tarantula is a cloud for everyone, operated through an agent-native CLI. The current v0 can scaffold a public chat, run it locally with persistent data, provision D1, apply migrations, deploy a Worker with static assets, and return a shareable URL.
+Atrax is a cloud for everyone, operated through an agent-native CLI. The current v0 can scaffold a public chat, run it locally with persistent data, provision D1, apply migrations, deploy a Worker with static assets, and return a shareable URL.
 
 The product site lives in this repository too.
 
@@ -11,16 +11,16 @@ Requires Node.js `>=22.13.0` and an authenticated Cloudflare Wrangler session.
 ```bash
 npm install
 npm link
-tarantula --version
+atrax --version
 ```
 
 ## Deploy the chat example
 
 ```bash
-tarantula new open-chat --template chat
+atrax new open-chat --template chat
 cd open-chat
-tarantula dev
-tarantula deploy --json
+atrax dev
+atrax deploy --json
 ```
 
 The generated app is public. Visitors do not log in, and anyone with its URL can read and post messages. Posts are capped at 4 KiB and 12 messages per IP per minute; only the latest 500 messages are retained.
@@ -28,15 +28,15 @@ The generated app is public. Visitors do not log in, and anyone with its URL can
 After deployment:
 
 ```bash
-tarantula plan --json
-tarantula drift --json
-tarantula inspect --json
-tarantula logs
+atrax plan --json
+atrax drift --json
+atrax inspect --json
+atrax logs
 ```
 
 `plan` previews what a deploy would change. `drift` compares the provider with the lockfile and exits `2` when they no longer match.
 
-`tarantula.lock.json` stores stable, non-secret resource identities. Commit it so another checkout updates the same app. It is not the future authoritative infrastructure state; `.tarantula/wrangler.jsonc` is a disposable provider artifact.
+`atrax.lock.json` stores stable, non-secret resource identities. Commit it so another checkout updates the same app. It is not the future authoritative infrastructure state; `.atrax/wrangler.jsonc` is a disposable provider artifact.
 
 ## Product status
 

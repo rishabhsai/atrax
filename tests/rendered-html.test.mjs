@@ -8,16 +8,16 @@ async function readExportedPage(pathname = "/") {
   return readFile(new URL(relativePath, import.meta.url), "utf8");
 }
 
-test("exports the six-product Tarantula site", async () => {
+test("exports the six-product Atrax site", async () => {
   const html = await readExportedPage();
   assert.match(
     html,
-    /<title>Tarantula \| A cloud for everyone/,
+    /<title>Atrax \| A cloud for everyone/,
   );
   assert.match(html, /A cloud for everyone\./);
   assert.match(html, /Give this to your coding agent/);
   assert.match(html, /curl -fsSL https:\/\/tarantula-9l0\.pages\.dev\/agent/);
-  assert.match(html, /tarantula deploy --json/);
+  assert.match(html, /atrax deploy --json/);
   assert.match(html, /Launchpad/);
   assert.match(html, /Tables/);
   assert.match(html, /Door/);
@@ -50,7 +50,7 @@ test("exports the six-product Tarantula site", async () => {
   assert.match(html, /nav-menu-products/);
   assert.match(html, /nav-menu-use-cases/);
   const header = html.match(/<header[\s\S]*?<\/header>/)?.[0] ?? "";
-  assert.doesNotMatch(header, /GitHub|tarantula-chat-demo|Open live chat/);
+  assert.doesNotMatch(header, /GitHub|atrax-chat-demo|Open live chat/);
   assert.doesNotMatch(
     html,
     /\/products\/(workers|agent-runtime|hosting|database|auth|storage|secrets)/,
@@ -86,16 +86,16 @@ test("exports canonical product detail routes", async () => {
 test("exports human and agent-native docs", async () => {
   const docsHtml = await readExportedPage("/docs");
   assert.match(docsHtml, /Install the local alpha/);
-  assert.match(docsHtml, /tarantula new open-chat --template chat/);
+  assert.match(docsHtml, /atrax new open-chat --template chat/);
   assert.match(docsHtml, /Anyone with the URL can read and post/);
 
   const cliHtml = await readExportedPage("/docs/cli");
   assert.match(cliHtml, /JSON contract/);
-  assert.match(cliHtml, /tarantula inspect/);
+  assert.match(cliHtml, /atrax inspect/);
 
   const statusHtml = await readExportedPage("/docs/status");
   assert.match(statusHtml, /Planned for Lakebed-equivalent coverage/);
-  assert.match(statusHtml, /Additional Tarantula roadmap/);
+  assert.match(statusHtml, /Additional Atrax roadmap/);
 
   const docsManifest = JSON.parse(
     await readFile(new URL("../out/docs.json", import.meta.url), "utf8"),
@@ -120,7 +120,7 @@ test("publishes the same-origin health contract enforced by the CLI", async () =
     await readFile(new URL("../out/schema/v0.json", import.meta.url), "utf8"),
   );
   const healthPattern = new RegExp(schema.properties.web.properties.health.pattern);
-  assert.equal(healthPattern.test("/.well-known/tarantula.json"), true);
+  assert.equal(healthPattern.test("/.well-known/atrax.json"), true);
   assert.equal(healthPattern.test("//example.com/probe"), false);
   assert.equal(healthPattern.test("/\\example.com/probe"), false);
   assert.equal(schema.additionalProperties, false);

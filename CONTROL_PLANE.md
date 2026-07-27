@@ -1,4 +1,4 @@
-# Tarantula account control plane
+# Atrax account control plane
 
 ## Decision
 
@@ -10,13 +10,13 @@ and gives account state one explicit security boundary.
 
 - Human login: Cloudflare Access.
 - CLI login: short-lived device authorization approved from the account console.
-- Session identity: a Tarantula user and workspace derived from the verified
+- Session identity: an Atrax user and workspace derived from the verified
   Access identity.
 - CLI credential: a revocable, workspace-scoped token stored outside the app
   repository.
 
-Tarantula account identity is platform identity. Door remains the identity and
-authorization product for applications built on Tarantula.
+Atrax account identity is platform identity. Door remains the identity and
+authorization product for applications built on Atrax.
 
 ## Project truth
 
@@ -30,7 +30,7 @@ authenticated deploy registers:
 - health and last deployment outcome;
 - actor, CLI version, and timestamps.
 
-The authoritative infrastructure record remains locked remote Tarantula state.
+The authoritative infrastructure record remains locked remote Atrax state.
 The console is a query and operation surface over that state.
 
 ## Data

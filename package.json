@@ -1,9 +1,9 @@
 {
-  "name": "tarantula",
+  "name": "atrax",
   "version": "0.1.0",
   "private": true,
   "bin": {
-    "tarantula": "bin/tarantula.mjs"
+    "atrax": "bin/atrax.mjs"
   },
   "engines": {
     "node": ">=22.13.0"
@@ -15,6 +15,7 @@
     "deploy": "npm run build && wrangler pages deploy out --project-name=tarantula --branch=main",
     "test": "npm run build && node --test tests/*.test.mjs",
     "test:cli": "node --test tests/cli.test.mjs",
+    "package:cli": "node scripts/package-cli.mjs",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next"
   },
   "dependencies": {
