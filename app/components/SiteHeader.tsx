@@ -7,60 +7,38 @@ import { productOrder, products, solutions } from "../lib/content";
 type NavMenuProps = {
   className: string;
   label: string;
+  href: string;
   children: ReactNode;
 };
 
-function NavMenu({ className, label, children }: NavMenuProps) {
+function NavMenu({ className, label, href, children }: NavMenuProps) {
   const [open, setOpen] = useState(false);
-  const [pinned, setPinned] = useState(false);
-
-  function close() {
-    setPinned(false);
-    setOpen(false);
-  }
 
   function handleBlur(event: FocusEvent<HTMLDivElement>) {
-    if (!event.currentTarget.contains(event.relatedTarget) && !pinned) {
+    if (!event.currentTarget.contains(event.relatedTarget)) {
       setOpen(false);
     }
   }
 
   function handleKeyDown(event: KeyboardEvent<HTMLDivElement>) {
     if (event.key === "Escape") {
-      close();
-      event.currentTarget.querySelector("button")?.focus();
+      setOpen(false);
+      event.currentTarget.querySelector("a")?.focus();
     }
   }
 
   return (
     <div
       className={`nav-menu ${className}${open ? " is-open" : ""}`}
-      onMouseEnter={() => {
-        if (!pinned) setOpen(true);
-      }}
-      onMouseLeave={() => {
-        if (!pinned) setOpen(false);
-      }}
-      onFocusCapture={() => {
-        if (!pinned) setOpen(true);
-      }}
+      onMouseEnter={() => setOpen(true)}
+      onMouseLeave={() => setOpen(false)}
+      onFocusCapture={() => setOpen(true)}
       onBlurCapture={handleBlur}
       onKeyDown={handleKeyDown}
     >
-      <button
-        type="button"
-        aria-expanded={open}
-        onClick={() => {
-          if (pinned) {
-            close();
-          } else {
-            setPinned(true);
-            setOpen(true);
-          }
-        }}
-      >
+      <Link href={href} aria-expanded={open} aria-haspopup="true">
         {label} <span aria-hidden="true">⌄</span>
-      </button>
+      </Link>
       {children}
     </div>
   );
@@ -77,7 +55,7 @@ export function SiteHeader() {
         </Link>
 
         <nav className="desktop-nav" aria-label="Primary navigation">
-          <NavMenu className="nav-menu-products" label="Products">
+          <NavMenu className="nav-menu-products" label="Products" href="/products">
             <div className="nav-menu-panel">
               <Link className="nav-menu-overview" href="/products">
                 <strong>All products</strong>
@@ -94,7 +72,7 @@ export function SiteHeader() {
               </div>
             </div>
           </NavMenu>
-          <NavMenu className="nav-menu-use-cases" label="Use cases">
+          <NavMenu className="nav-menu-use-cases" label="Use cases" href="/solutions">
             <div className="nav-menu-panel">
               <Link className="nav-menu-overview" href="/solutions">
                 <strong>All use cases</strong>

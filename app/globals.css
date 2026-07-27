@@ -149,7 +149,7 @@ select {
 }
 
 .desktop-nav > a,
-.nav-menu > button {
+.nav-menu > a {
   color: color-mix(in oklch, var(--ink) 76%, var(--muted));
   font-size: 11px;
   transition: color 180ms ease;
@@ -161,7 +161,7 @@ select {
 }
 
 .desktop-nav > a:hover,
-.nav-menu > button:hover,
+.nav-menu > a:hover,
 .nav-menu.is-open > button {
   color: var(--orange-dark);
 }
@@ -186,7 +186,7 @@ select {
   align-self: stretch;
 }
 
-.nav-menu > button {
+.nav-menu > a {
   padding: 0;
   border: 0;
   background: transparent;
@@ -196,7 +196,7 @@ select {
   gap: 7px;
 }
 
-.nav-menu > button span {
+.nav-menu > a span {
   color: var(--orange);
   transition: transform 180ms var(--ease-out);
 }
