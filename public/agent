@@ -4,7 +4,7 @@ You are working with Atrax, an agent-native CLI for small full-stack apps on Clo
 
 ## Read the source of truth
 
-Base URL: https://tarantula-9l0.pages.dev
+Base URL: https://atrax.run
 
 1. Fetch `/llms.txt` for the documentation map.
 2. Fetch `/docs.json` when you need a machine-readable page manifest.

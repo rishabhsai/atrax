@@ -2,30 +2,30 @@
 
 Atrax v0 is an agent-native CLI for public Cloudflare Worker apps with Static Assets and D1. Prefer the Markdown pages or docs.json when reading programmatically.
 
-Agent onboarding command: `curl -fsSL https://tarantula-9l0.pages.dev/agent`
+Agent onboarding command: `curl -fsSL https://atrax.run/agent`
 
 Deploy uses the caller's Cloudflare account. Without one, `atrax deploy --instant` returns `{ "schemaVersion": 1, "status": "deployed", "mode": "instant", "url": "...", "appId": "...", "access": "public", "claimToken": "...", "expiresAt": 1790000000000 }`; `access` is `public` or `shared` and the deploy says so in one line under the URL. The token is printed once and `atrax claim <token>` returns `{ "schemaVersion": 1, "status": "claimed", "appId": "...", "url": "..." }`. Unclaimed apps are deleted after 30 days. Shared apps and `atrax share` work on instant hosting too.
 
 ## Available
 
-- [Quickstart](https://tarantula-9l0.pages.dev/docs/quickstart/index.md)
-- [CLI reference](https://tarantula-9l0.pages.dev/docs/cli/index.md)
-- [App contract](https://tarantula-9l0.pages.dev/docs/app-contract/index.md)
-- [Infrastructure model](https://tarantula-9l0.pages.dev/docs/infrastructure-model/index.md)
-- [Public chat example](https://tarantula-9l0.pages.dev/docs/chat-example/index.md)
-- [Launchpad](https://tarantula-9l0.pages.dev/docs/launchpad/index.md)
-- [Tables](https://tarantula-9l0.pages.dev/docs/tables/index.md)
+- [Quickstart](https://atrax.run/docs/quickstart/index.md)
+- [CLI reference](https://atrax.run/docs/cli/index.md)
+- [App contract](https://atrax.run/docs/app-contract/index.md)
+- [Infrastructure model](https://atrax.run/docs/infrastructure-model/index.md)
+- [Public chat example](https://atrax.run/docs/chat-example/index.md)
+- [Launchpad](https://atrax.run/docs/launchpad/index.md)
+- [Tables](https://atrax.run/docs/tables/index.md)
 
 ## Planned products
 
-- [Door](https://tarantula-9l0.pages.dev/docs/door/index.md)
-- [Library](https://tarantula-9l0.pages.dev/docs/library/index.md)
-- [Switchboard](https://tarantula-9l0.pages.dev/docs/switchboard/index.md)
-- [Loops](https://tarantula-9l0.pages.dev/docs/loops/index.md)
+- [Door](https://atrax.run/docs/door/index.md)
+- [Library](https://atrax.run/docs/library/index.md)
+- [Switchboard](https://atrax.run/docs/switchboard/index.md)
+- [Loops](https://atrax.run/docs/loops/index.md)
 
 ## Operate
 
-- [Security](https://tarantula-9l0.pages.dev/docs/security/index.md)
-- [Feature status](https://tarantula-9l0.pages.dev/docs/status/index.md)
-- [docs.json](https://tarantula-9l0.pages.dev/docs.json)
-- [llms-full.txt](https://tarantula-9l0.pages.dev/llms-full.txt)
+- [Security](https://atrax.run/docs/security/index.md)
+- [Feature status](https://atrax.run/docs/status/index.md)
+- [docs.json](https://atrax.run/docs.json)
+- [llms-full.txt](https://atrax.run/llms-full.txt)

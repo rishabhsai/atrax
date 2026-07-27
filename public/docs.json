@@ -1,6 +1,6 @@
 {
   "name": "Atrax Docs",
-  "url": "https://tarantula-9l0.pages.dev/docs/",
+  "url": "https://atrax.run/docs/",
   "description": "Agent-native documentation for the Atrax v0 CLI and product roadmap.",
   "agentEntrypoints": {
     "agent": "/agent",

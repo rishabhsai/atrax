@@ -2,7 +2,7 @@
 
 Atrax creates, runs, deploys, inspects, and debugs small full-stack apps from one CLI. v0 deploys public Cloudflare Workers with Static Assets and one D1 database.
 
-Read-only agent onboarding: `curl -fsSL https://tarantula-9l0.pages.dev/agent`
+Read-only agent onboarding: `curl -fsSL https://atrax.run/agent`
 
 ## Install
 

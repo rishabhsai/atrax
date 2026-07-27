@@ -26,8 +26,9 @@ const plexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  // Host moves to atrax.run once the domain is live.
-  metadataBase: new URL("https://tarantula-9l0.pages.dev"),
+  // Canonical host. https://tarantula-9l0.pages.dev stays live as a secondary
+  // host, so old links keep resolving; every absolute URL points here.
+  metadataBase: new URL("https://atrax.run"),
   title: {
     default: "Atrax | A cloud for everyone",
     template: "%s | Atrax",

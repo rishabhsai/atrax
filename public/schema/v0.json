@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://tarantula-9l0.pages.dev/schema/v0.json",
+  "$id": "https://atrax.run/schema/v0.json",
   "title": "Atrax app contract v0",
   "type": "object",
   "additionalProperties": false,

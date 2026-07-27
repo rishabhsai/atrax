@@ -29,7 +29,7 @@ export const docs: Record<string, DocPage> = {
         paragraphs: [
           "This read-only endpoint gives a coding agent the current docs map, product boundaries, app contract rules, and safe CLI workflow. It does not execute a script or change your machine.",
         ],
-        code: `curl -fsSL https://tarantula-9l0.pages.dev/agent`,
+        code: `curl -fsSL https://atrax.run/agent`,
       },
       {
         heading: "Install the local alpha",
@@ -164,7 +164,7 @@ atrax logs`,
       {
         heading: "atrax.json",
         code: `{
-  "$schema": "https://tarantula-9l0.pages.dev/schema/v0.json",
+  "$schema": "https://atrax.run/schema/v0.json",
   "version": 1,
   "name": "open-chat",
   "visibility": "public",

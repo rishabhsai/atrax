@@ -35,7 +35,7 @@ const manifest = {
     type: "git",
     url: "git+https://github.com/rishabhsai/tarantula.git",
   },
-  homepage: "https://tarantula-9l0.pages.dev",
+  homepage: "https://atrax.run",
   keywords: ["cloud", "deploy", "cloudflare", "agents", "cli", "small-software"],
   dependencies: {
     wrangler: rootPackage.devDependencies.wrangler,

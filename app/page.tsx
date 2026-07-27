@@ -66,7 +66,7 @@ export default function Home() {
               No account needed: <code>atrax deploy --instant</code> puts the
               app on a public URL and prints a claim token — claim it, or it
               disappears in 30 days. Using a coding agent?{" "}
-              <code>curl -fsSL https://tarantula-9l0.pages.dev/agent</code>{" "}
+              <code>curl -fsSL https://atrax.run/agent</code>{" "}
               gives it the docs, app contract, and safety rules.{" "}
               <Link href="/docs">Read the quickstart →</Link>
             </p>
@@ -337,7 +337,7 @@ export default function Home() {
             <h2>Teach your agent Atrax.</h2>
           </div>
           <div>
-            <code>curl -fsSL https://tarantula-9l0.pages.dev/agent</code>
+            <code>curl -fsSL https://atrax.run/agent</code>
             <Link className="button button-orange" href="/agent">
               Read the agent file <span aria-hidden="true">→</span>
             </Link>

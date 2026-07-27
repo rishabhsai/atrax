@@ -24,7 +24,7 @@ export function ProductMark({ type }: ProductMarkProps) {
 type TerminalLine = { kind: "cmd" | "note" | "out" | "gap"; text?: string };
 
 const deployLines: readonly TerminalLine[] = [
-  { kind: "cmd", text: "curl -fsSL https://tarantula-9l0.pages.dev/llms-full.txt" },
+  { kind: "cmd", text: "curl -fsSL https://atrax.run/llms-full.txt" },
   { kind: "note", text: "# agent reads the CLI and app contract" },
   { kind: "gap" },
   { kind: "cmd", text: "atrax new company-app --template chat" },

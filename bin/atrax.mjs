@@ -47,9 +47,8 @@ function resolveWranglerBin() {
 }
 
 const wranglerBin = process.env.ATRAX_WRANGLER_BIN ?? resolveWranglerBin();
-// Atrax instant hosting. The deployed Worker still carries its original name,
-// so the origin below stays until api.atrax.run lands.
-const instantOriginDefault = "https://tarantula-instant.rishabhsai-mdbar.workers.dev";
+// Atrax instant hosting, on its own domain.
+const instantOriginDefault = "https://api.atrax.run";
 const instantOrigin = process.env.ATRAX_INSTANT_ORIGIN ?? instantOriginDefault;
 const argv = process.argv.slice(2);
 const command = argv[0] ?? "help";

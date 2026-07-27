@@ -4,6 +4,7 @@
   "name": "tarantula-instant",
   "main": "src/index.js",
   "compatibility_date": "2026-07-25",
+  "routes": [{ "pattern": "api.atrax.run", "custom_domain": true }],
   "vars": {
     // Not a secret: the account that owns every instant app. The scoped
     // platform token that acts on it is the secret CF_API_TOKEN, which a human

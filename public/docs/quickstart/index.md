@@ -5,7 +5,7 @@ Status: available
 Brief a coding agent with the read-only agent reference:
 
 ```bash
-curl -fsSL https://tarantula-9l0.pages.dev/agent
+curl -fsSL https://atrax.run/agent
 ```
 
 This prints the current docs map, contract rules, and safe CLI workflow. It does not execute a script or change the machine.
