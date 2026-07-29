@@ -24,18 +24,18 @@ The share commands need `"visibility": "shared"` in `atrax.json` and a deployed 
   "inviteUrl": "https://open-chat...workers.dev/.door/join?token=...", "expiresAt": 1790000000000 }
 ```
 
-Instant hosting needs no Cloudflare account. `claimToken` and `expiresAt` appear only on the deploy that creates the app; redeploys reuse `.atrax/instant.json` and omit them. `access` is `public` or `shared` and reports who can open the URL; the human output says the same thing in one line under the URL.
+Instant hosting needs no Cloudflare account. An instant app answers on `https://<name>.atrax.run`, with a four-character suffix when that name is already taken and a `workers.dev` URL when the subdomain cannot be attached; read the `url` field rather than assuming the shape. `claimToken` and `expiresAt` appear only on the deploy that creates the app; redeploys reuse `.atrax/instant.json` and omit them. `access` is `public` or `shared` and reports who can open the URL; the human output says the same thing in one line under the URL.
 
 ```json
 { "schemaVersion": 1, "status": "deployed", "mode": "instant", "name": "open-chat",
-  "url": "https://i-3f9a2c81be.<subdomain>.workers.dev", "appId": "3f9a2c81be",
+  "url": "https://open-chat.atrax.run", "appId": "3f9a2c81be",
   "access": "public", "claimToken": "...", "expiresAt": 1790000000000,
   "resources": { "tables": { "name": "i-3f9a2c81be-tables" } } }
 ```
 
 ```json
 { "schemaVersion": 1, "status": "claimed", "appId": "3f9a2c81be",
-  "url": "https://i-3f9a2c81be.<subdomain>.workers.dev" }
+  "url": "https://open-chat.atrax.run" }
 ```
 
 Finite JSON commands emit one versioned object and fail with a non-zero exit code. `logs --json` is the long-running NDJSON exception. Unknown options fail before any mutation. The first deploy records the Cloudflare account in `atrax.lock.json`; later remote operations fail before mutation when the active account differs.

@@ -27,6 +27,7 @@ const maxCreatesPerDay = 10;
 const rateSalt = "atrax-instant-rate-v1";
 const rateRetentionDays = 2;
 const compatibilityDate = "2026-07-25";
+const customDomainZone = "atrax.run";
 const namePattern = /^[a-z][a-z0-9-]{1,47}$/;
 const migrationPattern = /^\d+.*\.sql$/;
 const modulePattern = /^[A-Za-z0-9_.-]+\.(js|mjs)$/;
@@ -263,6 +264,74 @@ async function workersSubdomain(env) {
   return subdomain;
 }
 
+// Cached like the workers.dev subdomain, with one difference: a lookup that
+// fails is not cached. The platform token may be missing the Zone Read
+// permission today and gain it tomorrow, and caching a miss would keep every
+// app on workers.dev until somebody cleared the row by hand.
+async function zoneId(env) {
+  const cached = await env.CP_DB.prepare(`SELECT value FROM meta WHERE key = ?`)
+    .bind("zone_id")
+    .first();
+  if (cached?.value) return cached.value;
+  let id = null;
+  try {
+    const result = await cfApiFor(env)(
+      env,
+      "GET",
+      `/zones?name=${customDomainZone}&status=active`,
+      null,
+    );
+    id = result?.[0]?.id ?? null;
+  } catch {
+    return null;
+  }
+  if (!id) return null;
+  await env.CP_DB.prepare(
+    `INSERT INTO meta (key, value) VALUES (?, ?)
+     ON CONFLICT(key) DO UPDATE SET value = excluded.value`,
+  )
+    .bind("zone_id", id)
+    .run();
+  return id;
+}
+
+// Gives the app the vanity hostname a person would actually type. The labels
+// Atrax needs for itself are already refused at name validation, so the only
+// clash left is another instant app holding the same name; that one gets four
+// hex characters appended. Every Cloudflare failure here — no zone, no
+// permission, a rejected attach — returns null and leaves the app on its
+// workers.dev URL, because a prettier URL is never worth a failed deploy.
+async function attachDomain(env, options) {
+  try {
+    const zone = await zoneId(env);
+    if (!zone) return null;
+    let hostname = `${options.name}.${customDomainZone}`;
+    const taken = await env.CP_DB.prepare(
+      `SELECT 1 FROM apps WHERE hostname = ?`,
+    )
+      .bind(hostname)
+      .first();
+    if (taken) {
+      const suffix = toHex(crypto.getRandomValues(new Uint8Array(2)));
+      hostname = `${options.name}-${suffix}.${customDomainZone}`;
+    }
+    const result = await cfApiFor(env)(
+      env,
+      "PUT",
+      `/accounts/${accountId(env)}/workers/domains`,
+      {
+        zone_id: zone,
+        hostname,
+        service: options.workerName,
+        environment: "production",
+      },
+    );
+    return { hostname, domainId: result?.id ?? null };
+  } catch {
+    return null;
+  }
+}
+
 // D1's query endpoint takes one statement per call in practice, so migrations
 // are split on the semicolon-plus-newline boundaries the CLI already enforces
 // in its own migration files.
@@ -384,7 +453,10 @@ export async function createApp(request, env) {
   );
 
   const subdomain = await workersSubdomain(env);
-  const url = `https://${workerName}.${subdomain}.workers.dev`;
+  const domain = await attachDomain(env, { workerName, name });
+  const url = domain
+    ? `https://${domain.hostname}`
+    : `https://${workerName}.${subdomain}.workers.dev`;
   const claimToken = randomToken();
   const manageToken = randomToken();
   const now = Date.now();
@@ -393,8 +465,8 @@ export async function createApp(request, env) {
     `INSERT INTO apps (
        app_id, name, worker_name, url, d1_id, d1_name, applied_migrations,
        claim_hash, manage_hash, created_at, claimed_at, expires_at, last_deploy_at,
-       door_secret_set
-     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, ?, ?, ?)`,
+       door_secret_set, hostname, domain_id
+     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, ?, ?, ?, ?, ?)`,
   )
     .bind(
       appId,
@@ -410,6 +482,8 @@ export async function createApp(request, env) {
       expiresAt,
       now,
       doorSecretSet ? 1 : null,
+      domain?.hostname ?? null,
+      domain?.domainId ?? null,
     )
     .run();
 
@@ -714,6 +788,21 @@ export async function removeMember(request, env, appId, rawEmail) {
 // Shared by the daily sweep and by an explicit `atrax delete`, so both paths
 // tear down exactly the same resources in the same order.
 async function deleteAppResources(env, row) {
+  // The custom domain goes first and its failure is swallowed: Cloudflare may
+  // have dropped the record already, and a hostname nobody can reach must not
+  // keep the Worker, the database, and the row alive.
+  if (row.domain_id) {
+    try {
+      await cfApiFor(env)(
+        env,
+        "DELETE",
+        `/accounts/${accountId(env)}/workers/domains/${row.domain_id}`,
+        null,
+      );
+    } catch {
+      // Ignored on purpose; teardown continues.
+    }
+  }
   await cfApiFor(env)(
     env,
     "DELETE",

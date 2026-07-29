@@ -37,7 +37,7 @@ The v0 chat template is public by default: anyone with its URL can read and post
 
 ## Instant hosting (no Cloudflare account)
 
-`atrax deploy` falls back to Atrax instant hosting when no Cloudflare account is detected, and `--instant` forces it. The app lands on a real public URL owned by Atrax's account. The claim token is printed once, by the deploy that mints it; it is never written to disk and redeploys never reprint it. Pass it to the user verbatim.
+`atrax deploy` falls back to Atrax instant hosting when no Cloudflare account is detected, and `--instant` forces it. The app lands on a real public URL owned by Atrax's account: `https://<name>.atrax.run`, or a `workers.dev` URL when that subdomain cannot be attached, so report the `url` field verbatim instead of predicting it. The claim token is printed once, by the deploy that mints it; it is never written to disk and redeploys never reprint it. Pass it to the user verbatim.
 
 ```sh
 atrax deploy --instant --json
@@ -50,7 +50,7 @@ atrax claim <token> --json
   "status": "deployed",
   "mode": "instant",
   "name": "open-chat",
-  "url": "https://i-3f9a2c81be.<subdomain>.workers.dev",
+  "url": "https://open-chat.atrax.run",
   "appId": "3f9a2c81be",
   "access": "public",
   "claimToken": "...",
@@ -60,7 +60,7 @@ atrax claim <token> --json
 ```
 
 ```json
-{ "schemaVersion": 1, "status": "claimed", "appId": "3f9a2c81be", "url": "https://i-3f9a2c81be.<subdomain>.workers.dev" }
+{ "schemaVersion": 1, "status": "claimed", "appId": "3f9a2c81be", "url": "https://open-chat.atrax.run" }
 ```
 
 `claimToken` and `expiresAt` (epoch milliseconds) are present only on the deploy that creates the app; later deploys reuse `.atrax/instant.json` and omit them. An unclaimed app is deleted 30 days after creation. Creates are limited to 10 per day per IP. `atrax.lock.json` records `"mode": "instant"`, and `inspect`, `logs`, `plan`, and `drift` refuse instant locks.

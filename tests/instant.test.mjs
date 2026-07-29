@@ -87,6 +87,11 @@ class FakeDatabase {
       this.apps.push(row);
       return [];
     }
+    if (text.startsWith("SELECT 1 FROM apps WHERE hostname = ?")) {
+      return this.apps
+        .filter((row) => row.hostname === values[0])
+        .map(() => ({ 1: 1 }));
+    }
     if (text.startsWith("SELECT * FROM apps WHERE app_id = ?")) {
       return this.apps.filter((row) => row.app_id === values[0]);
     }
@@ -136,6 +141,7 @@ class FakeDatabase {
 function fakeCfApi() {
   const calls = [];
   let databases = 0;
+  let domains = 0;
   const api = async (env, method, path, body = null) => {
     calls.push({ method, path, body });
     if (method === "POST" && path.endsWith("/d1/database")) {
@@ -144,6 +150,26 @@ function fakeCfApi() {
     }
     if (method === "GET" && path.endsWith("/workers/subdomain")) {
       return { subdomain: "atrax-apps" };
+    }
+    // The custom domain path. A token without Zone Read fails the lookup, and
+    // Cloudflare can refuse the attach on its own; both are flags here because
+    // both must leave the deploy standing on workers.dev.
+    if (method === "GET" && path.startsWith("/zones")) {
+      if (api.zoneFails) {
+        throw new CpError(502, "Cloudflare rejected an instant hosting operation.", {
+          status: 403,
+        });
+      }
+      return api.zones;
+    }
+    if (method === "PUT" && path.endsWith("/workers/domains")) {
+      if (api.domainFails) {
+        throw new CpError(502, "Cloudflare rejected an instant hosting operation.", {
+          status: 400,
+        });
+      }
+      domains += 1;
+      return { id: `dom${domains}`, hostname: body.hostname };
     }
     // D1's query endpoint answers in the same envelope for every statement;
     // `api.rows` is what a SELECT against an app's own database finds.
@@ -157,6 +183,9 @@ function fakeCfApi() {
   };
   api.calls = calls;
   api.rows = [];
+  api.zones = [{ id: "zone1" }];
+  api.zoneFails = false;
+  api.domainFails = false;
   return api;
 }
 
@@ -245,10 +274,7 @@ test("creates an instant app end to end", async () => {
   assert.equal(payload.status, "deployed");
   assert.equal(payload.name, "open-chat");
   assert.match(payload.appId, /^[a-f0-9]{10}$/);
-  assert.equal(
-    payload.url,
-    `https://i-${payload.appId}.atrax-apps.workers.dev`,
-  );
+  assert.equal(payload.url, "https://open-chat.atrax.run");
   assert.equal(payload.resources.tables.name, `i-${payload.appId}-tables`);
   assert.ok(payload.expiresAt > Date.now() + 29 * 24 * 60 * 60 * 1000);
   assert.notEqual(payload.claimToken, payload.manageToken);
@@ -316,6 +342,111 @@ test("creates an instant app end to end", async () => {
   const subdomain = calls.find((call) => call.path.endsWith("/subdomain") && call.method === "POST");
   assert.deepEqual(subdomain.body, { enabled: true });
   assert.equal(env.CP_DB.meta.get("workers_subdomain"), "atrax-apps");
+});
+
+test("a created app gets <name>.atrax.run and remembers the domain", async () => {
+  const env = environment();
+  const payload = await (
+    await handleRequest(post("/v1/apps", { name: "open-chat", ...bundle() }), env)
+  ).json();
+
+  assert.equal(payload.url, "https://open-chat.atrax.run");
+
+  const attach = env.__cfApi.calls.find((call) =>
+    call.path.endsWith("/workers/domains"),
+  );
+  assert.equal(attach.method, "PUT");
+  assert.equal(attach.path, "/accounts/account-1/workers/domains");
+  assert.deepEqual(attach.body, {
+    zone_id: "zone1",
+    hostname: "open-chat.atrax.run",
+    service: `i-${payload.appId}`,
+    environment: "production",
+  });
+
+  const row = env.CP_DB.apps[0];
+  assert.equal(row.url, "https://open-chat.atrax.run");
+  assert.equal(row.hostname, "open-chat.atrax.run");
+  assert.equal(row.domain_id, "dom1");
+
+  // The zone lookup is cached, so a second create never repeats it.
+  assert.equal(env.CP_DB.meta.get("zone_id"), "zone1");
+  env.__cfApi.calls.length = 0;
+  await handleRequest(post("/v1/apps", { name: "other-chat", ...bundle() }), env);
+  assert.equal(
+    env.__cfApi.calls.filter((call) => call.path.startsWith("/zones")).length,
+    0,
+  );
+});
+
+test("a failed zone lookup leaves the app on workers.dev and is not cached", async () => {
+  const env = environment();
+  env.__cfApi.zoneFails = true;
+
+  const payload = await (
+    await handleRequest(post("/v1/apps", { name: "open-chat", ...bundle() }), env)
+  ).json();
+  assert.equal(payload.status, "deployed");
+  assert.equal(
+    payload.url,
+    `https://i-${payload.appId}.atrax-apps.workers.dev`,
+  );
+
+  const row = env.CP_DB.apps[0];
+  assert.equal(row.hostname, null);
+  assert.equal(row.domain_id, null);
+  assert.equal(env.CP_DB.meta.get("zone_id"), undefined);
+  assert.equal(
+    env.__cfApi.calls.filter((call) => call.path.endsWith("/workers/domains")).length,
+    0,
+  );
+
+  // The token can gain Zone Read later, so the next create asks again.
+  const second = await (
+    await handleRequest(post("/v1/apps", { name: "open-chat", ...bundle() }), env)
+  ).json();
+  assert.equal(second.status, "deployed");
+  assert.equal(
+    env.__cfApi.calls.filter((call) => call.path.startsWith("/zones")).length,
+    2,
+  );
+});
+
+test("a hostname already taken gets a four hex suffix", async () => {
+  const env = environment();
+  env.CP_DB.apps.push({
+    app_id: "aaaaaaaaaa",
+    name: "open-chat",
+    hostname: "open-chat.atrax.run",
+  });
+
+  const payload = await (
+    await handleRequest(post("/v1/apps", { name: "open-chat", ...bundle() }), env)
+  ).json();
+  assert.match(payload.url, /^https:\/\/open-chat-[0-9a-f]{4}\.atrax\.run$/);
+
+  const row = env.CP_DB.apps[1];
+  assert.equal(row.hostname, payload.url.slice("https://".length));
+  assert.equal(row.domain_id, "dom1");
+});
+
+test("a refused domain attach still deploys, on workers.dev", async () => {
+  const env = environment();
+  env.__cfApi.domainFails = true;
+
+  const response = await handleRequest(
+    post("/v1/apps", { name: "open-chat", ...bundle() }),
+    env,
+  );
+  assert.equal(response.status, 200);
+  const payload = await response.json();
+  assert.equal(payload.status, "deployed");
+  assert.equal(
+    payload.url,
+    `https://i-${payload.appId}.atrax-apps.workers.dev`,
+  );
+  assert.equal(env.CP_DB.apps[0].hostname, null);
+  assert.equal(env.CP_DB.apps[0].domain_id, null);
 });
 
 test("claiming an app is idempotent and clears the expiry", async () => {
@@ -864,6 +995,11 @@ test("delete tears down the script, the database, and the row", async () => {
     [
       {
         method: "DELETE",
+        path: "/accounts/account-1/workers/domains/dom1",
+        body: null,
+      },
+      {
+        method: "DELETE",
         path: `/accounts/account-1/workers/scripts/i-${created.appId}?force=true`,
         body: null,
       },
@@ -883,6 +1019,42 @@ test("delete tears down the script, the database, and the row", async () => {
     env,
   );
   assert.equal(again.status, 404);
+});
+
+test("a domain that will not detach does not block the rest of teardown", async () => {
+  const env = environment();
+  const created = await createdApp(env);
+  assert.equal(env.CP_DB.apps[0].domain_id, "dom1");
+
+  const inner = env.__cfApi;
+  const failing = async (innerEnv, method, path, body = null) => {
+    if (method === "DELETE" && path.includes("/workers/domains/")) {
+      inner.calls.push({ method, path, body });
+      throw new CpError(502, "Cloudflare rejected an instant hosting operation.", {
+        status: 404,
+      });
+    }
+    return inner(innerEnv, method, path, body);
+  };
+  failing.calls = inner.calls;
+  env.__cfApi = failing;
+
+  const response = await handleRequest(
+    request("DELETE", `/v1/apps/${created.appId}`, undefined, {
+      authorization: `Bearer ${created.manageToken}`,
+    }),
+    env,
+  );
+  assert.equal(response.status, 200);
+  assert.deepEqual(
+    failing.calls.filter((call) => call.method === "DELETE").map((call) => call.path),
+    [
+      "/accounts/account-1/workers/domains/dom1",
+      `/accounts/account-1/workers/scripts/i-${created.appId}?force=true`,
+      "/accounts/account-1/d1/database/d1-1",
+    ],
+  );
+  assert.equal(env.CP_DB.apps.length, 0);
 });
 
 test("the generated shim wires an ASSETS binding around the user's Worker", () => {
