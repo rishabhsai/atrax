@@ -27,9 +27,10 @@ Do not treat planned features as available. The docs label every feature as avai
 3. Use `atrax plan --json` to see what a deploy would change. It never creates, migrates, or deploys anything.
 4. Use `atrax deploy --dry-run` before a remote deploy when validating changes.
 5. Use `atrax deploy --json` only when the user asked to deploy.
-6. Verify remote state with `atrax inspect --json`.
+6. Verify remote state with `atrax inspect --json`, on Cloudflare-account and instant apps alike.
 7. Use `atrax drift --json` to check whether the provider still matches `atrax.lock.json`.
 8. Use `atrax logs` for live request outcomes.
+9. Use `atrax tables export [--out <file>]` to take the app's data with you: every user table as JSON, on both paths.
 
 Exit codes: `0` success, `1` error (including a `plan` blocked by an unowned name conflict), `2` only from `drift` when the provider no longer matches the lockfile. Treat `2` as a state to report, not a crash.
 
@@ -64,7 +65,7 @@ atrax claim <token> --json
 { "schemaVersion": 1, "status": "claimed", "appId": "3f9a2c81be", "url": "https://open-chat.atrax.run" }
 ```
 
-`claimToken` and `expiresAt` (epoch milliseconds) are present only on the deploy that creates the app; later deploys reuse `.atrax/instant.json` and omit them. `ready` is on every instant deploy: `false` means the deploy succeeded but the URL is not answering yet — a new domain can take a few minutes to get its certificate — and the claim token in that payload is still the real one. An unclaimed app is deleted 30 days after creation. Creates are limited to 10 per day per IP. `atrax.lock.json` records `"mode": "instant"`, and `inspect`, `logs`, `plan`, and `drift` refuse instant locks.
+`claimToken` and `expiresAt` (epoch milliseconds) are present only on the deploy that creates the app; later deploys reuse `.atrax/instant.json` and omit them. `ready` is on every instant deploy: `false` means the deploy succeeded but the URL is not answering yet — a new domain can take a few minutes to get its certificate — and the claim token in that payload is still the real one. An unclaimed app is deleted 30 days after creation. Creates are limited to 10 per day per IP. `atrax.lock.json` records `"mode": "instant"`. `logs`, `plan`, and `drift` refuse instant locks; `inspect` does not — it reads the app's state from instant hosting and returns `{ schemaVersion, status: "claimed" | "unclaimed", mode: "instant", name, url, appId, expiresAt, claimedAt, lastDeployAt, resources }`. `atrax tables export` works on an instant lock too, capped at 5 MB.
 
 `access` is `"public"` or `"shared"` and reports who can open the URL. The human output says it in one line under the URL: a public app gets "This app is public: anyone with the URL can open it." Tell the user this verbatim when you report a public deploy; never imply the URL is private.
 
@@ -93,6 +94,7 @@ atrax deploy --json
 atrax inspect --json
 atrax drift --json
 atrax share add ana@example.com --json
+atrax tables export --out backup.json
 ```
 
 Return the stable app URL and important resource identities from JSON output. Keep provider noise out of user-facing summaries.

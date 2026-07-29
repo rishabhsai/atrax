@@ -172,9 +172,11 @@ function fakeCfApi() {
       return { id: `dom${domains}`, hostname: body.hostname };
     }
     // D1's query endpoint answers in the same envelope for every statement;
-    // `api.rows` is what a SELECT against an app's own database finds.
+    // `api.rows` is what a SELECT against an app's own database finds, and
+    // `api.answer` lets a test vary the results by statement.
     if (method === "POST" && path.endsWith("/query")) {
       const sql = String(body?.sql ?? "");
+      if (api.answer) return [{ results: api.answer(sql) ?? [], success: true }];
       return [
         { results: /^\s*SELECT/i.test(sql) ? (api.rows ?? []) : [], success: true },
       ];
@@ -183,6 +185,7 @@ function fakeCfApi() {
   };
   api.calls = calls;
   api.rows = [];
+  api.answer = null;
   api.zones = [{ id: "zone1" }];
   api.zoneFails = false;
   api.domainFails = false;
@@ -548,6 +551,14 @@ test("redeploy authenticates, applies only new migrations, and re-uploads", asyn
   const describedPayload = await described.json();
   assert.equal(describedPayload.status, "unclaimed");
   assert.equal(describedPayload.url, created.url);
+  assert.equal(describedPayload.hostname, "open-chat.atrax.run");
+  assert.equal(describedPayload.name, "open-chat");
+  assert.equal(
+    describedPayload.resources.tables.name,
+    `i-${created.appId}-tables`,
+  );
+  assert.equal(describedPayload.claimedAt, null);
+  assert.ok(describedPayload.lastDeployAt > 0);
 });
 
 test("the eleventh create from one address is rate limited", async () => {
@@ -962,6 +973,107 @@ test("member endpoints refuse a public app and name the fix", async () => {
     env.__cfApi.calls.filter((item) => item.path.endsWith("/query")).length,
     0,
   );
+});
+
+// Answers the export's two shapes of statement: the sqlite_master listing and
+// one SELECT per table. The listing applies the filters the statement asks
+// for, the way SQLite would, so a control plane that stopped excluding
+// d1_migrations or the internal tables fails here.
+function exportAnswer(tables) {
+  return (sql) => {
+    if (sql.includes("sqlite_master")) {
+      return Object.keys(tables)
+        .filter(
+          (name) =>
+            !(sql.includes("NOT LIKE 'sqlite\\_%'") && name.startsWith("sqlite_")) &&
+            !(sql.includes("NOT LIKE '\\_cf\\_%'") && name.startsWith("_cf_")) &&
+            !(sql.includes("name != 'd1_migrations'") && name === "d1_migrations"),
+        )
+        .map((name) => ({ name }));
+    }
+    const match = sql.match(/^SELECT \* FROM "(.+)"$/);
+    return match ? (tables[match[1]] ?? []) : [];
+  };
+}
+
+test("export dumps the app's own tables and nothing else", async () => {
+  const env = environment();
+  const created = await createdApp(env);
+  const auth = { authorization: `Bearer ${created.manageToken}` };
+  env.__cfApi.answer = exportAnswer({
+    messages: [
+      { id: 1, body: "hi", created_at: 10 },
+      { id: 2, body: "there", created_at: 20 },
+    ],
+    limits: [],
+    d1_migrations: [{ id: 1, name: "0001_messages.sql" }],
+    sqlite_sequence: [{ name: "messages", seq: 2 }],
+    _cf_KV: [{ key: "k" }],
+    'x"; drop table messages; --': [{ id: 1 }],
+  });
+
+  const anonymous = await handleRequest(
+    request("GET", `/v1/apps/${created.appId}/export`, undefined, {
+      authorization: "Bearer not-the-token",
+    }),
+    env,
+  );
+  assert.equal(anonymous.status, 404);
+
+  const response = await handleRequest(
+    request("GET", `/v1/apps/${created.appId}/export`, undefined, auth),
+    env,
+  );
+  assert.equal(response.status, 200);
+  const payload = await response.json();
+  assert.equal(payload.schemaVersion, 1);
+  assert.equal(payload.status, "exported");
+  assert.equal(payload.appId, created.appId);
+  assert.equal(payload.name, "open-chat");
+  assert.ok(payload.exportedAt <= Date.now());
+
+  // The listing itself excludes d1_migrations; a name that is not a plain
+  // identifier never reaches a statement even if sqlite_master offers one.
+  assert.deepEqual(Object.keys(payload.tables), ["messages", "limits"]);
+  assert.deepEqual(payload.tables.messages.columns, ["id", "body", "created_at"]);
+  assert.equal(payload.tables.messages.rows.length, 2);
+  assert.equal(payload.tables.messages.rows[1].body, "there");
+  assert.deepEqual(payload.tables.limits, { columns: [], rows: [] });
+
+  const queries = env.__cfApi.calls.filter((call) => call.path.endsWith("/query"));
+  assert.ok(
+    queries.every((call) =>
+      call.path.startsWith("/accounts/account-1/d1/database/d1-1/"),
+    ),
+  );
+  assert.match(queries[0].body.sql, /FROM sqlite_master/);
+  assert.match(queries[0].body.sql, /name != 'd1_migrations'/);
+  assert.deepEqual(
+    queries.slice(1).map((call) => call.body.sql),
+    ['SELECT * FROM "messages"', 'SELECT * FROM "limits"'],
+  );
+  assert.ok(!JSON.stringify(queries).includes("drop table messages"));
+});
+
+test("an export past the instant cap is refused with a 413", async () => {
+  const env = environment();
+  const created = await createdApp(env);
+  env.__cfApi.answer = exportAnswer({
+    messages: [{ id: 1, body: "x".repeat(6 * 1024 * 1024) }],
+  });
+
+  const response = await handleRequest(
+    request("GET", `/v1/apps/${created.appId}/export`, undefined, {
+      authorization: `Bearer ${created.manageToken}`,
+    }),
+    env,
+  );
+  assert.equal(response.status, 413);
+  const payload = await response.json();
+  assert.equal(payload.status, "error");
+  assert.match(payload.error, /too large for instant hosting/);
+  assert.equal(payload.details.limitBytes, 5 * 1024 * 1024);
+  assert.match(payload.details.recovery, /Cloudflare account/);
 });
 
 test("delete tears down the script, the database, and the row", async () => {

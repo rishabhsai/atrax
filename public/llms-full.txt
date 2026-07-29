@@ -26,6 +26,7 @@ atrax plan --json
 atrax deploy --json
 atrax inspect --json
 atrax drift --json
+atrax tables export --out backup.json
 atrax logs
 ```
 
@@ -42,6 +43,7 @@ The chat is public. Anyone with the URL can read and post.
 - `atrax plan [--json]`
 - `atrax drift [--json]`
 - `atrax inspect [--json]`
+- `atrax tables export [--out <file>]`
 - `atrax logs [--json]`
 - `atrax doctor [--json]`
 - `atrax share add <email> [--json]`
@@ -51,6 +53,8 @@ The chat is public. Anyone with the URL can read and post.
 Finite JSON commands return one object with `schemaVersion: 1`. `logs --json` is a long-running Wrangler NDJSON event stream. Errors return a non-zero exit code, and unknown flags fail before mutation.
 
 `plan` is read-only. It emits `{ schemaVersion, status: "planned" | "blocked", name, changes, actions[], migrations: { pending[] }, conflicts[] }`, where each action is `{ product, resource, action, reason }` with an action of create, recreate, update, keep, apply, or none.
+
+`tables export` is read-only. It emits `{ schemaVersion, status: "exported", app, exportedAt, tables }`, where `tables` maps each user table to `{ columns[], rows[] }`; columns come from the first row, and SQLite's internal tables and the `d1_migrations` ledger are left out. Without `--out` the dump is the whole of stdout in both modes; with `--out` it is written to that file and stdout carries only the destination.
 
 `drift` is read-only and requires a lockfile. It emits `{ schemaVersion, status: "clean" | "drifted", name, checks[] }`, where each check is `{ check, expected, observed, result }` with a result of ok, drift, or unknown. Checks cover account, worker, deployment, url, tables, and migrations.
 
@@ -72,7 +76,7 @@ Exit codes: `0` success, `1` error including a blocked plan, `2` only from `drif
   "url": "https://open-chat.atrax.run" }
 ```
 
-`claimToken` and `expiresAt` (epoch milliseconds) appear only on the deploy that creates the app. `ready` is on every instant deploy: `false` means the deploy succeeded but the URL is not answering yet — a new domain can take a few minutes to get its certificate — and the claim token in that payload is still the real one. Local state lives in `.atrax/instant.json` (mode 0600, gitignored) as `{ appId, manageToken, url }`, and `atrax.lock.json` records `{ "provider": "atrax-instant", "mode": "instant", "appId", "worker": { "name", "url" } }`. Creates are capped at 10 per day per IP. `inspect`, `logs`, `plan`, and `drift` refuse instant locks, since each reads Cloudflare through Wrangler against an account the deployer does not have.
+`claimToken` and `expiresAt` (epoch milliseconds) appear only on the deploy that creates the app. `ready` is on every instant deploy: `false` means the deploy succeeded but the URL is not answering yet — a new domain can take a few minutes to get its certificate — and the claim token in that payload is still the real one. Local state lives in `.atrax/instant.json` (mode 0600, gitignored) as `{ appId, manageToken, url }`, and `atrax.lock.json` records `{ "provider": "atrax-instant", "mode": "instant", "appId", "worker": { "name", "url" } }`. Creates are capped at 10 per day per IP. `logs`, `plan`, and `drift` refuse instant locks, since each reads Cloudflare through Wrangler against an account the deployer does not have. `inspect` and `tables export` do not: both ask Atrax instant hosting with the manage token instead, `inspect` returning `{ schemaVersion, status: "claimed" | "unclaimed", mode: "instant", name, url, appId, expiresAt, claimedAt, lastDeployAt, resources }` and `tables export` returning the same dump as the account path, capped at 5 MB.
 
 `access` is `"public"` or `"shared"` and names who can open the URL; the human output prints the same fact in one line under the URL, and a public first deploy appends the `atrax claim <token>` line to it. Instant hosting serves both visibilities: a `"visibility": "shared"` app deploys normally, instant hosting generates that app's `DOOR_SESSION_SECRET` itself once and never returns it, and `atrax share` manages members through Atrax instead of the caller's Cloudflare account. The commands, the payloads, and the `door_members` table are the same on both paths.
 
@@ -119,7 +123,7 @@ Stateful infrastructure, immutable releases, and Switchboard secret/connection r
 
 Launchpad v0 runs locally, deploys Worker and Static Assets, waits for readiness, keeps a stable workers.dev URL, inspects deployment state, and streams logs.
 
-Tables v0 provisions D1, applies ordered local and remote migrations, keeps the binding across releases, and reports database state.
+Tables v0 provisions D1, applies ordered local and remote migrations, keeps the binding across releases, reports database state, and exports every user table as JSON with `atrax tables export`.
 
 ## Planned products
 
@@ -135,7 +139,7 @@ Loops will own declared webhooks, schedules, queues, background jobs, and operat
 
 Cloudflare credentials remain in Wrangler. Account mismatch, lock-name mismatch, and unlocked Worker or D1 collisions fail before mutation. The chat validates input on the server, caps posts at 4 KiB and 12 per IP per minute, retains 500 messages, and renders messages with `textContent`. Public access is intentional and stated in the generated app.
 
-Private access, vaulted third-party connections, approval binding, compliance reports, backups and export, custom domains, previews, rollback, and a hosted control panel are not available in v0.
+Private access, vaulted third-party connections, approval binding, compliance reports, scheduled backups and restore, custom domains, previews, rollback, and a hosted control panel are not available in v0. `atrax tables export` is the one export path that exists: a manual JSON dump of the app's own tables.
 
 ## Machine entrypoints
 

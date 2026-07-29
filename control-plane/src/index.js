@@ -33,6 +33,10 @@ const migrationPattern = /^\d+.*\.sql$/;
 const modulePattern = /^[A-Za-z0-9_.-]+\.(js|mjs)$/;
 const secretNamePattern = /^[A-Z][A-Z0-9_]{0,63}$/;
 const maxSecretChars = 1024;
+// sqlite_master is the only source of exported table names, and every one of
+// them is checked against this before it reaches a statement.
+const tableNamePattern = /^[A-Za-z_][A-Za-z0-9_]*$/;
+const maxExportBytes = 5 * 1024 * 1024;
 const inviteTtlMs = 14 * 24 * 60 * 60 * 1000;
 // The same pattern the CLI validates against, so a member address means the
 // same thing on both paths.
@@ -834,9 +838,51 @@ export async function describeApp(request, env, appId) {
     appId: row.app_id,
     name: row.name,
     url: row.url,
+    hostname: row.hostname ?? null,
     expiresAt: row.expires_at ?? null,
     claimedAt: row.claimed_at ?? null,
     lastDeployAt: row.last_deploy_at ?? null,
+    resources: { tables: { name: row.d1_name } },
+  });
+}
+
+// Every table an app created for itself: SQLite's own bookkeeping, D1's
+// internal `_cf_` tables, and the migrations ledger are not the app's data.
+const exportListSql =
+  `SELECT name FROM sqlite_master WHERE type='table'` +
+  ` AND name NOT LIKE 'sqlite\\_%' ESCAPE '\\'` +
+  ` AND name NOT LIKE '\\_cf\\_%' ESCAPE '\\'` +
+  ` AND name != 'd1_migrations'`;
+
+// The table name is interpolated because D1 cannot bind an identifier, so it
+// is taken from sqlite_master and then still checked against tableNamePattern;
+// anything else is left out of the export rather than quoted into a statement.
+export async function exportApp(request, env, appId) {
+  const row = await authorize(request, env, appId);
+  const listed = await appQuery(env, row, exportListSql);
+  const tables = {};
+  let bytes = 0;
+  for (const item of listed) {
+    const name = typeof item?.name === "string" ? item.name : "";
+    if (!tableNamePattern.test(name)) continue;
+    const rows = await appQuery(env, row, `SELECT * FROM "${name}"`);
+    bytes += textEncoder.encode(JSON.stringify(rows)).byteLength;
+    if (bytes > maxExportBytes) {
+      throw new CpError(413, "That export is too large for instant hosting.", {
+        limitBytes: maxExportBytes,
+        recovery:
+          "Claim the app and export it with your own Cloudflare account, or delete rows you no longer need.",
+      });
+    }
+    tables[name] = { columns: rows.length ? Object.keys(rows[0]) : [], rows };
+  }
+  return json({
+    schemaVersion,
+    status: "exported",
+    appId: row.app_id,
+    name: row.name,
+    exportedAt: Date.now(),
+    tables,
   });
 }
 
@@ -871,6 +917,10 @@ export async function handleRequest(request, env) {
         member[1],
         decodePathSegment(member[2]),
       );
+    }
+    const exported = path.match(/^\/v1\/apps\/([a-f0-9]{10})\/export$/);
+    if (exported && request.method === "GET") {
+      return await exportApp(request, env, exported[1]);
     }
     const secret = path.match(/^\/v1\/apps\/([a-f0-9]{10})\/secrets\/([^/]{1,80})$/);
     if (secret && request.method === "PUT") {

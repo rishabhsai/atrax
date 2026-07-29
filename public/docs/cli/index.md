@@ -10,7 +10,8 @@ Status: available
 - `atrax claim <token> [--json]`: claim an instant app so it stops expiring.
 - `atrax plan [--json]`: read-only preview of what deploy would create, update, keep, or apply.
 - `atrax drift [--json]`: read-only comparison of the provider against `atrax.lock.json`.
-- `atrax inspect [--json]`
+- `atrax inspect [--json]`: works on Cloudflare-account and instant apps; an instant lock reads the app's state from Atrax instant hosting.
+- `atrax tables export [--out <file>]`: dumps every user table as JSON to stdout, or to `<file>`. Works on both paths.
 - `atrax logs [--json]`: JSON mode is a Wrangler NDJSON event stream.
 - `atrax doctor [--json]`: checks declared files, bundle, account, and lock ownership.
 - `atrax share add <email> [--json]`: invite someone to a shared app and return a single-use invite URL.
@@ -36,6 +37,22 @@ Instant hosting needs no Cloudflare account. An instant app answers on `https://
 ```json
 { "schemaVersion": 1, "status": "claimed", "appId": "3f9a2c81be",
   "url": "https://open-chat.atrax.run" }
+```
+
+`inspect` on an instant lock reports the app as instant hosting knows it: `status` is `claimed` or `unclaimed`, and the human output says `unclaimed — disappears <date>` under the URL.
+
+```json
+{ "schemaVersion": 1, "status": "unclaimed", "mode": "instant", "name": "open-chat",
+  "url": "https://open-chat.atrax.run", "appId": "3f9a2c81be", "expiresAt": 1790000000000,
+  "claimedAt": null, "lastDeployAt": 1789000000000,
+  "resources": { "tables": { "name": "i-3f9a2c81be-tables" } } }
+```
+
+`tables export` dumps every table the app created, skipping SQLite internals and the `d1_migrations` ledger; columns come from the first row, so an empty table exports as `{ "columns": [], "rows": [] }`. Without `--out` the dump is the whole of stdout in both modes. With `--out` it is written to that file and stdout carries only the destination. An instant export is capped at 5 MB.
+
+```json
+{ "schemaVersion": 1, "status": "exported", "app": "open-chat", "exportedAt": 1789000000000,
+  "tables": { "messages": { "columns": ["id", "body"], "rows": [{ "id": 1, "body": "hi" }] } } }
 ```
 
 Finite JSON commands emit one versioned object and fail with a non-zero exit code. `logs --json` is the long-running NDJSON exception. Unknown options fail before any mutation. The first deploy records the Cloudflare account in `atrax.lock.json`; later remote operations fail before mutation when the active account differs.

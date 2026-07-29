@@ -64,8 +64,17 @@ if (has("d1", "execute")) {
   const sql = argv[argv.indexOf("--command") + 1] ?? "";
   sidecar("sql.log", { sql });
   const isSelect = /^\\s*select/i.test(sql);
+  // The export asks sqlite_master for table names and then selects each table,
+  // so the fake answers those two shapes from state.tables when it is set.
+  const table = sql.match(/^SELECT \\* FROM "(.+)"$/);
+  let results = isSelect ? (state.rows ?? []) : [];
+  if (state.tables && sql.includes("sqlite_master")) {
+    results = Object.keys(state.tables).map((name) => ({ name }));
+  } else if (state.tables && table) {
+    results = state.tables[table[1]] ?? [];
+  }
   out(JSON.stringify([
-    { success: true, results: isSelect ? (state.rows ?? []) : [], meta: { changes: 1 } },
+    { success: true, results, meta: { changes: 1 } },
   ]));
 } else if (has("secret", "put")) {
   const value = (await readStdin()).trim();
@@ -320,6 +329,42 @@ async function instantServer() {
       }
       if (request.url === `/v1/apps/${appId}` && request.method === "DELETE") {
         return send(200, { schemaVersion: 1, status: "deleted", appId });
+      }
+      if (request.url === `/v1/apps/${appId}` && request.method === "GET") {
+        return send(200, {
+          schemaVersion: 1,
+          status: "unclaimed",
+          appId,
+          name: "instant-chat",
+          url,
+          hostname: null,
+          expiresAt: Date.UTC(2026, 7, 26),
+          claimedAt: null,
+          lastDeployAt: Date.UTC(2026, 6, 27),
+          resources: tables,
+        });
+      }
+      if (
+        request.url === `/v1/apps/${appId}/export` &&
+        request.method === "GET"
+      ) {
+        return send(200, {
+          schemaVersion: 1,
+          status: "exported",
+          appId,
+          name: "instant-chat",
+          exportedAt: Date.UTC(2026, 6, 28),
+          tables: {
+            messages: {
+              columns: ["id", "body"],
+              rows: [
+                { id: 1, body: "hi" },
+                { id: 2, body: "there" },
+              ],
+            },
+            door_members: { columns: [], rows: [] },
+          },
+        });
       }
       if (request.url === "/v1/claims" && request.method === "POST") {
         if (body?.claimToken !== "claim-token-1") {
@@ -1216,6 +1261,152 @@ test("share on an instant lock manages members through the control plane", async
   }
 });
 
+test("inspect reads an instant app from the control plane", async () => {
+  const root = await mkdtemp(join(tmpdir(), "atrax-cli-"));
+  await run(["new", "instant-chat", "--template", "chat"], root);
+  const appRoot = join(root, "instant-chat");
+  const control = await instantServer();
+  await writeInstantState(appRoot, control.appId, control.url);
+  const env = { ATRAX_INSTANT_ORIGIN: control.origin };
+
+  try {
+    const inspected = await run(["inspect", "--json"], appRoot, env);
+    assert.deepEqual(JSON.parse(inspected.stdout), {
+      schemaVersion: 1,
+      status: "unclaimed",
+      mode: "instant",
+      name: "instant-chat",
+      url: control.url,
+      appId: control.appId,
+      expiresAt: Date.UTC(2026, 7, 26),
+      claimedAt: null,
+      lastDeployAt: Date.UTC(2026, 6, 27),
+      resources: { tables: { name: `i-${control.appId}-tables` } },
+    });
+
+    const asked = control.requests.at(-1);
+    assert.equal(asked.method, "GET");
+    assert.equal(asked.url, `/v1/apps/${control.appId}`);
+    assert.equal(asked.headers.authorization, "Bearer manage-token-1");
+
+    const human = await run(["inspect"], appRoot, env);
+    assert.match(human.stdout, /^instant-chat$/m);
+    assert.match(human.stdout, new RegExp(control.url.replaceAll(".", "\\.")));
+    assert.match(human.stdout, /unclaimed — disappears 2026-08-26/);
+    assert.match(human.stdout, /Last deploy: 2026-07-27/);
+    assert.match(human.stdout, new RegExp(`Tables: i-${control.appId}-tables`));
+  } finally {
+    await control.close();
+  }
+});
+
+test("tables export dumps an instant app through the control plane", async () => {
+  const root = await mkdtemp(join(tmpdir(), "atrax-cli-"));
+  await run(["new", "export-instant", "--template", "chat"], root);
+  const appRoot = join(root, "export-instant");
+  const control = await instantServer();
+  await writeInstantState(appRoot, control.appId, control.url);
+  const env = { ATRAX_INSTANT_ORIGIN: control.origin };
+
+  try {
+    const exported = await run(["tables", "export"], appRoot, env);
+    const payload = JSON.parse(exported.stdout);
+    assert.equal(payload.schemaVersion, 1);
+    assert.equal(payload.status, "exported");
+    assert.equal(payload.app, "export-instant");
+    assert.equal(payload.exportedAt, Date.UTC(2026, 6, 28));
+    assert.deepEqual(Object.keys(payload.tables), ["messages", "door_members"]);
+    assert.deepEqual(payload.tables.messages.columns, ["id", "body"]);
+    assert.deepEqual(payload.tables.messages.rows, [
+      { id: 1, body: "hi" },
+      { id: 2, body: "there" },
+    ]);
+    assert.deepEqual(payload.tables.door_members, { columns: [], rows: [] });
+    assert.ok(!("d1_migrations" in payload.tables));
+
+    const asked = control.requests.at(-1);
+    assert.equal(asked.method, "GET");
+    assert.equal(asked.url, `/v1/apps/${control.appId}/export`);
+    assert.equal(asked.headers.authorization, "Bearer manage-token-1");
+
+    // --out sends the dump to a file and leaves only the destination on stdout.
+    const written = await run(
+      ["tables", "export", "--out", "dump.json", "--json"],
+      appRoot,
+      env,
+    );
+    const receipt = JSON.parse(written.stdout);
+    assert.equal(receipt.status, "exported");
+    assert.ok(receipt.out.endsWith(join("export-instant", "dump.json")));
+    assert.deepEqual(receipt.tables, ["messages", "door_members"]);
+    const file = JSON.parse(await readFile(join(appRoot, "dump.json"), "utf8"));
+    assert.deepEqual(file.tables, payload.tables);
+
+    const human = await run(
+      ["tables", "export", "--out", "second.json"],
+      appRoot,
+      env,
+    );
+    assert.match(human.stdout, /Exported 2 tables and 2 rows from export-instant/);
+  } finally {
+    await control.close();
+  }
+});
+
+test("tables export dumps a Cloudflare-account app through wrangler", async () => {
+  const root = await mkdtemp(join(tmpdir(), "atrax-cli-"));
+  await run(["new", "export-chat", "--template", "chat"], root);
+  const appRoot = join(root, "export-chat");
+  await writeLock(appRoot, "export-chat");
+  const bin = await fakeWrangler(root);
+  const env = {
+    ...fakeEnv(bin, {
+      workerExists: true,
+      databases: [{ uuid: "db-1", name: "export-chat-tables" }],
+      tables: {
+        messages: [
+          { id: 1, body: "hi", created_at: 10 },
+          { id: 2, body: "there", created_at: 20 },
+        ],
+        door_members: [],
+      },
+    }),
+    ATRAX_FAKE_DIR: root,
+  };
+
+  const exported = await run(["tables", "export"], appRoot, env);
+  const payload = JSON.parse(exported.stdout);
+  assert.equal(payload.status, "exported");
+  assert.equal(payload.app, "export-chat");
+  assert.ok(payload.exportedAt <= Date.now());
+  assert.deepEqual(Object.keys(payload.tables), ["messages", "door_members"]);
+  assert.deepEqual(payload.tables.messages.columns, ["id", "body", "created_at"]);
+  assert.equal(payload.tables.messages.rows[1].body, "there");
+  assert.deepEqual(payload.tables.door_members, { columns: [], rows: [] });
+
+  const executed = await readSidecar(root, "sql.log");
+  assert.match(executed[0].sql, /FROM sqlite_master/);
+  assert.match(executed[0].sql, /name != 'd1_migrations'/);
+  assert.deepEqual(
+    executed.slice(1).map((item) => item.sql),
+    ['SELECT * FROM "messages"', 'SELECT * FROM "door_members"'],
+  );
+});
+
+test("tables export refuses an undeployed app and an unknown action", async () => {
+  const root = await mkdtemp(join(tmpdir(), "atrax-cli-"));
+  await run(["new", "fresh-export", "--template", "chat"], root);
+  const appRoot = join(root, "fresh-export");
+
+  const undeployed = await runAllowFailure(["tables", "export", "--json"], appRoot);
+  assert.equal(undeployed.code, 1);
+  assert.match(JSON.parse(undeployed.stdout).error, /has not been deployed/);
+
+  const unknown = await runAllowFailure(["tables", "dump", "--json"], appRoot);
+  assert.equal(unknown.code, 1);
+  assert.match(JSON.parse(unknown.stdout).error, /Unknown tables action: dump/);
+});
+
 test("commands that need a Cloudflare account refuse instant apps", async () => {
   const root = await mkdtemp(join(tmpdir(), "atrax-cli-"));
   await run(["new", "locked-instant", "--template", "chat"], root);
@@ -1239,7 +1430,7 @@ test("commands that need a Cloudflare account refuse instant apps", async () => 
   );
   const bin = await fakeWrangler(root);
 
-  for (const command of ["inspect", "logs", "plan", "drift"]) {
+  for (const command of ["logs", "plan", "drift"]) {
     const failed = await runAllowFailure(
       [command, "--json"],
       appRoot,

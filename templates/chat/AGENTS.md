@@ -11,6 +11,7 @@ This is an Atrax v0 app.
 - Run `atrax plan --json` to preview a deploy without changing anything.
 - Run `atrax inspect --json` to inspect the live deployment.
 - Run `atrax drift --json` to check the provider against the lockfile; it exits 2 when they no longer match.
+- Run `atrax tables export [--out <file>]` to dump every table as JSON.
 - Do not edit `.atrax/wrangler.jsonc`; Atrax generates it from `atrax.json` and `atrax.lock.json`.
 
 The app is public by default. Anyone with the URL can read and post messages.
@@ -22,7 +23,8 @@ Atrax instant hosting instead and prints a real public URL plus a one-time
 claim token. The app is anonymous and disappears after 30 days unless you run
 the `atrax claim <token>` line the deploy prints; the token is never written
 to disk, so capture it from that output. `--instant` forces the path.
-`inspect`, `logs`, `plan`, and `drift` are not available for instant apps.
+`logs`, `plan`, and `drift` are not available for instant apps; `inspect` and
+`atrax tables export` are, and read the app through Atrax instant hosting.
 
 Every instant deploy names who can open the URL in one line under it, and the
 JSON carries `"access": "public"` or `"access": "shared"`. Both visibilities

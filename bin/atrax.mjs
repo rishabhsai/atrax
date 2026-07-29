@@ -105,7 +105,7 @@ function positionals() {
     if (value === "--json" || value === "--dry-run") {
       continue;
     }
-    if (value === "--template" || value === "--port") {
+    if (value === "--template" || value === "--port" || value === "--out") {
       index += 1;
       continue;
     }
@@ -131,6 +131,7 @@ function validateCommandArgs() {
     logs: { flags: ["--json"], values: [], positionals: 0 },
     doctor: { flags: ["--json"], values: [], positionals: 0 },
     share: { flags: ["--json"], values: [], positionals: null },
+    tables: { flags: ["--json"], values: ["--out"], positionals: null },
     secret: { flags: ["--json"], values: [], positionals: null },
     delete: { flags: ["--json", "--yes"], values: [], positionals: 0 },
     help: { flags: [], values: [], positionals: 0 },
@@ -2092,9 +2093,164 @@ async function drift() {
   if (drifted) process.exitCode = 2;
 }
 
+// Everything the app made for itself: SQLite's own bookkeeping, D1's internal
+// `_cf_` tables, and the migrations ledger are Atrax's business, not data
+// somebody asked to take with them.
+const exportListSql =
+  `SELECT name FROM sqlite_master WHERE type='table'` +
+  ` AND name NOT LIKE 'sqlite\\_%' ESCAPE '\\'` +
+  ` AND name NOT LIKE '\\_cf\\_%' ESCAPE '\\'` +
+  ` AND name != 'd1_migrations'`;
+
+// D1 cannot bind a table name, so the identifier is interpolated. It comes
+// from sqlite_master and is still checked here, and anything that is not a
+// plain identifier is skipped rather than quoted into a statement.
+const tableNamePattern = /^[A-Za-z_][A-Za-z0-9_]*$/;
+
+async function accountExport(app) {
+  const account = await currentAccount(app, true);
+  const { configPath } = await compileProviderConfig(
+    app,
+    app.lock.resources?.tables?.id ?? null,
+  );
+  const listed = await runQuery(app, configPath, account, exportListSql);
+  const tables = {};
+  for (const item of listed) {
+    const name = typeof item?.name === "string" ? item.name : "";
+    if (!tableNamePattern.test(name)) continue;
+    const rows = await runQuery(
+      app,
+      configPath,
+      account,
+      `SELECT * FROM "${name}"`,
+    );
+    tables[name] = { columns: rows.length ? Object.keys(rows[0]) : [], rows };
+  }
+  return { tables, exportedAt: Date.now() };
+}
+
+async function instantExport(app) {
+  const { state } = await loadInstantState(
+    app,
+    "tables export",
+    "Run atrax deploy first so the instant app exists, then run atrax tables export.",
+  );
+  const result = await instantRequest(`/v1/apps/${state.appId}/export`, {
+    method: "GET",
+    token: state.manageToken,
+  });
+  return {
+    tables: result.tables ?? {},
+    exportedAt: result.exportedAt ?? Date.now(),
+  };
+}
+
+async function tables() {
+  const [action, ...rest] = positionals();
+  if (!action) throw new CliError("Usage: atrax tables export [--out <file>]");
+  if (action !== "export") {
+    throw new CliError(`Unknown tables action: ${action}`, {
+      recovery: "Use atrax tables export.",
+    });
+  }
+  if (rest.length) throw new CliError("tables export expects no positional arguments");
+  const out = optionValue("--out");
+
+  const app = await loadApp();
+  if (!app.lock) {
+    throw new CliError("This app has not been deployed. Run atrax deploy.");
+  }
+  const dump =
+    app.lock.mode === "instant"
+      ? await instantExport(app)
+      : await accountExport(app);
+  const payload = {
+    schemaVersion: 1,
+    status: "exported",
+    app: app.contract.name,
+    exportedAt: dump.exportedAt,
+    tables: dump.tables,
+  };
+
+  // Without --out the dump is the output, in both modes: a database has no
+  // shorter honest human rendering. With --out the data goes to the file and
+  // stdout only says where it landed.
+  if (!out) {
+    process.stdout.write(`${JSON.stringify(payload)}\n`);
+    return;
+  }
+  const pathname = isAbsolute(out) ? out : join(process.cwd(), out);
+  await writeFile(pathname, `${JSON.stringify(payload, null, 2)}\n`);
+  const names = Object.keys(payload.tables);
+  const rows = names.reduce(
+    (total, name) => total + payload.tables[name].rows.length,
+    0,
+  );
+  if (jsonOutput) {
+    process.stdout.write(
+      `${JSON.stringify({
+        schemaVersion: 1,
+        status: "exported",
+        app: payload.app,
+        exportedAt: payload.exportedAt,
+        out: pathname,
+        tables: names,
+      })}\n`,
+    );
+  } else {
+    process.stdout.write(
+      `Exported ${names.length} table${names.length === 1 ? "" : "s"} and ${rows} row${rows === 1 ? "" : "s"} from ${payload.app} to ${pathname}\n`,
+    );
+  }
+}
+
+function shortDate(value) {
+  return value ? new Date(value).toISOString().slice(0, 10) : null;
+}
+
+// An instant app's state lives in the control plane, not in a Cloudflare
+// account the caller has, so inspect asks the control plane with the manage
+// token instead of asking Wrangler.
+async function instantInspect(app) {
+  const { state } = await loadInstantState(
+    app,
+    "inspect",
+    "Run atrax deploy first so the instant app exists, then run atrax inspect.",
+  );
+  const result = await instantRequest(`/v1/apps/${state.appId}`, {
+    method: "GET",
+    token: state.manageToken,
+  });
+  const payload = {
+    schemaVersion: 1,
+    status: result.status ?? "unclaimed",
+    mode: "instant",
+    name: result.name ?? app.contract.name,
+    url: result.url ?? state.url ?? null,
+    appId: result.appId ?? state.appId,
+    expiresAt: result.expiresAt ?? null,
+    claimedAt: result.claimedAt ?? null,
+    lastDeployAt: result.lastDeployAt ?? null,
+    resources: {
+      tables: { name: result.resources?.tables?.name ?? null },
+    },
+  };
+  if (jsonOutput) {
+    process.stdout.write(`${JSON.stringify(payload)}\n`);
+    return;
+  }
+  const claimed =
+    payload.status === "claimed"
+      ? `Claimed ${shortDate(payload.claimedAt) ?? "already"} — this app does not expire`
+      : `unclaimed — disappears ${shortDate(payload.expiresAt) ?? "in 30 days"}`;
+  process.stdout.write(
+    `${payload.name}\n${payload.url ?? "URL unavailable"}\n${claimed}\nLast deploy: ${shortDate(payload.lastDeployAt) ?? "unknown"}\nTables: ${payload.resources.tables.name ?? "unknown"}\n`,
+  );
+}
+
 async function inspectApp() {
   const app = await loadApp();
-  rejectInstantLock(app, "inspect");
+  if (app.lock?.mode === "instant") return instantInspect(app);
   if (!app.lock) {
     throw new CliError("This app has not been deployed. Run atrax deploy.");
   }
@@ -2201,6 +2357,7 @@ Usage:
   atrax inspect [--json]
   atrax logs [--json]
   atrax doctor [--json]
+  atrax tables export [--out <file>]   dumps every user table as JSON to stdout, or to <file>
 
 Instant apps only:
   atrax secret set <NAME> [--json]     value is read from stdin, never from argv
@@ -2233,6 +2390,7 @@ try {
   else if (command === "logs") await logs();
   else if (command === "doctor") await doctor();
   else if (command === "share") await share();
+  else if (command === "tables") await tables();
   else if (command === "secret") await secret();
   else if (command === "delete") await destroy();
   else if (command === "help" || command === "--help" || command === "-h") help();
