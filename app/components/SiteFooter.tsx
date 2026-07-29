@@ -37,7 +37,7 @@ export function SiteFooter() {
             <Link href="/pricing">Pricing</Link>
             <Link href="/security">Security</Link>
             <Link href="/account">Account</Link>
-            <a href="https://github.com/rishabhsai/tarantula">GitHub ↗</a>
+            <a href="https://github.com/rishabhsai/atrax">GitHub ↗</a>
           </div>
         </div>
       </div>

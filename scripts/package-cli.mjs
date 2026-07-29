@@ -33,7 +33,7 @@ const manifest = {
   engines: rootPackage.engines,
   repository: {
     type: "git",
-    url: "git+https://github.com/rishabhsai/tarantula.git",
+    url: "git+https://github.com/rishabhsai/atrax.git",
   },
   homepage: "https://atrax.run",
   keywords: ["cloud", "deploy", "cloudflare", "agents", "cli", "small-software"],

@@ -11,8 +11,8 @@ curl -fsSL https://atrax.run/agent
 This prints the current docs map, contract rules, and safe CLI workflow. It does not execute a script or change the machine.
 
 ```bash
-git clone https://github.com/rishabhsai/tarantula.git
-cd tarantula
+git clone https://github.com/rishabhsai/atrax.git
+cd atrax
 npm install
 npm link
 atrax new open-chat --template chat

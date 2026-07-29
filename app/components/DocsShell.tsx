@@ -65,7 +65,7 @@ export function DocsShell({ doc }: { doc: DocPage }) {
 
           <footer>
             <span>Found a docs issue?</span>
-            <a href="https://github.com/rishabhsai/tarantula">Open GitHub ↗</a>
+            <a href="https://github.com/rishabhsai/atrax">Open GitHub ↗</a>
           </footer>
         </article>
       </div>

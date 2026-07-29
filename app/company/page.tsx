@@ -65,7 +65,7 @@ export default function CompanyPage() {
             <h2>Follow the implementation.</h2>
           </div>
           <div className="button-row">
-            <a className="button button-orange" href="https://github.com/rishabhsai/tarantula">
+            <a className="button button-orange" href="https://github.com/rishabhsai/atrax">
               View GitHub <span aria-hidden="true">↗</span>
             </a>
             <Link className="button button-outline-light" href="/docs">

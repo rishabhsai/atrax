@@ -36,8 +36,8 @@ export const docs: Record<string, DocPage> = {
         paragraphs: [
           "Atrax v0 is installed from the private repository. It needs Node.js 22.13 or newer and an authenticated Wrangler session.",
         ],
-        code: `git clone https://github.com/rishabhsai/tarantula.git
-cd tarantula
+        code: `git clone https://github.com/rishabhsai/atrax.git
+cd atrax
 npm install
 npm link
 atrax doctor --json`,

@@ -9,8 +9,8 @@ Read-only agent onboarding: `curl -fsSL https://atrax.run/agent`
 Requires Node.js 22.13 or newer and an authenticated Wrangler session.
 
 ```bash
-git clone https://github.com/rishabhsai/tarantula.git
-cd tarantula
+git clone https://github.com/rishabhsai/atrax.git
+cd atrax
 npm install
 npm link
 atrax doctor --json
