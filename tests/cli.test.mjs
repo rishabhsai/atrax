@@ -204,9 +204,9 @@ async function writeInstantState(appRoot, appId, url) {
   );
 }
 
-async function readinessServer() {
+async function readinessServer(status = 200) {
   const server = createServer((request, response) => {
-    response.writeHead(200, { "content-type": "application/json" });
+    response.writeHead(status, { "content-type": "application/json" });
     response.end("{}");
   });
   await new Promise((done) => server.listen(0, "127.0.0.1", done));
@@ -906,6 +906,7 @@ test("deploy without a Cloudflare account falls back to instant hosting", async 
     assert.equal(payload.appId, control.appId);
     assert.equal(payload.url, control.url);
     assert.equal(payload.access, "public");
+    assert.equal(payload.ready, true);
     assert.equal(payload.claimToken, undefined);
     assert.equal(payload.resources.tables.name, `i-${control.appId}-tables`);
     assert.ok(!second.stdout.includes("claim-token-1"));
@@ -926,6 +927,41 @@ test("deploy without a Cloudflare account falls back to instant hosting", async 
       /This app is public: anyone with the URL can open it\.$/,
     );
     assert.ok(!third.stdout.includes("Claim it to keep it"));
+  } finally {
+    await control.close();
+    await readiness.close();
+  }
+});
+
+// The claim token is minted once and never written to disk, so a URL that is
+// still warming up must not take the deploy — and the token with it — down.
+test("instant deploy keeps the claim token when the URL is not ready yet", async () => {
+  const root = await mkdtemp(join(tmpdir(), "atrax-cli-"));
+  await run(["new", "slow-instant", "--template", "chat"], root);
+  const appRoot = join(root, "slow-instant");
+  const bin = await fakeWrangler(root);
+  const control = await instantServer();
+  const readiness = await readinessServer(503);
+  const env = {
+    ...fakeEnv(bin, { whoamiFails: true }),
+    ATRAX_INSTANT_ORIGIN: control.origin,
+    ATRAX_READINESS_ORIGIN: readiness.origin,
+    ATRAX_READINESS_ATTEMPTS: "1",
+  };
+
+  try {
+    const created = await runAllowFailure(["deploy", "--json"], appRoot, env);
+    assert.equal(created.code, 0);
+    const payload = JSON.parse(created.stdout);
+    assert.equal(payload.status, "deployed");
+    assert.equal(payload.ready, false);
+    assert.equal(payload.claimToken, "claim-token-1");
+    assert.equal(payload.url, control.url);
+
+    const redeployed = await runAllowFailure(["deploy"], appRoot, env);
+    assert.equal(redeployed.code, 0);
+    assert.match(redeployed.stdout, /The URL is not answering yet\./);
+    assert.match(redeployed.stdout, /certificate/);
   } finally {
     await control.close();
     await readiness.close();

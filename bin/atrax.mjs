@@ -62,6 +62,11 @@ class CliError extends Error {
   }
 }
 
+// A deploy that landed on the server but whose URL is not answering yet. It is
+// fatal on the Cloudflare path and survivable on the instant path, so it needs
+// a type the caller can tell apart from every other failure.
+class ReadinessTimeoutError extends CliError {}
+
 function fail(error) {
   const message = error instanceof Error ? error.message : String(error);
   if (jsonOutput) {
@@ -716,7 +721,9 @@ async function waitForLive(url, healthPath) {
   let lastStatus = null;
   // A brand-new workers.dev subdomain can take over a minute to propagate,
   // so the probe waits well past the worst first-deploy delay seen so far.
-  for (let attempt = 0; attempt < 60; attempt += 1) {
+  // Offline harnesses shorten the loop; nothing else should set this.
+  const attempts = Number(process.env.ATRAX_READINESS_ATTEMPTS ?? 60) || 60;
+  for (let attempt = 0; attempt < attempts; attempt += 1) {
     try {
       const response = await fetch(probeUrl, { cache: "no-store" });
       lastStatus = response.status;
@@ -724,12 +731,14 @@ async function waitForLive(url, healthPath) {
     } catch {
       lastStatus = "unreachable";
     }
-    await new Promise((resolvePromise) => setTimeout(resolvePromise, 2000));
+    if (attempt + 1 < attempts) {
+      await new Promise((resolvePromise) => setTimeout(resolvePromise, 2000));
+    }
   }
-  throw new CliError("The deployment did not become ready within 2 minutes.", {
-    url,
-    lastStatus,
-  });
+  throw new ReadinessTimeoutError(
+    "The deployment did not become ready within 2 minutes.",
+    { url, lastStatus },
+  );
 }
 
 function findFirstValue(value, keys) {
@@ -1266,6 +1275,8 @@ async function instantDeploy(app, announce) {
   const tables = result.resources?.tables?.name ?? `i-${appId}-tables`;
   // The manage token is a credential; the claim token is deliberately never
   // written down, so it exists only in the output of the deploy that minted it.
+  // That is why a slow URL below must not abort this function: the claim token
+  // would be gone for good.
   await writeFile(
     statePath,
     `${JSON.stringify({ appId, manageToken: state?.manageToken ?? result.manageToken, url }, null, 2)}\n`,
@@ -1280,10 +1291,19 @@ async function instantDeploy(app, announce) {
   };
   await writeFile(app.lockPath, `${JSON.stringify(app.lock, null, 2)}\n`);
 
-  await waitForLive(
-    url,
-    app.contract.web.health ?? "/.well-known/atrax.json",
-  );
+  // The deploy is already done on the server side. A URL that is not answering
+  // yet — a fresh name.atrax.run can spend minutes getting its certificate —
+  // is reported, not raised.
+  let ready = true;
+  try {
+    await waitForLive(
+      url,
+      app.contract.web.health ?? "/.well-known/atrax.json",
+    );
+  } catch (error) {
+    if (!(error instanceof ReadinessTimeoutError)) throw error;
+    ready = false;
+  }
 
   const access = app.contract.visibility === "shared" ? "shared" : "public";
   const payload = {
@@ -1294,6 +1314,7 @@ async function instantDeploy(app, announce) {
     url,
     appId,
     access,
+    ready,
     ...(result.claimToken ? { claimToken: result.claimToken } : {}),
     expiresAt: result.expiresAt ?? null,
     resources: { tables: { name: tables } },
@@ -1317,6 +1338,11 @@ async function instantDeploy(app, announce) {
   if (result.claimToken) {
     process.stdout.write(
       `\nUnclaimed apps disappear after 30 days. Claim it to keep it and manage access:\n\n  atrax claim ${result.claimToken}\n`,
+    );
+  }
+  if (!ready) {
+    process.stdout.write(
+      "\nThe URL is not answering yet. A new domain can take a few minutes to get its certificate, so give it a moment before you open it.\n",
     );
   }
 }

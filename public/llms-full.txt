@@ -63,7 +63,7 @@ Exit codes: `0` success, `1` error including a blocked plan, `2` only from `drif
 ```json
 { "schemaVersion": 1, "status": "deployed", "mode": "instant", "name": "open-chat",
   "url": "https://open-chat.atrax.run", "appId": "3f9a2c81be",
-  "access": "public", "claimToken": "...", "expiresAt": 1790000000000,
+  "access": "public", "ready": true, "claimToken": "...", "expiresAt": 1790000000000,
   "resources": { "tables": { "name": "i-3f9a2c81be-tables" } } }
 ```
 
@@ -72,7 +72,7 @@ Exit codes: `0` success, `1` error including a blocked plan, `2` only from `drif
   "url": "https://open-chat.atrax.run" }
 ```
 
-`claimToken` and `expiresAt` (epoch milliseconds) appear only on the deploy that creates the app. Local state lives in `.atrax/instant.json` (mode 0600, gitignored) as `{ appId, manageToken, url }`, and `atrax.lock.json` records `{ "provider": "atrax-instant", "mode": "instant", "appId", "worker": { "name", "url" } }`. Creates are capped at 10 per day per IP. `inspect`, `logs`, `plan`, and `drift` refuse instant locks, since each reads Cloudflare through Wrangler against an account the deployer does not have.
+`claimToken` and `expiresAt` (epoch milliseconds) appear only on the deploy that creates the app. `ready` is on every instant deploy: `false` means the deploy succeeded but the URL is not answering yet — a new domain can take a few minutes to get its certificate — and the claim token in that payload is still the real one. Local state lives in `.atrax/instant.json` (mode 0600, gitignored) as `{ appId, manageToken, url }`, and `atrax.lock.json` records `{ "provider": "atrax-instant", "mode": "instant", "appId", "worker": { "name", "url" } }`. Creates are capped at 10 per day per IP. `inspect`, `logs`, `plan`, and `drift` refuse instant locks, since each reads Cloudflare through Wrangler against an account the deployer does not have.
 
 `access` is `"public"` or `"shared"` and names who can open the URL; the human output prints the same fact in one line under the URL, and a public first deploy appends the `atrax claim <token>` line to it. Instant hosting serves both visibilities: a `"visibility": "shared"` app deploys normally, instant hosting generates that app's `DOOR_SESSION_SECRET` itself once and never returns it, and `atrax share` manages members through Atrax instead of the caller's Cloudflare account. The commands, the payloads, and the `door_members` table are the same on both paths.
 

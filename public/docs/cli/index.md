@@ -24,12 +24,12 @@ The share commands need `"visibility": "shared"` in `atrax.json` and a deployed 
   "inviteUrl": "https://open-chat...workers.dev/.door/join?token=...", "expiresAt": 1790000000000 }
 ```
 
-Instant hosting needs no Cloudflare account. An instant app answers on `https://<name>.atrax.run`, with a four-character suffix when that name is already taken and a `workers.dev` URL when the subdomain cannot be attached; read the `url` field rather than assuming the shape. `claimToken` and `expiresAt` appear only on the deploy that creates the app; redeploys reuse `.atrax/instant.json` and omit them. `access` is `public` or `shared` and reports who can open the URL; the human output says the same thing in one line under the URL.
+Instant hosting needs no Cloudflare account. An instant app answers on `https://<name>.atrax.run`, with a four-character suffix when that name is already taken and a `workers.dev` URL when the subdomain cannot be attached; read the `url` field rather than assuming the shape. `claimToken` and `expiresAt` appear only on the deploy that creates the app; redeploys reuse `.atrax/instant.json` and omit them. `ready` is on every instant deploy: `false` means the deploy succeeded but the URL is not answering yet — a new domain can take a few minutes to get its certificate — and the claim token in that payload is still the real one. `access` is `public` or `shared` and reports who can open the URL; the human output says the same thing in one line under the URL.
 
 ```json
 { "schemaVersion": 1, "status": "deployed", "mode": "instant", "name": "open-chat",
   "url": "https://open-chat.atrax.run", "appId": "3f9a2c81be",
-  "access": "public", "claimToken": "...", "expiresAt": 1790000000000,
+  "access": "public", "ready": true, "claimToken": "...", "expiresAt": 1790000000000,
   "resources": { "tables": { "name": "i-3f9a2c81be-tables" } } }
 ```
 

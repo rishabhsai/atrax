@@ -53,6 +53,7 @@ atrax claim <token> --json
   "url": "https://open-chat.atrax.run",
   "appId": "3f9a2c81be",
   "access": "public",
+  "ready": true,
   "claimToken": "...",
   "expiresAt": 1790000000000,
   "resources": { "tables": { "name": "i-3f9a2c81be-tables" } }
@@ -63,7 +64,7 @@ atrax claim <token> --json
 { "schemaVersion": 1, "status": "claimed", "appId": "3f9a2c81be", "url": "https://open-chat.atrax.run" }
 ```
 
-`claimToken` and `expiresAt` (epoch milliseconds) are present only on the deploy that creates the app; later deploys reuse `.atrax/instant.json` and omit them. An unclaimed app is deleted 30 days after creation. Creates are limited to 10 per day per IP. `atrax.lock.json` records `"mode": "instant"`, and `inspect`, `logs`, `plan`, and `drift` refuse instant locks.
+`claimToken` and `expiresAt` (epoch milliseconds) are present only on the deploy that creates the app; later deploys reuse `.atrax/instant.json` and omit them. `ready` is on every instant deploy: `false` means the deploy succeeded but the URL is not answering yet — a new domain can take a few minutes to get its certificate — and the claim token in that payload is still the real one. An unclaimed app is deleted 30 days after creation. Creates are limited to 10 per day per IP. `atrax.lock.json` records `"mode": "instant"`, and `inspect`, `logs`, `plan`, and `drift` refuse instant locks.
 
 `access` is `"public"` or `"shared"` and reports who can open the URL. The human output says it in one line under the URL: a public app gets "This app is public: anyone with the URL can open it." Tell the user this verbatim when you report a public deploy; never imply the URL is private.
 
