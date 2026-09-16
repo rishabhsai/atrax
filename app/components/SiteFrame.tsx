@@ -8,5 +8,5 @@ export function SiteFrame({children}: {children: React.ReactNode}) {
   const path = usePathname();
   const consolePage = ['/account','/workspace','/sign-in','/auth'].some(prefix => path === prefix || path.startsWith(`${prefix}/`));
   if (consolePage) return <>{children}</>;
-  return <><SiteHeader />{children}<SiteFooter /></>;
+  return <><SiteHeader key={path} />{children}<SiteFooter /></>;
 }

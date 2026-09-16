@@ -21,10 +21,15 @@ export default function SolutionsPage() {
           <div>
             <h1>Start with work your company needs now.</h1>
             <p>
-              Build a workspace-owned app, give it a clear action boundary, keep
-              its guidance in Library, and connect the agent you already use
-              through MCP.
+              A request tracker for the team. A private prototype for a client.
+              An order desk that knows what is in stock. Build the software that
+              fits the work, then let your people and agents use it.
             </p>
+            <div className="button-row">
+              <Link className="button button-dark" href="/docs/quickstart">
+                Build your first app <span aria-hidden="true">→</span>
+              </Link>
+            </div>
           </div>
         </div>
       </section>
@@ -45,28 +50,28 @@ export default function SolutionsPage() {
         <div className="section-split">
           <Reveal className="split-copy">
             <p className="microlabel">
-              01 · <b>Launch fit</b>
+              01 · <b>A practical starting point</b>
             </p>
-            <h2>Company work with explicit boundaries.</h2>
+            <h2>Pick one task your team does every week.</h2>
             <p>
-              Build persistent company apps with current access checks, named
-              actions, Library history, and MCP for an existing agent.
+              Start with a process you understand. Have your agent build it
+              locally, try it yourself, and deploy it for the people doing the
+              work. Add connections as the need becomes clear.
             </p>
             <div className="fit-chips">
-              <p>One clear workflow</p>
-              <p>Company ownership</p>
-              <p>Named actions</p>
-              <p>Library history</p>
-              <p>An existing agent</p>
+              <p>Request tracking</p>
+              <p>Client reviews</p>
+              <p>Inventory tools</p>
+              <p>Company guidance</p>
             </div>
           </Reveal>
           <Reveal className="panel" delay={120}>
             <div className="panel-head">
-              <span>Available surfaces</span>
-              <span>Launch</span>
+              <span>Included in the workflow</span>
+              <span>Available now</span>
             </div>
             <ChipGrid
-              note="Start with the products in your company workflow."
+              note="Bring your own coding agent. Hosted agents and schedules are planned for later."
               rows={[
                 {
                   label: "Available",
@@ -76,6 +81,17 @@ export default function SolutionsPage() {
               ]}
             />
           </Reveal>
+        </div>
+      </section>
+      <section className="final-cta">
+        <div className="shell final-cta-grid">
+          <div>
+            <p className="eyebrow">Your next internal tool</p>
+            <h2>Start with the job. Atrax handles the hosting.</h2>
+          </div>
+          <Link className="button button-orange" href="/docs/quickstart">
+            Open the quickstart <span aria-hidden="true">→</span>
+          </Link>
         </div>
       </section>
     </main>

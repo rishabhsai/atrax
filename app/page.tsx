@@ -1,110 +1,76 @@
+import Image from "next/image";
 import Link from "next/link";
 import { AgentCommand } from "./components/AgentCommand";
-import { ChipGrid } from "./components/ChipGrid";
-import { CompareStrip } from "./components/CompareStrip";
 import { Reveal } from "./components/Reveal";
 import { ProductMark } from "./components/Visuals";
 import { productOrder, products } from "./lib/content";
 
 export const metadata = {
-  title: "Atrax | Company apps, access, and knowledge",
+  title: "Atrax | A cloud for your company’s software",
   description:
-    "Build company-owned apps, connect named actions, keep knowledge with history, and use an existing agent through MCP.",
+    "Build internal tools with your agent. Deploy company-owned apps, share with verified people, connect app actions, and keep company knowledge in one workspace.",
 };
-
-const contractRows = [
-  {
-    label: "Available now",
-    state: "available" as const,
-    chips: [
-      "company-owned apps",
-      "workspace access",
-      "named actions",
-      "Library revisions",
-      "MCP for an existing agent",
-    ],
-  },
-  {
-    label: "Planned",
-    state: "planned" as const,
-    chips: ["hosted agents", "scheduled automation", "third-party connectors"],
-  },
-];
 
 export default function Home() {
   return (
     <main className="home">
       <section className="hero">
+        <div className="hero-art" aria-hidden="true">
+          <Image src="/images/company-cloud.webp" alt="" fill sizes="100vw" preload />
+        </div>
         <div className="shell hero-grid">
           <div className="hero-copy">
-            <p className="eyebrow">Company software, kept together</p>
-            <h1>Build the apps your company actually uses.</h1>
+            <p className="eyebrow">Small team. Your own software.</p>
+            <h1>A cloud for your company’s software.</h1>
             <p className="hero-summary">
-              Build, deploy, and share your company&apos;s apps. Give your team
-              and their agents access to the same tools and company knowledge.
+              Build with your agent. Give your team a link. Atrax brings your
+              internal apps, their data, and your company knowledge together.
             </p>
-            <AgentCommand />
-            <p className="hero-note">
-              Local development needs no account. A hosted deployment begins
-              with email verification and a workspace.{" "}
-              <Link href="/docs/quickstart">Read the quickstart →</Link>
-            </p>
+            <div className="hero-actions">
+              <Link className="button button-orange" href="/docs/quickstart">Build your first app <span aria-hidden="true">→</span></Link>
+              <Link className="text-link" href="/solutions">See what you can build <span aria-hidden="true">↗</span></Link>
+            </div>
+            <p className="hero-note">Company-only by default. No Cloudflare setup required.</p>
           </div>
         </div>
-        <div className="hero-rail" aria-label="Available capabilities">
-          <span>Apps</span>
-          <span>Access</span>
-          <span>Actions</span>
-          <span>Library</span>
-          <span>MCP</span>
+        <div className="hero-rail" aria-label="How Atrax works">
+          <span>Build locally</span><span>Deploy from your agent</span><span>Share with your team</span>
         </div>
       </section>
 
-      <section className="thesis">
-        <div className="shell thesis-copy">
-          <p className="eyebrow">Why Atrax</p>
-          <h2>
-            One workspace for the app, the people it serves, and the context it
-            needs.
-          </h2>
-          <p className="thesis-summary">
-            A deployed app belongs to a company. Coworkers can open it, a
-            maintainer can narrow its audience, another app can call a named
-            action, and an existing agent can work through the same current
-            permissions.
-          </p>
-          <nav className="thesis-jump" aria-label="Jump to a section">
-            <a href="#products">What is available</a>
-            <a href="#actions">Connected actions</a>
-            <a href="#library">Company knowledge</a>
-            <a href="#agents">Existing agents</a>
-          </nav>
+      <section className="section shell work-story" id="use-cases">
+        <Reveal className="section-intro">
+          <p className="eyebrow">From “we need a tool” to “here’s the link”</p>
+          <h2>Start with something your team needs today.</h2>
+          <p>A stock tracker. An approval queue. A prototype for a client. Your agent writes the app; Atrax gives it a place to run.</p>
+        </Reveal>
+        <div className="work-ledger">
+          <Link href="/solutions/private-sharing"><span>01</span><div><h3>Share a private prototype</h3><p>Invite a client or reviewer by email. Let them open one app without joining your whole workspace.</p></div><b aria-hidden="true">↗</b></Link>
+          <Link href="/solutions/company-apps"><span>02</span><div><h3>Replace the spreadsheet workaround</h3><p>Build the small internal tool that fits the way your team works, with data that stays through updates.</p></div><b aria-hidden="true">↗</b></Link>
+          <Link href="/solutions/connected-apps"><span>03</span><div><h3>Let your apps work together</h3><p>An order can reserve stock in your inventory app. Each app exposes named actions with checked permissions.</p></div><b aria-hidden="true">↗</b></Link>
         </div>
       </section>
 
-      <section className="compare-section">
+      <section className="sharing-section" id="sharing">
         <div className="shell section-split section-split-center">
           <Reveal className="split-copy">
-            <p className="microlabel">
-              01 · <b>One operating surface</b>
-            </p>
-            <h2>Make the boundaries readable for people and agents.</h2>
-            <p>
-              An Atrax app declares its assets, data, and named actions. The
-              workspace keeps membership, app access, and Library permissions
-              outside uploaded app code.
-            </p>
-            <p>
-              That separation lets a person and an MCP-connected agent use the
-              same platform operations without passing credentials through a
-              prompt.
-            </p>
-            <Link className="text-link" href="/docs/app-contract">
-              Read the app contract <span aria-hidden="true">→</span>
-            </Link>
+            <p className="microlabel">01 · <b>Private sharing</b></p>
+            <h2>A link is useful.<br />Knowing who can open it is better.</h2>
+            <p>New apps are open to your workspace. Narrow the company audience when needed, or invite an external person to just one app.</p>
+            <p>Guests verify their email and accept the invitation. You choose which app actions they can use, and you can revoke access.</p>
+            <Link className="text-link" href="/products/door">See how access works <span aria-hidden="true">→</span></Link>
           </Reveal>
-          <Reveal delay={120}>
-            <CompareStrip />
+          <Reveal className="sharing-example" delay={100}>
+            <p className="eyebrow">Example · Prototype review</p>
+            <blockquote>“Let our client review this app.”</blockquote>
+            <dl className="audience-example">
+              <div><dt>Company access</dt><dd>Your configured team audience</dd></div>
+              <div><dt>External access</dt><dd>Invited email, verified at sign-in</dd></div>
+              <div><dt>Public web</dt><dd>Off</dd></div>
+              <div><dt>Guest actions</dt><dd>Only the actions you select</dd></div>
+            </dl>
+            <p className="example-note">A guest invitation adds that person. It does not remove your existing company audience.</p>
+            <Link className="text-link" href="/developers#private-sharing">See the agent workflow <span aria-hidden="true">→</span></Link>
           </Reveal>
         </div>
       </section>
@@ -112,189 +78,82 @@ export default function Home() {
       <section className="products-stage" id="products">
         <div className="shell">
           <Reveal className="section-intro products-stage-intro">
-            <p className="microlabel">
-              02 · <b>Available launch</b>
-            </p>
-            <h2>Apps, access, actions, Library, and MCP.</h2>
-            <p>
-              Build and share company apps, connect their actions, keep their
-              knowledge current, and bring the agent you already use into the
-              same workspace.
-            </p>
+            <p className="microlabel">02 · <b>One company workspace</b></p>
+            <h2>The pieces your internal software needs.</h2>
+            <p>Company-owned apps, access for your people, named actions for your agents, and knowledge your whole team can use.</p>
           </Reveal>
-          <Reveal className="product-ledger" delay={100}>
-            {productOrder.map((slug) => {
+          <Reveal className="product-ledger">
+            {productOrder.filter((slug) => products[slug].availability === "available").map((slug) => {
               const product = products[slug];
-              return (
-                <Link href={`/products/${slug}`} key={slug}>
-                  <span className="product-number">{product.number}</span>
-                  <ProductMark type={slug} />
-                  <div>
-                    <h3>{product.name}</h3>
-                    <p>{product.cardTitle}</p>
-                  </div>
-                  <small className={`status status-${product.availability}`}>
-                    {product.availability}
-                  </small>
-                  <b aria-hidden="true">↗</b>
-                </Link>
-              );
+              return <Link href={`/products/${slug}`} key={slug}>
+                <span className="product-number">{product.number}</span><ProductMark type={slug} />
+                <div><h3>{product.name}</h3><p>{product.cardTitle}</p></div>
+                <small className="status status-available">Available</small><b aria-hidden="true">↗</b>
+              </Link>;
             })}
           </Reveal>
         </div>
       </section>
 
-      <section className="fabric" id="actions">
-        <div className="shell section-split section-split-center">
+      <section className="section shell" id="actions">
+        <div className="section-split section-split-center">
           <Reveal className="split-copy">
-            <p className="microlabel">
-              03 · <b>Connected work</b>
-            </p>
-            <h2>Ask another app to do one named thing.</h2>
-            <p>
-              Apps expose actions with input and output schemas. The target
-              checks the current employee’s access before it runs, so a caller
-              does not get raw database access or a general credential.
-            </p>
-            <p>
-              Write actions take a stable business key. An interrupted request
-              can safely retry the same business intent.
-            </p>
-            <Link className="text-link" href="/docs/inventory-orders">
-              See the Inventory and Orders example{" "}
-              <span aria-hidden="true">→</span>
-            </Link>
+            <p className="microlabel">03 · <b>Apps that work together</b></p>
+            <h2>Your next app can use what the last one knows how to do.</h2>
+            <p>Expose a named action such as “reserve stock.” Another app or an authorized agent can call it with the right inputs, under the current person’s permissions.</p>
+            <p>Your inventory app stays responsible for stock. Your orders app stays responsible for orders.</p>
+            <Link className="text-link" href="/docs/inventory-orders">Build the connected example <span aria-hidden="true">→</span></Link>
           </Reveal>
-          <Reveal className="panel" delay={120}>
-            <div className="panel-head">
-              <span>Action example</span>
-              <span>Checked when called</span>
-            </div>
-            <pre>
-              <code>{`orders.create\n  input: { orderId, sku, quantity }\n  effect: write\n  key: order-42\n\ninventory.stock.reserve\n  input: { sku, quantity }\n  effect: write`}</code>
-            </pre>
-            <p className="compare-caption">
-              Atrax checks the action input and current permissions on every
-              call.
-            </p>
+          <Reveal className="action-example" delay={100}>
+            <p className="eyebrow">Inventory + Orders · Working example</p>
+            <ol>
+              <li><span>01</span><div><strong>Create an order</strong><code>orders.create</code></div></li>
+              <li><span>02</span><div><strong>Reserve the stock</strong><code>inventory.stock.reserve</code></div></li>
+              <li><span>03</span><div><strong>Return the confirmed order</strong><small>Same person. Checked permissions.</small></div></li>
+            </ol>
+            <p className="example-note">The example uses a stable order key so retrying the same order does not reserve stock twice.</p>
           </Reveal>
         </div>
       </section>
 
-      <section className="share-story" id="library">
-        <div className="shell share-grid">
-          <Reveal className="share-copy">
-            <p className="microlabel">
-              04 · <b>Company Library</b>
-            </p>
-            <h2>Keep the decision, its correction, and its source together.</h2>
-            <p>
-              Library entries and files record authorship, a revision history,
-              and a reason for a correction. Search applies current access
-              before titles, snippets, or content are returned.
-            </p>
-            <p>
-              Text, Markdown, CSV, and JSON files are searchable; PDF files are
-              stored and available to download. Files are limited to 10 MiB.
-            </p>
-            <Link className="text-link" href="/docs/library">
-              Read Library docs <span aria-hidden="true">→</span>
-            </Link>
-          </Reveal>
-          <Reveal className="panel" delay={120}>
-            <div className="panel-head">
-              <span>Revision example</span>
-              <span>History and source access</span>
-            </div>
-            <pre>
-              <code>{`brand-guidance.md\nrevision: <current-revision-id>\nreason: "Correct the product name"\nsource: <source-item-id>\naudience: company`}</code>
-            </pre>
-            <p className="compare-caption">
-              A derived item remains limited by the current permissions on its
-              sources.
-            </p>
-          </Reveal>
-        </div>
-      </section>
-
-      <section className="agent-docs" id="agents">
-        <div className="shell agent-docs-grid">
+      <section className="knowledge-section" id="library">
+        <div className="shell knowledge-grid">
           <Reveal>
-            <p className="eyebrow">Your existing agent</p>
-            <h2>Connect it through MCP, with your current permissions.</h2>
-            <p>
-              Start a named agent session, select a workspace, and run the Atrax
-              MCP server. Its tools come from the platform operation registry;
-              write tools require a stable key.
-            </p>
-            <Link className="text-link" href="/docs/mcp">
-              Configure MCP <span aria-hidden="true">→</span>
-            </Link>
+            <p className="microlabel">04 · <b>Company Library</b></p>
+            <h2>Tell your agent once.<br />Keep it with the company.</h2>
+            <p>Policies, brand guidance, documents, and decisions belong in a shared Library. People can upload files. Authorized agents can add knowledge and revise it with a reason.</p>
+            <Link className="text-link" href="/products/library">Explore company knowledge <span aria-hidden="true">→</span></Link>
           </Reveal>
-          <Reveal delay={120}>
-            <div
-              className="agent-files"
-              aria-label="Machine-readable Atrax references"
-            >
-              <a href="/operations.json">
-                <span>operations.json</span>
-                <small>operation schemas</small>
-              </a>
-              <a href="/docs.json">
-                <span>docs.json</span>
-                <small>documentation manifest</small>
-              </a>
-              <a href="/llms.txt">
-                <span>llms.txt</span>
-                <small>agent index</small>
-              </a>
-              <Link href="/docs/security">
-                <span>security model</span>
-                <small>access boundaries</small>
-              </Link>
-            </div>
+          <Reveal className="knowledge-example" delay={100}>
+            <p className="eyebrow">For example</p>
+            <blockquote>“We don’t use blue in our company. Save that in our brand guidance.”</blockquote>
+            <div className="knowledge-receipt"><span>Company Library</span><strong>Brand guidance</strong><p>A saved decision, with its author and revision history. Available to people and agents with access.</p></div>
           </Reveal>
         </div>
       </section>
 
-      <section className="contract-section">
-        <div className="shell section-split">
+      <section className="section shell agent-entry" id="agents">
+        <div className="section-split">
           <Reveal className="split-copy">
-            <p className="microlabel">
-              05 · <b>Scope</b>
-            </p>
-            <h2>Build company software now.</h2>
-            <p>
-              Hosted agents, scheduled automation, automatic external-document
-              synchronization, and third-party connectors are planned for a
-              later release.
-            </p>
-            <Link className="text-link" href="/docs/status">
-              Read feature status <span aria-hidden="true">→</span>
-            </Link>
+            <p className="microlabel">05 · <b>Built for your agent</b></p>
+            <h2>Use the agent you already work with.</h2>
+            <p>An existing agent can use the CLI or connect through MCP. It can deploy apps, invite guests, call actions, and contribute to the Library using your current permissions.</p>
+            <Link className="text-link" href="/developers">Explore CLI and MCP <span aria-hidden="true">→</span></Link>
           </Reveal>
-          <Reveal className="panel" delay={120}>
-            <div className="panel-head">
-              <span>Launch scope</span>
-              <span>Current</span>
-            </div>
-            <ChipGrid
-              note="Use available products from the workspace, CLI, or MCP."
-              rows={contractRows}
-            />
+          <Reveal className="agent-start" delay={100}>
+            <p className="eyebrow">Start from the source checkout</p>
+            <AgentCommand />
+            <p className="example-note">Local development needs no account. Hosted deployment starts with email verification and a workspace. The npm release is still to come.</p>
+            <div className="agent-resource-links"><a href="/llms.txt">Agent guide ↗</a><a href="/operations.json">Operation schemas ↗</a><Link href="/docs/mcp">MCP setup →</Link></div>
           </Reveal>
         </div>
+        <p className="launch-scope-note">Hosted agents, scheduled automation, and third-party connectors are planned for later. <Link href="/docs/status">See current feature status →</Link></p>
       </section>
 
       <section className="final-cta">
         <div className="shell final-cta-grid">
-          <div>
-            <p className="eyebrow">Start locally</p>
-            <h2>Build the first company app from the source checkout.</h2>
-          </div>
-          <Link className="button button-orange" href="/docs/quickstart">
-            Open the quickstart <span aria-hidden="true">→</span>
-          </Link>
+          <div><p className="eyebrow">One useful app is a good start</p><h2>Build something your team can use tomorrow.</h2></div>
+          <Link className="button button-orange" href="/docs/quickstart">Build your first app <span aria-hidden="true">→</span></Link>
         </div>
       </section>
     </main>

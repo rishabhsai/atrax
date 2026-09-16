@@ -12,7 +12,7 @@ export function SiteFooter() {
             </span>
             <span>atrax</span>
           </Link>
-          <p>Company apps, access, actions, knowledge, and MCP.</p>
+          <p>A cloud for the software your company runs on.</p>
           <code>node bin/atrax.mjs deploy --json</code>
         </div>
         <div className="footer-columns">
@@ -44,7 +44,7 @@ export function SiteFooter() {
       <div className="shell footer-bottom">
         <span>© 2026 Atrax</span>
         <span>
-          Company apps, access, Library, actions, and MCP.
+          Built with your agent. Owned by your company.
         </span>
       </div>
     </footer>

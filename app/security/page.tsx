@@ -4,29 +4,29 @@ import { Reveal } from "../components/Reveal";
 
 export const metadata = {
   title: "Security",
-  description: "Atrax identity, authorization, and data boundaries.",
+  description: "Company-only apps, verified email guests, current permissions, and scoped access for agents.",
 };
 
 const boundaries = [
   [
-    "Identity",
-    "Email verification establishes the person behind a workspace, browser session, CLI session, or named agent session.",
+    "Verified people",
+    "People verify their email to sign in. Browser, CLI, and named agent sessions identify the person responsible for the request.",
   ],
   [
-    "Authorization",
-    "The trusted gateway checks current membership, app access, action permissions, and revocation before an operation or delegated call.",
+    "Current access",
+    "Atrax checks current workspace membership, app audiences, and action permissions before work runs. Delegating a call to another app preserves the person's restrictions.",
   ],
   [
-    "App runtime",
-    "Uploaded app code runs behind a private binding. It receives its own resources and a narrow request capability, not platform credentials.",
+    "App isolation",
+    "Uploaded code runs behind Atrax's gateway. It receives its own resources and limited permission for the current request. Platform credentials stay outside the app.",
   ],
   [
-    "Library",
-    "Search filters access before returning content. File bytes require current authorization, and derived material remains restricted by its sources.",
+    "Company knowledge",
+    "Library checks access before returning search results or file contents. Entries derived from restricted sources retain those source restrictions.",
   ],
   [
-    "Public pages",
-    "An explicit public publish exposes web assets only. App actions and Library remain protected and require a verified person.",
+    "Public publishing",
+    "An admin can publish an app's web assets publicly. That does not make its actions or company Library public.",
   ],
 ] as const;
 
@@ -35,14 +35,19 @@ export default function SecurityPage() {
     <main>
       <section className="page-hero page-hero-dark">
         <div className="shell page-hero-grid">
-          <p className="eyebrow">Security model</p>
+          <p className="eyebrow">Access and security</p>
           <div>
-            <h1>Identity and permissions stay outside uploaded app code.</h1>
+            <h1>Your company&apos;s apps start company-only.</h1>
             <p>
-              Atrax makes the company, the current person, and the action
-              boundary explicit before it invokes an app or returns company
-              knowledge.
+              A new app is available to workspace members. Outside access is a
+              separate decision. People, agents, and connected apps follow the
+              same current permission checks.
             </p>
+            <div className="button-row">
+              <Link className="button button-orange" href="/docs/security">
+                Read the security model <span aria-hidden="true">→</span>
+              </Link>
+            </div>
           </div>
         </div>
       </section>
@@ -50,22 +55,27 @@ export default function SecurityPage() {
         <div className="section-split">
           <Reveal className="split-copy">
             <p className="microlabel">
-              01 · <b>Access boundary</b>
+              01 · <b>Control who can do what</b>
             </p>
-            <h2>Check access where work actually happens.</h2>
+            <h2>Sharing an app should be a deliberate choice.</h2>
             <p>
-              Browser, CLI, MCP, and app-to-app calls use the same central
-              permission seams. Removing membership or a grant affects existing
-              access rather than waiting for a new app version.
+              Select a smaller coworker audience for a sensitive app. Invite a
+              guest to one app by verified email. Choose which actions they can
+              use. Revoke the grant when the work is done.
+            </p>
+            <p>
+              Guest grants add access; they do not remove existing workspace
+              access. Review the app audience and public publishing settings
+              when a review needs to stay restricted.
             </p>
           </Reveal>
           <Reveal className="panel" delay={120}>
             <div className="panel-head">
-              <span>Scope</span>
+              <span>How access is enforced</span>
               <span>Current release</span>
             </div>
             <ChipGrid
-              note="Atrax checks these boundaries for browser, CLI, MCP, and app requests."
+              note="These checks apply to browser, CLI, MCP, and app requests."
               rows={[
                 {
                   label: "Enforced",
@@ -75,17 +85,15 @@ export default function SecurityPage() {
                     "current workspace access",
                     "action permissions",
                     "private app runtime",
-                    "Library source ACLs",
+                    "Library source permissions",
                   ],
                 },
                 {
-                  label: "Not offered",
+                  label: "Not public",
                   state: "planned" as const,
                   chips: [
-                    "public app actions",
-                    "public Library",
-                    "third-party connector vault",
-                    "hosted agents",
+                    "app actions",
+                    "company Library",
                   ],
                 },
               ]}
@@ -105,8 +113,8 @@ export default function SecurityPage() {
       <section className="final-cta">
         <div className="shell final-cta-grid">
           <div>
-            <p className="eyebrow">Exact contract</p>
-            <h2>Read the security model and operation schemas.</h2>
+            <p className="eyebrow">Under the hood</p>
+            <h2>See where every check happens.</h2>
           </div>
           <Link className="button button-orange" href="/docs/security">
             Open security docs <span aria-hidden="true">→</span>

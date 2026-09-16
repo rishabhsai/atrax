@@ -8,9 +8,11 @@ colors:
   warm-paper: "oklch(0.982 0.006 75)"
   deep-paper: "oklch(0.958 0.008 72)"
 typography:
-  family: "Lucida Console, IBM Plex Mono, Monaco, monospace"
-  display: "clamp(52px, 7.4vw, 102px)"
-  body: "15px / 1.6"
+  family: "Inter, ui-sans-serif, system-ui, sans-serif"
+  headings: "Space Grotesk, sans-serif"
+  code: "IBM Plex Mono, monospace"
+  display: "clamp(44px, 5.1vw, 70px)"
+  body: "16px / 1.7"
 rounded:
   control: "999px"
   panel: "24px"
@@ -23,10 +25,10 @@ rounded:
 
 **Quiet infrastructure.**
 
-The site borrows the clarity, pacing, and material restraint associated with
-Apple product pages without imitating Apple assets or typography. Large
-statements get ample space. One product interaction is shown at a time. The
-existing monospace family keeps Atrax recognizably technical.
+The public site leads with practical small-business outcomes: build a company
+app, share a private review, connect app actions, and save company knowledge.
+Warm paper, orange signals, and concrete examples keep the platform approachable
+while preserving the clarity of an infrastructure product.
 
 ## Character
 
@@ -39,14 +41,13 @@ existing monospace family keeps Atrax recognizably technical.
 
 ## Typography
 
-All interface text uses `Lucida Console, IBM Plex Mono, Monaco, monospace`.
-Arial Black remains restricted to the `T` mark.
+Use Inter for reading and controls, Space Grotesk for headings, and IBM Plex
+Mono for commands and technical labels. These are the existing site families.
 
-- Hero: fluid 58–112px, compact tracking, relaxed 0.98 line height.
-- Section title: fluid 34–64px.
-- Body: 15px, 1.6 line height.
-- Product summary: 17–21px.
-- Metadata: 8–11px with restrained uppercase tracking.
+- Homepage hero: fluid 44–70px; compact tracking and 1.05 line height.
+- Page titles: fluid 30–46px; section titles 24–34px.
+- Body: 16px, 1.7 line height; product summaries 17–19px.
+- Metadata: 11–13px with restrained uppercase tracking.
 
 ## Color
 
@@ -61,22 +62,31 @@ Arial Black remains restricted to the `T` mark.
 
 1. Ordinary text sections are flat.
 2. Product windows may use a soft ambient shadow.
-3. Controls use full pills; content surfaces use 18–30px radii.
+3. Controls use pills; workflow examples use 10–12px radii. Existing product windows may use larger radii.
 4. Borders remain one pixel and low contrast.
-5. Gradients create atmosphere only from existing brand colors.
+5. Use flat paper and dark stages. The homepage has one decorative architectural image; do not repeat it on every page.
 6. Motion explains arrival or depth and always respects reduced motion.
 
 ## Account console
 
-The account preview is deliberately empty. It demonstrates information
-architecture without inventing deployments. Once the control plane is active,
-the same surface shows projects, stacks, health, releases, resources, activity,
-connections, and team membership.
+The console is live and uses actual workspace, app, Library, and team state.
+Keep it separate from marketing examples. Never invent deployments or activity.
+App ownership, access, and operations share the control-plane contract.
+
+## Marketing examples and artwork
+
+The homepage image is `public/images/company-cloud.webp`; its source and prompt
+are recorded in `notes/marketing-artwork.md`. Keep its alt text empty and preserve
+readable HTML copy outside the image. Phone layouts stack the image below copy.
+
+Product examples are labeled defaults, workflows, or examples, not fabricated
+screenshots. Sharing examples must state that guest access does not revoke the
+existing company audience. Source installation remains explicit until npm release.
 
 ## Do
 
-- Lead with one clear promise and one agent command.
-- Show the terminal as evidence of the promise.
+- Lead with one clear outcome and a useful next step.
+- Show working CLI examples with their installation prerequisites.
 - Use whitespace to separate product ideas.
 - Keep feature ownership and availability explicit.
 - Make account and CLI workflows read as one system.

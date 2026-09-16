@@ -19,6 +19,7 @@ const publicRoutes = [
   "/products/loops",
   "/solutions",
   "/solutions/company-apps",
+  "/solutions/private-sharing",
   "/solutions/connected-apps",
   "/solutions/agent-workspace",
   "/developers",
@@ -58,12 +59,12 @@ test("exports the company-app routes and leaves deferred work explicit", async (
   assert.match(home, /Hosted agents, scheduled automation/i);
 
   const security = new Map(rendered).get("/security");
-  assert.match(security, /current membership, app access, action permissions/i);
-  assert.match(security, /Public publish exposes web assets only/i);
+  assert.match(security, /current workspace membership, app audiences, and action permissions/i);
+  assert.match(security, /does not make its actions or company Library public/i);
 
   const pricing = new Map(rendered).get("/pricing");
-  assert.match(pricing, /Start with the source checkout/i);
-  assert.match(pricing, /Hosted pricing will be published/i);
+  assert.match(pricing, /Install the CLI from source/i);
+  assert.match(pricing, /Hosted pricing and usage allowances will be published/i);
   assert.doesNotMatch(pricing, /\$0/);
 
   const developers = new Map(rendered).get("/developers");

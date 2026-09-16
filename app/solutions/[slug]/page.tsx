@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ChipGrid } from "../../components/ChipGrid";
 import { Reveal } from "../../components/Reveal";
-import { products, solutions, type SolutionSlug } from "../../lib/content";
+import { products, solutions } from "../../lib/content";
 
 type PageProps = {
   params: Promise<{ slug: string }>;
@@ -17,7 +16,9 @@ export async function generateMetadata({
   params,
 }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  const solution = solutions[slug as SolutionSlug];
+  const solution = Object.values(solutions).find(
+    (candidate) => candidate.slug === slug,
+  );
   if (!solution) return {};
   return {
     title: solution.name,
@@ -27,7 +28,9 @@ export async function generateMetadata({
 
 export default async function SolutionPage({ params }: PageProps) {
   const { slug } = await params;
-  const solution = solutions[slug as SolutionSlug];
+  const solution = Object.values(solutions).find(
+    (candidate) => candidate.slug === slug,
+  );
   if (!solution) notFound();
 
   return (
@@ -38,6 +41,14 @@ export default async function SolutionPage({ params }: PageProps) {
           <div>
             <h1>{solution.title}</h1>
             <p>{solution.summary}</p>
+            <div className="button-row">
+              <Link className="button button-orange" href={solution.docs}>
+                {solution.docsLabel} <span aria-hidden="true">→</span>
+              </Link>
+              <Link className="button button-outline-light" href="/solutions">
+                All use cases
+              </Link>
+            </div>
           </div>
         </div>
       </section>
@@ -46,7 +57,7 @@ export default async function SolutionPage({ params }: PageProps) {
         <div className="section-split">
           <Reveal className="split-copy">
             <p className="microlabel">
-              01 · <b>Example</b>
+              01 · <b>The workflow</b>
             </p>
             <h2>{solution.example}</h2>
             <p>{solution.short}</p>
@@ -61,19 +72,23 @@ export default async function SolutionPage({ params }: PageProps) {
           </Reveal>
           <Reveal className="panel" delay={120}>
             <div className="panel-head">
-              <span>Product stack</span>
-              <span>{solution.stack.length} products</span>
+              <span>An example request</span>
+              <span>You + your agent</span>
             </div>
-            <ChipGrid
-              note="Use these products together in one company workflow."
-              rows={[
-                {
-                  label: "Available now",
-                  state: "available" as const,
-                  chips: solution.stack.map((slug) => products[slug].name),
-                },
-              ]}
-            />
+            <dl className="spec-table">
+              <div>
+                <dt>You ask</dt>
+                <dd>{solution.prompt}</dd>
+              </div>
+              <div>
+                <dt>The result</dt>
+                <dd>{solution.outcome}</dd>
+              </div>
+              <div>
+                <dt>Good to know</dt>
+                <dd>{solution.note}</dd>
+              </div>
+            </dl>
           </Reveal>
         </div>
       </section>
@@ -81,7 +96,7 @@ export default async function SolutionPage({ params }: PageProps) {
       <section className="example-stack">
         <div className="shell">
           <p className="microlabel">
-            02 · <b>Products involved</b>
+            02 · <b>What makes it work</b>
           </p>
           <div>
             {solution.stack.map((slug) => (
@@ -102,11 +117,11 @@ export default async function SolutionPage({ params }: PageProps) {
       <section className="final-cta">
         <div className="shell final-cta-grid">
           <div>
-            <p className="eyebrow">Build the company workflow</p>
-            <h2>Start with a workspace-owned app.</h2>
+            <p className="eyebrow">Put it to work</p>
+            <h2>{solution.docsLabel}.</h2>
           </div>
-          <Link className="button button-orange" href="/docs/quickstart">
-            Open the quickstart <span aria-hidden="true">→</span>
+          <Link className="button button-orange" href={solution.docs}>
+            Read the guide <span aria-hidden="true">→</span>
           </Link>
         </div>
       </section>

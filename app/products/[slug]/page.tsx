@@ -5,7 +5,7 @@ import { ChipGrid } from "../../components/ChipGrid";
 import { Reveal } from "../../components/Reveal";
 import { SpecTable } from "../../components/SpecTable";
 import { ProductConsole, ProductMark } from "../../components/Visuals";
-import { productOrder, products, type ProductSlug } from "../../lib/content";
+import { productOrder, products } from "../../lib/content";
 
 type PageProps = {
   params: Promise<{ slug: string }>;
@@ -19,7 +19,9 @@ export async function generateMetadata({
   params,
 }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  const product = products[slug as ProductSlug];
+  const product = Object.values(products).find(
+    (candidate) => candidate.slug === slug,
+  );
   if (!product) return {};
   return {
     title: product.name,
@@ -29,7 +31,9 @@ export async function generateMetadata({
 
 export default async function ProductPage({ params }: PageProps) {
   const { slug } = await params;
-  const product = products[slug as ProductSlug];
+  const product = Object.values(products).find(
+    (candidate) => candidate.slug === slug,
+  );
   if (!product) notFound();
 
   const available = product.availability === "available";
@@ -68,7 +72,7 @@ export default async function ProductPage({ params }: PageProps) {
 
       <section className="product-boundary">
         <div className="shell">
-          <span>Responsibility</span>
+          <span>How it works</span>
           <p>{product.boundary}</p>
         </div>
       </section>
@@ -79,7 +83,11 @@ export default async function ProductPage({ params }: PageProps) {
             <p className="microlabel">
               01 · <b>{available ? "Available now" : "Planned"}</b>
             </p>
-            <h2>What belongs here.</h2>
+            <h2>
+              {available
+                ? `What you can do with ${product.name}.`
+                : "What comes later."}
+            </h2>
             <div className="capability-list">
               {product.features.map(([name, copy], index) => (
                 <article key={name}>
@@ -94,16 +102,16 @@ export default async function ProductPage({ params }: PageProps) {
             <SpecTable
               caption={
                 available
-                  ? "Available for your company workflow."
+                  ? "Available in the current release."
                   : "Planned for a later release."
               }
               meta={product.availability}
               rows={product.spec}
-              title="Contract surface"
+              title="The details"
             />
             <div className="panel">
               <div className="panel-head">
-                <span>Hands off to</span>
+                <span>Works with</span>
               </div>
               <ChipGrid
                 rows={[
@@ -127,14 +135,17 @@ export default async function ProductPage({ params }: PageProps) {
             </p>
             <h2>
               {available
-                ? "Use it through the CLI or workspace."
+                ? "Give your agent the tools to do it."
                 : "Use an existing agent today."}
             </h2>
             <p>
               {available
-                ? "Build and operate this product from the workspace, CLI, or MCP."
+                ? "Use the CLI for this workflow. Connected agents can discover workspace operations through MCP with the same permission checks."
                 : "Connect an existing agent through MCP for request-driven work."}
             </p>
+            <Link className="text-link" href="/docs/quickstart">
+              Install the CLI from source <span aria-hidden="true">→</span>
+            </Link>
           </div>
           <pre>
             <code>{product.code}</code>
@@ -147,7 +158,7 @@ export default async function ProductPage({ params }: PageProps) {
           <p className="microlabel">
             03 · <b>Related products</b>
           </p>
-          <h2>Clear handoffs.</h2>
+          <h2>Keep building.</h2>
         </div>
         <div>
           {product.related.map((relatedSlug) => {

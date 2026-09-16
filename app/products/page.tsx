@@ -32,13 +32,22 @@ export default function ProductsPage() {
     <main>
       <section className="page-hero page-hero-orange">
         <div className="shell page-hero-grid">
-          <p className="eyebrow">Product model</p>
+          <p className="eyebrow">The Atrax cloud</p>
           <div>
-            <h1>One company workspace, clear responsibilities.</h1>
+            <h1>Everything around the app, in one place.</h1>
             <p>
-              Atrax ships apps, access, Library, named actions, and MCP for an
-              existing agent.
+              Build the tool your business needs. Atrax gives it a home, keeps
+              its data, manages who can use it, and connects it to your other
+              apps and agents.
             </p>
+            <div className="button-row">
+              <Link className="button button-dark" href="/docs/quickstart">
+                Build your first app <span aria-hidden="true">→</span>
+              </Link>
+              <Link className="button button-outline-dark" href="/solutions">
+                See what to build
+              </Link>
+            </div>
           </div>
         </div>
       </section>
@@ -53,7 +62,7 @@ export default function ProductsPage() {
                 <p>{product.eyebrow}</p>
                 <h2>{product.name}</h2>
               </div>
-              <p className="product-index-copy">{product.summary}</p>
+              <p className="product-index-copy">{product.cardTitle}</p>
               <small className={`status status-${product.availability}`}>
                 {product.availability}
               </small>
@@ -66,14 +75,13 @@ export default function ProductsPage() {
         <div className="section-split">
           <Reveal className="split-copy">
             <p className="microlabel">
-              01 · <b>Clear boundaries</b>
+              01 · <b>Built to work together</b>
             </p>
-            <h2>Each surface has one job.</h2>
+            <h2>Start with an app. Connect the rest when you need it.</h2>
             <p>
-              The app runtime does not own identity. An action does not expose a
-              raw database. Library guidance does not become an unbounded source
-              of access. These boundaries keep the workspace understandable when
-              people and agents both use it.
+              An internal tracker may only need hosting, data, and team access.
+              Add actions when another app needs to use it. Add Library when
+              your team and agents need the same company guidance.
             </p>
             <ChipGrid
               note="Automation is planned for a later release."
@@ -82,16 +90,18 @@ export default function ProductsPage() {
           </Reveal>
           <Reveal className="panel" delay={120}>
             <div className="panel-head">
-              <span>Responsibility</span>
-              <span>Product surface</span>
+              <span>What your business needs</span>
+              <span>Atrax provides</span>
             </div>
             <dl className="spec-table">
-              {productOrder.map((slug) => (
-                <div key={slug}>
-                  <dt>{products[slug].name}</dt>
-                  <dd>{products[slug].boundary}</dd>
-                </div>
-              ))}
+              {productOrder
+                .filter((slug) => products[slug].availability === "available")
+                .map((slug) => (
+                  <div key={slug}>
+                    <dt>{products[slug].name}</dt>
+                    <dd>{products[slug].cardTitle}</dd>
+                  </div>
+                ))}
             </dl>
           </Reveal>
         </div>
@@ -99,8 +109,8 @@ export default function ProductsPage() {
       <section className="final-cta">
         <div className="shell final-cta-grid">
           <div>
-            <p className="eyebrow">Available workflow</p>
-            <h2>Build and share a company app.</h2>
+            <p className="eyebrow">Start locally</p>
+            <h2>Put your first idea to work.</h2>
           </div>
           <Link className="button button-orange" href="/docs/quickstart">
             Read the quickstart <span aria-hidden="true">→</span>

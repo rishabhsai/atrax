@@ -29,15 +29,15 @@ export const metadata: Metadata = {
   // host, so old links keep resolving; every absolute URL points here.
   metadataBase: new URL("https://atrax.run"),
   title: {
-    default: "Atrax | A cloud for everyone",
+    default: "Atrax | A cloud for internal software",
     template: "%s | Atrax",
   },
   description:
-    "Create, run, deploy, inspect, and debug small full-stack apps from one CLI.",
+    "Build internal apps with your agent. Deploy, share with verified people, and keep company knowledge together.",
   openGraph: {
-    title: "Atrax | A cloud for everyone",
+    title: "Atrax | A cloud for internal software",
     description:
-      "Deploy a full-stack app from one CLI and get a URL to share.",
+      "Company-owned apps, verified access, connected actions, and shared knowledge for your team and its agents.",
     type: "website",
     siteName: "Atrax",
     images: [
@@ -51,9 +51,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Atrax | A cloud for everyone",
+    title: "Atrax | A cloud for internal software",
     description:
-      "Deploy a full-stack app from one CLI and get a URL to share.",
+      "Company-owned apps, verified access, connected actions, and shared knowledge for your team and its agents.",
     images: ["/og.png"],
   },
 };
@@ -66,6 +66,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
+      data-scroll-behavior="smooth"
       className={`${spaceGrotesk.variable} ${inter.variable} ${plexMono.variable}`}
     >
       <body>
