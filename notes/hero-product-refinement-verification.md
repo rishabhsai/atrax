@@ -25,3 +25,9 @@ All three client commands copied exactly through the real browser clipboard usin
 The Products menu opens with the keyboard and includes Tables with “SQL database included.” Petals move under normal motion preferences and are hidden under reduced motion.
 
 Representative screenshots are `/tmp/atrax-final-home-1366.png`, `/tmp/atrax-final-home-1024.png`, `/tmp/atrax-final-home-390.png`, `/tmp/atrax-ready-tables-1024.png`, and `/tmp/atrax-ready-door-1366.png`.
+
+## Production
+
+Published on Cloudflare Pages as deployment `39525898.tarantula-9l0.pages.dev`, serving https://atrax.run. Implementation commit: `9f81ebf`.
+
+Production checks verified the standard 22 routes/assets plus all seven product routes and exact artwork bytes. The live browser confirmed the 1366 × 768 and 390 × 844 hero dimensions, unclipped laptop tree framing, working keyboard copy, reduced-motion behavior, the Tables page, and no JavaScript page errors.
