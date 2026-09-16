@@ -149,7 +149,8 @@ export function ExternalSharingPanel({ appId, appName, appUrl, activeReleaseId, 
     } catch (reason) {
       if (reason instanceof ApiError && reason.code === "guest_revision_conflict") {
         setEdit({ ...edit, kind: "conflict" });
-        try { setGuests(await operation("apps.guests.list", { appId }, asGuests)); } catch { /* The draft remains available even if the refresh fails. */ }
+        try { setGuests(await operation("apps.guests.list", { appId }, asGuests)); }
+        catch (refreshReason) { setFailure(`${error(reason)} ${error(refreshReason)} Your draft is preserved.`); return; }
       }
       setFailure(error(reason));
     } finally { setPending(null); }
@@ -184,8 +185,9 @@ export function ExternalSharingPanel({ appId, appName, appUrl, activeReleaseId, 
       </li>)}</ul> : <p className={consoleStyles.muted}>No guests have accepted an invitation.</p>}
       {edit && <form className={styles.form} onSubmit={saveActions}>
         <h4>Actions for {edit.email}</h4>
-        {edit.kind === "conflict" && <div role="status"><p>Your draft is preserved. Current grants: {guests.guests.find((guest) => guest.personId === edit.personId)?.actionNames.join(", ") || "View only"}.</p>
+        {edit.kind === "conflict" && <div role="status"><p>Your draft is preserved. Last observed grants: {guests.guests.find((guest) => guest.personId === edit.personId)?.actionNames.join(", ") || "View only"}.</p>
           <button className={consoleStyles.secondary} type="button" disabled={pending !== null} onClick={async () => {
+            setPending(`review:${edit.personId}`); setFailure(null);
             try {
               const current = await operation("apps.guests.list", { appId }, asGuests);
               setGuests(current);
@@ -193,7 +195,8 @@ export function ExternalSharingPanel({ appId, appName, appUrl, activeReleaseId, 
               if (!guest) { setFailure("This person's guest access has been revoked. Your draft remains available to review."); return; }
               setEdit({ ...edit, kind: "editing", revision: guest.revision }); setFailure(null);
             } catch (reason) { setFailure(error(reason)); }
-          }}>Use latest revision, keep my draft</button></div>}
+            finally { setPending(null); }
+          }}>Review latest access, keep my draft</button></div>}
         <fieldset disabled={pending !== null}><legend>Allowed actions</legend>
           {[...new Set([...guests.grantableActionNames, ...edit.actionNames])].map((name) => <label className={styles.check} key={name}>
             <input type="checkbox" checked={edit.actionNames.includes(name)} onChange={() => setEdit({ ...edit, actionNames: edit.actionNames.includes(name) ? edit.actionNames.filter((item) => item !== name) : [...edit.actionNames, name] })} />
