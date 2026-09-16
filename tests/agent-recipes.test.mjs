@@ -10,6 +10,7 @@ import {operations} from '../shared/operations.js';
 import {describeOperation, listOperations} from '../shared/operation-discovery.js';
 import {agentRecipes, renderRecipeGuide} from '../shared/agent-recipes.js';
 import {recipePlatform, cliResult, httpResult, toolResult} from './helpers/recipes-platform.mjs';
+import {packagedCli} from './helpers/package-cli.mjs';
 
 const execute = promisify(execFile);
 const root = resolve(import.meta.dirname, '..');
@@ -39,8 +40,7 @@ function expectToolError(outcome, code) {
 test('installed CLI discovers the complete registry offline and renders the same recipes as the checked guide', {timeout: 60_000}, async t => {
   const directory = await mkdtemp(join(tmpdir(), 'atrax-discovery-'));
   t.after(() => rm(directory, {recursive: true, force: true}));
-  await execute(process.execPath, [join(root, 'scripts/package-cli.mjs')], {cwd: root});
-  const cli = join(root, 'dist-npm/bin/atrax.mjs');
+  const cli = (await packagedCli(t)).executable;
   const run = async args => JSON.parse((await execute(process.execPath, [cli, ...args, '--json'], {cwd: directory, env: {...process.env, ATRAX_CONFIG_DIR: join(directory, 'no-login'), ATRAX_API_ORIGIN: 'http://127.0.0.1:1'}, maxBuffer: 4 * 1024 * 1024})).stdout).result;
   const listed = (await run(['operations', 'list'])).operations;
   assert.deepEqual(listed, listOperations());

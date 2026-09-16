@@ -14,6 +14,7 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { promisify } from 'node:util';
 import test from 'node:test';
+import {stageCli} from '../scripts/package-cli.mjs';
 
 const execFileAsync = promisify(execFile);
 const repository = resolve(import.meta.dirname, '..');
@@ -212,10 +213,8 @@ test('command failures use the stable JSON envelope and leave no partial manifes
   assert.equal(JSON.parse(unknown.stdout).error.message, 'Unknown option: --made-up');
 });
 
-test('package staging contains the complete CLI runtime without the Next.js site', async () => {
-  const staged = join(repository, 'dist-npm');
-  const result = await execute(process.execPath, [join(repository, 'scripts', 'package-cli.mjs')], repository);
-  assert.equal(result.code, 0, result.stderr || result.stdout);
+test('package staging contains the complete CLI runtime without the Next.js site', async t => {
+  const staged = (await stageCli(join(await temporaryDirectory(t), 'stage'))).directory;
   const manifest = JSON.parse(await readFile(join(staged, 'package.json')));
   const rootManifest = JSON.parse(await readFile(join(repository, 'package.json')));
   assert.equal(manifest.name, 'atrax-cloud');
@@ -262,6 +261,8 @@ test('package staging contains the complete CLI runtime without the Next.js site
   for (const file of requiredFiles) assert.equal(packedFiles.has(file), true, file);
   assert.equal([...packedFiles].some((path) => path.startsWith('app/')), false);
 
+  const dependencies = await execute('npm', ['install', '--prefix', staged, '--no-audit', '--no-fund'], staged);
+  assert.equal(dependencies.code, 0, dependencies.stderr || dependencies.stdout);
   const stagedVersion = await execute(process.execPath, [join(staged, 'bin', 'atrax.mjs'), '--version'], staged);
   assert.equal(stagedVersion.code, 0, stagedVersion.stderr || stagedVersion.stdout);
   assert.equal(stagedVersion.stdout, manifest.version);

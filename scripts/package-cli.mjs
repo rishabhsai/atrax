@@ -8,35 +8,39 @@
 
 import { cp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const out = join(root, "dist-npm");
-const rootPackage = JSON.parse(await readFile(join(root, "package.json"), "utf8"));
+const defaultOutput = join(root, "dist-npm");
 
-await rm(out, { recursive: true, force: true });
-await mkdir(out, { recursive: true });
-for (const directory of ["bin", "cli", "shared", "runtime", "gateway", "templates", "skills"]) {
-  await cp(join(root, directory), join(out, directory), { recursive: true });
-}
-await cp(join(root, "control-plane", "src"), join(out, "control-plane", "src"), {
-  recursive: true,
-});
-await cp(
-  join(root, "control-plane", "migrations"),
-  join(out, "control-plane", "migrations"),
-  { recursive: true },
-);
-await cp(join(root, "README.md"), join(out, "README.md"));
+export async function stageCli(output = defaultOutput) {
+  const out = resolve(output);
+  const rootPackage = JSON.parse(await readFile(join(root, "package.json"), "utf8"));
+  if (out === defaultOutput) {
+    await rm(out, { recursive: true, force: true });
+    await mkdir(out, { recursive: true });
+  } else await mkdir(out);
+  for (const directory of ["bin", "cli", "shared", "runtime", "gateway", "templates", "skills"]) {
+    await cp(join(root, directory), join(out, directory), { recursive: true });
+  }
+  await cp(join(root, "control-plane", "src"), join(out, "control-plane", "src"), {
+    recursive: true,
+  });
+  await cp(
+    join(root, "control-plane", "migrations"),
+    join(out, "control-plane", "migrations"),
+    { recursive: true },
+  );
+  await cp(join(root, "README.md"), join(out, "README.md"));
 
-const runtimeDependencies = ["@cfworker/json-schema", "@modelcontextprotocol/server", "esbuild", "miniflare"];
-const dependencies = Object.fromEntries(runtimeDependencies.map((name) => {
-  const version = rootPackage.dependencies?.[name];
-  if (!version) throw new Error(`Root package is missing CLI dependency ${name}`);
-  return [name, version];
-}));
+  const runtimeDependencies = ["@cfworker/json-schema", "@modelcontextprotocol/server", "esbuild", "miniflare"];
+  const dependencies = Object.fromEntries(runtimeDependencies.map((name) => {
+    const version = rootPackage.dependencies?.[name];
+    if (!version) throw new Error(`Root package is missing CLI dependency ${name}`);
+    return [name, version];
+  }));
 
-const manifest = {
+  const manifest = {
   // npm's similarity filter blocks bare "atrax" (vs "rax"); atrax-cloud is the
   // published name. The bin stays "atrax", and `npx atrax-cloud` runs it.
   name: "atrax-cloud",
@@ -54,10 +58,16 @@ const manifest = {
   homepage: "https://atrax.run",
   keywords: ["cloud", "deploy", "cloudflare", "agents", "cli", "small-software"],
   dependencies,
-};
+  };
 
-await writeFile(
-  join(out, "package.json"),
-  `${JSON.stringify(manifest, null, 2)}\n`,
-);
-process.stdout.write(`Staged ${manifest.name}@${manifest.version} in dist-npm/. Publish with: npm publish ./dist-npm --access=public\n`);
+  await writeFile(
+    join(out, "package.json"),
+    `${JSON.stringify(manifest, null, 2)}\n`,
+  );
+  return {directory: out, manifest};
+}
+
+if (import.meta.url === pathToFileURL(process.argv[1]).href) {
+  const {manifest} = await stageCli();
+  process.stdout.write(`Staged ${manifest.name}@${manifest.version} in dist-npm/. Publish with: npm publish ./dist-npm --access=public\n`);
+}
