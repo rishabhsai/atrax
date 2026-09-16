@@ -9,11 +9,11 @@ const receiptGuard='EXISTS(SELECT 1 FROM operation_receipts WHERE operation_id=?
 const sorted=(values)=>[...values].sort((left,right)=>left.localeCompare(right));
 
 function guestView(row) {
-  return {personId:row.person_id,email:row.email,actionNames:JSON.parse(row.action_names_json ?? '[]')};
+  return {personId:row.person_id,email:row.email,actionNames:JSON.parse(row.action_names_json ?? '[]'),revision:row.revision};
 }
 
 function invitationView(row) {
-  return {id:row.invitation_id,email:row.email,status:row.status,actionNames:JSON.parse(row.action_names_json),expiresAt:row.expires_at,createdAt:row.created_at};
+  return {id:row.invitation_id,email:row.email,status:row.status==='pending'&&row.expires_at<=Date.now()?'expired':row.status,actionNames:JSON.parse(row.action_names_json),expiresAt:row.expires_at,createdAt:row.created_at};
 }
 
 async function externalManager(context,appId) {
@@ -122,7 +122,7 @@ async function listGuests(input,context) {
       JOIN people p ON p.person_id=m.person_id WHERE a.app_id=?
       AND (a.audience='workspace' OR EXISTS(SELECT 1 FROM app_people selected WHERE selected.app_id=a.app_id AND selected.person_id=m.person_id))
       ORDER BY p.email`).bind(input.appId),
-    db.prepare(`SELECT g.person_id,p.email,
+    db.prepare(`SELECT g.person_id,g.revision,p.email,
       COALESCE((SELECT json_group_array(action_name) FROM (SELECT action_name FROM app_guest_actions WHERE app_id=g.app_id AND person_id=g.person_id ORDER BY action_name)),'[]') action_names_json
       FROM app_guests g JOIN people p ON p.person_id=g.person_id
       WHERE g.app_id=? AND (g.expires_at IS NULL OR g.expires_at>?) ORDER BY p.email`).bind(input.appId,observedAt),
@@ -170,11 +170,65 @@ async function inviteGuest(input,context) {
   return {result:committed};
 }
 
+async function cancelGuestInvitation(input,context) {
+  await externalManager(context,input.appId);
+  const previous=await receipt(context,'apps.guests.invitation.cancel',input.invitationId,input);
+  if(previous.result) return {result:previous.result};
+  const invitation=await context.env.CP_DB.prepare('SELECT * FROM app_guest_invitations WHERE invitation_id=? AND app_id=?')
+    .bind(input.invitationId,input.appId).first();
+  if(!invitation) throw new OperationError('not_found',404,'This guest invitation was not found.');
+  const status=invitationView(invitation).status;
+  if(status!=='pending') throw new OperationError('invitation_not_pending',409,`This invitation is ${status} and cannot be cancelled.`,{status});
+  const result={invitation:{...invitationView(invitation),status:'cancelled'}};
+  return {result:await commit(context,{name:'apps.guests.invitation.cancel',targetId:input.invitationId,appId:input.appId,input,result,
+    admission:adminAdmission(context,input.appId,`EXISTS(SELECT 1 FROM app_guest_invitations invitation
+      WHERE invitation.app_id=a.app_id AND invitation.invitation_id=? AND invitation.status='pending' AND invitation.expires_at>?)`,[input.invitationId,Date.now()]),
+    writes:(operationId)=>[context.env.CP_DB.prepare(`UPDATE app_guest_invitations SET status='cancelled'
+      WHERE invitation_id=? AND app_id=? AND ${receiptGuard}`).bind(input.invitationId,input.appId,operationId)],
+  })};
+}
+
+async function setGuestActions(input,context) {
+  const app=await externalManager(context,input.appId);
+  const actionNames=sorted(input.actionNames);
+  const normalized={...input,actionNames};
+  const previous=await receipt(context,'apps.guests.actions.set',input.appId,normalized);
+  if(previous.result) return {result:previous.result};
+  const guest=await context.env.CP_DB.prepare(`SELECT g.*,p.email FROM app_guests g JOIN people p ON p.person_id=g.person_id
+    WHERE g.app_id=? AND g.person_id=? AND (g.expires_at IS NULL OR g.expires_at>?)`)
+    .bind(input.appId,input.personId,Date.now()).first();
+  if(!guest) throw new OperationError('guest_not_found',404,'This person no longer has guest access to this app.');
+  if(guest.revision!==input.revision) throw new OperationError('guest_revision_conflict',409,'Guest access changed. Review the current grants before saving your draft.',{currentRevision:guest.revision});
+  await guestActionsArePublished(context.env,app,actionNames);
+  const result={guest:{personId:input.personId,email:guest.email,actionNames,revision:guest.revision+1}};
+  const published=publishedActionAdmission(actionNames);
+  try {
+    return {result:await commit(context,{name:'apps.guests.actions.set',targetId:input.appId,appId:input.appId,input:normalized,result,
+      admission:adminAdmission(context,input.appId,`EXISTS(SELECT 1 FROM app_guests guest
+        WHERE guest.app_id=a.app_id AND guest.person_id=? AND guest.revision=? AND (guest.expires_at IS NULL OR guest.expires_at>?)) AND (${published.sql})`,
+      [input.personId,input.revision,Date.now(),...published.params]),
+      writes:(operationId)=>[
+        context.env.CP_DB.prepare(`DELETE FROM app_guest_actions WHERE app_id=? AND person_id=? AND ${receiptGuard}`).bind(input.appId,input.personId,operationId),
+        context.env.CP_DB.prepare(`INSERT INTO app_guest_actions(app_id,person_id,action_name) SELECT ?,?,value FROM json_each(?) WHERE ${receiptGuard}`)
+          .bind(input.appId,input.personId,JSON.stringify(actionNames),operationId),
+        context.env.CP_DB.prepare(`UPDATE app_guests SET revision=revision+1 WHERE app_id=? AND person_id=? AND ${receiptGuard}`).bind(input.appId,input.personId,operationId),
+      ],
+    })};
+  } catch(error) {
+    if(error.code!=='external_sharing_changed') throw error;
+    await externalManager(context,input.appId);
+    const current=await context.env.CP_DB.prepare('SELECT revision FROM app_guests WHERE app_id=? AND person_id=?').bind(input.appId,input.personId).first();
+    if(current&&current.revision!==input.revision) throw new OperationError('guest_revision_conflict',409,'Guest access changed. Review the current grants before saving your draft.',{currentRevision:current.revision});
+    throw error;
+  }
+}
+
 async function acceptGuest(input,context) {
   requireActor(context.actor);
   const invitation=await context.env.CP_DB.prepare('SELECT * FROM app_guest_invitations WHERE invitation_id=?').bind(input.invitationId).first();
   if(!invitation) throw new OperationError('not_found',404,'This guest invitation was not found.');
   if(invitation.email!==context.actor.person.email) throw new OperationError('invitation_email_mismatch',403,'Sign in with the email address this invitation was sent to.');
+  if(invitation.status==='cancelled') throw new OperationError('invitation_cancelled',410,'This guest invitation was cancelled. Ask the workspace administrator for a new invitation.');
   if(invitation.status==='revoked') throw new OperationError('invitation_revoked',410,'This guest invitation was revoked. Ask the workspace administrator for a new invitation.');
   if(invitation.expires_at<=Date.now()) throw new OperationError('invitation_expired',410,'This guest invitation has expired. Ask the workspace administrator for a new invitation.');
   const app=await getApp(context.env,invitation.app_id);
@@ -201,7 +255,7 @@ async function acceptGuest(input,context) {
     writes:(operationId)=>[
       context.env.CP_DB.prepare(`INSERT INTO app_guests(app_id,person_id)
         SELECT app_id,? FROM app_guest_invitations WHERE invitation_id=? AND ${receiptGuard}
-        ON CONFLICT(app_id,person_id) DO NOTHING`)
+        ON CONFLICT(app_id,person_id) DO UPDATE SET revision=app_guests.revision+1,expires_at=NULL`)
         .bind(context.actor.person.id,input.invitationId,operationId),
       context.env.CP_DB.prepare(`DELETE FROM app_guest_actions WHERE app_id=? AND person_id=? AND ${receiptGuard}`).bind(app.app_id,context.actor.person.id,operationId),
       context.env.CP_DB.prepare(`INSERT INTO app_guest_actions(app_id,person_id,action_name)
@@ -220,6 +274,9 @@ async function revokeGuest(input,context) {
     writes:(operationId)=>[
       context.env.CP_DB.prepare(`DELETE FROM app_guest_actions WHERE app_id=? AND person_id=? AND ${receiptGuard}`).bind(input.appId,input.personId,operationId),
       context.env.CP_DB.prepare(`DELETE FROM app_guests WHERE app_id=? AND person_id=? AND ${receiptGuard}`).bind(input.appId,input.personId,operationId),
+      context.env.CP_DB.prepare(`UPDATE app_guest_invitations SET status='revoked' WHERE app_id=?
+        AND email=(SELECT email FROM people WHERE person_id=?) AND status IN ('pending','accepted') AND ${receiptGuard}`)
+        .bind(input.appId,input.personId,operationId),
     ],
   })};
 }
@@ -258,6 +315,8 @@ async function unpublish(input,context) {
 export async function handleExternalSharingOperation(name,input,context) {
   if(name==='apps.guests.list') return listGuests(input,context);
   if(name==='apps.guests.invite') return inviteGuest(input,context);
+  if(name==='apps.guests.invitation.cancel') return cancelGuestInvitation(input,context);
+  if(name==='apps.guests.actions.set') return setGuestActions(input,context);
   if(name==='apps.guests.accept') return acceptGuest(input,context);
   if(name==='apps.guests.revoke') return revokeGuest(input,context);
   if(name==='apps.public.get') return getPublic(input,context);

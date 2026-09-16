@@ -8,6 +8,8 @@ const define=(description,effect,inputSchema)=>({description,effect,inputSchema,
 export const externalSharingOperations={
   'apps.guests.list':define('Observe the complete app audience, including public web, active workspace people, current guests, invitation states, and action names available for guest grants.','read',object({appId:id})),
   'apps.guests.invite':define('Invite a verified email address to one app, with explicit action grants.','write',object({appId:id,email,actionNames:{type:'array',items:actionName,uniqueItems:true,maxItems:100}})),
+  'apps.guests.invitation.cancel':define('Cancel a pending exact-app invitation. Its acceptance link immediately stops working.','write',object({appId:id,invitationId:id})),
+  'apps.guests.actions.set':define('Replace an accepted guest’s allowed actions using the revision observed in the guest list.','write',object({appId:id,personId:id,revision:{type:'integer',minimum:1},actionNames:{type:'array',items:actionName,uniqueItems:true,maxItems:100}})),
   'apps.guests.accept':define('Accept an exact-app guest invitation using its invited verified email address.','write',object({invitationId:id})),
   'apps.guests.revoke':define('Revoke a guest’s access to one app and all of that guest’s action grants.','write',object({appId:id,personId:id})),
   'apps.public.get':define('Read whether an app is publicly serving static assets. Business actions remain authenticated.','read',object({appId:id})),
