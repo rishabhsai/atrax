@@ -1,5 +1,7 @@
 # Marketing refresh and CLI audit
 
+This records the earlier landing-page design. The approved simpler homepage and current production checks are recorded in [simple homepage verification](marketing-refresh-verification.md).
+
 Verified September 16, 2026.
 
 ## CLI audit
