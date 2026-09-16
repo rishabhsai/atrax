@@ -1,6 +1,6 @@
 # Shared context and shared credentials
 
-Research date: September 16, 2026. Decision: [#22](https://github.com/rishabhsai/atrax/issues/22), within the [wayfinding research map](https://github.com/rishabhsai/atrax/issues/19).
+Research date: September 16, 2026. Decision: [How should Atrax distinguish shared context from shared credentials?](https://github.com/rishabhsai/atrax/issues/22), within the [wayfinding research map](https://github.com/rishabhsai/atrax/issues/19).
 
 Scope: terminology, user outcomes, access boundaries, and honest product claims. This report proposes product decisions; it does not design or implement credential storage.
 
@@ -80,7 +80,7 @@ Inspected source commit: `a3a8054a56d9d5d2e396ed584a615ac3f156eee8`. A read-only
 
 Inference: using an ordinary Library entry for an API key would expose that key as content to authorized readers and potentially search results. Library's text, revision, and indexing behavior therefore cannot establish a secrets product. Restricting a Library audience does not change what reading the item returns. [Library read and index behavior](../../control-plane/src/library.js)
 
-The existing domain vocabulary already separates company knowledge from current business records. It has no customer secrets concept. Adding Secrets would be an explicit product addition, rather than renaming existing Library behavior. [Domain context](../../CONTEXT.md)
+At inspected commit `a3a8054`, the domain vocabulary separates company knowledge from current business records and does not yet define customer secrets. Root has since added Shared secret to the glossary. Implementing Secrets remains an explicit product addition, rather than renaming existing Library behavior. [Domain context at the inspected commit](https://github.com/rishabhsai/atrax/blob/a3a8054a56d9d5d2e396ed584a615ac3f156eee8/CONTEXT.md)
 
 ## Broad copy to test
 
