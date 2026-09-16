@@ -1,6 +1,8 @@
-import Image from "next/image";
 import Link from "next/link";
 import { AgentCommand } from "./components/AgentCommand";
+import { HeroAtmosphere } from "./components/HeroAtmosphere";
+import { ProductMark } from "./components/Visuals";
+import { productOrder, products } from "./lib/content";
 
 export const metadata = {
   title: { absolute: "Atrax | A cloud for everyone." },
@@ -12,12 +14,7 @@ export default function Home() {
   return (
     <main className="home">
       <section className="home-hero" aria-labelledby="home-title">
-        <div className="home-trees" aria-hidden="true">
-          <Image src="/images/hero-ink-trees.webp" alt="" fill sizes="100vw" preload />
-        </div>
-        <div className="hero-petals" aria-hidden="true">
-          {Array.from({ length: 10 }, (_, index) => <span key={index} className="hero-petal"><i /></span>)}
-        </div>
+        <HeroAtmosphere />
         <div className="shell home-intro">
           <h1 id="home-title">A cloud for everyone.</h1>
           <p className="home-summary">Build with your agent. Atrax runs your apps, keeps their data, and connects your team.</p>
@@ -26,17 +23,31 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="shell home-capabilities" aria-labelledby="capabilities-title">
-        <div className="home-capabilities-intro">
-          <h2 id="capabilities-title">Your apps.<br /> One shared home.</h2>
-          <Link className="text-link" href="/products">Explore Atrax <span aria-hidden="true">→</span></Link>
+      <section className="shell home-products" id="products" aria-labelledby="products-title">
+        <div className="home-products-intro">
+          <h2 id="products-title">Everything around your app.</h2>
+          <p>Hosting, a SQL database, access, and shared context. Start with what you need, then connect the rest.</p>
         </div>
-        <dl className="home-capability-list">
-          <div><dt><Link href="/products/launchpad">Build and run apps <span aria-hidden="true">↗</span></Link></dt><dd>Turn an idea into a working app with your agent. Deploy it and give your team a link.</dd></div>
-          <div><dt><Link href="/products/tables">A database, already included <span aria-hidden="true">↗</span></Link></dt><dd>Your app comes with a SQL database that keeps its data through updates. No separate database service to set up.</dd></div>
-          <div><dt><Link href="/products/switchboard">Connect your apps <span aria-hidden="true">↗</span></Link></dt><dd>Let apps and agents use the actions your apps expose, with permission checked every time.</dd></div>
-          <div><dt><Link href="/products/library">Share company context <span aria-hidden="true">↗</span></Link></dt><dd>Save files, guidance, and decisions in a Library your team and its agents can use and update.</dd></div>
-        </dl>
+        <div className="product-index">
+          {productOrder.map((slug) => {
+            const product = products[slug];
+            return (
+              <Link href={`/products/${slug}`} key={slug}>
+                <ProductMark type={slug} />
+                <h3>{product.name}</h3>
+                <p className="product-index-copy">{product.cardTitle}</p>
+                <small className={`status status-${product.availability}`}>{product.availability}</small>
+                <span className="product-index-arrow" aria-hidden="true">↗</span>
+              </Link>
+            );
+          })}
+        </div>
+      </section>
+      <section className="final-cta">
+        <div className="shell final-cta-grid">
+          <h2>Put your first idea to work.</h2>
+          <a className="button button-orange" href="/agents.md">Give this to your agent <span aria-hidden="true">→</span></a>
+        </div>
       </section>
     </main>
   );

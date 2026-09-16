@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useId, useState, type FocusEvent, type KeyboardEvent, type ReactNode } from "react";
-import { productOrder, products, solutions } from "../lib/content";
+import { useId, useRef, useState, type FocusEvent, type KeyboardEvent, type ReactNode } from "react";
+import { solutions } from "../lib/content";
 
 type NavMenuProps = {
   className: string;
@@ -47,6 +47,7 @@ function NavMenu({ className, label, children }: NavMenuProps) {
 }
 
 export function SiteHeader() {
+  const mobileMenu = useRef<HTMLDetailsElement>(null);
   return (
     <header className="site-header">
       <div className="shell nav-shell">
@@ -57,23 +58,7 @@ export function SiteHeader() {
         </Link>
 
         <nav className="desktop-nav" aria-label="Primary navigation">
-          <NavMenu className="nav-menu-products" label="Products">
-            <div className="nav-menu-panel">
-              <Link className="nav-menu-overview" href="/products">
-                <strong>All products</strong>
-                <small>Explore the platform →</small>
-              </Link>
-              <div className="nav-menu-grid">
-                {productOrder.map((slug) => (
-                  <Link href={`/products/${slug}`} key={slug}>
-                    <strong>{products[slug].name}</strong>
-                    <small>{products[slug].eyebrow}</small>
-                    <i>{products[slug].availability}</i>
-                  </Link>
-                ))}
-              </div>
-            </div>
-          </NavMenu>
+          <Link href="/#products">Products</Link>
           <NavMenu className="nav-menu-use-cases" label="Use cases">
             <div className="nav-menu-panel">
               <Link className="nav-menu-overview" href="/solutions">
@@ -96,10 +81,10 @@ export function SiteHeader() {
           <Link className="nav-account" href="/account">Account</Link>
         </nav>
 
-        <details className="mobile-nav">
+        <details className="mobile-nav" ref={mobileMenu}>
           <summary>Menu</summary>
           <div className="mobile-panel">
-            <Link href="/products">Products</Link>
+            <Link href="/#products" onClick={() => { if (mobileMenu.current) mobileMenu.current.open = false; }}>Products</Link>
             <Link href="/solutions">Use cases</Link>
             <Link href="/docs">Docs</Link>
             <Link href="/developers">CLI</Link>

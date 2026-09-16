@@ -1392,40 +1392,29 @@ h3 {
   line-height: 1.7;
 }
 
-.product-index,
 .example-index {
   /* No bottom pad: the last row's rule is dropped and the next section's
      .rule-top hairline terminates the list, so a trailing band never opens up. */
   padding-block: 50px 0;
 }
 
-.product-index > a:last-child,
 .example-index > a:last-child {
   border-bottom: 0;
 }
 
-.product-index > a {
-  min-height: 150px;
-  padding-inline: 10px;
-  display: grid;
-  grid-template-columns: 42px 56px 190px minmax(0, 1fr) 78px 22px;
-  gap: 20px;
-  align-items: center;
-  border-bottom: 1px solid var(--line-light);
-  transition:
-    background 180ms ease,
-    border-color 180ms ease,
-    transform 180ms ease;
-}
+/* The homepage is the single product overview. */
+.home-products { padding-block: 76px 88px; scroll-margin-top: calc(var(--site-header-height) + 28px); border-top: 1px solid var(--line-light); }
+.home-products-intro { display: flex; align-items: baseline; justify-content: space-between; gap: 40px; margin-bottom: 32px; }
+.home-products-intro h2 { max-width: 480px; margin: 0; font-size: clamp(32px, 3.4vw, 46px); letter-spacing: -0.04em; line-height: 1.15; text-wrap: balance; }
+.home-products-intro p { max-width: 450px; margin: 0; color: var(--muted); font-size: 16px; }
+.product-index > a { min-height: 130px; padding: 24px 16px; display: grid; grid-template-columns: 48px 180px minmax(0, 1fr) 86px 22px; gap: 24px; align-items: center; border-bottom: 1px solid var(--line-light); transition: background 220ms var(--ease-out), border-color 220ms var(--ease-out); }
+.product-index > a:first-child { border-top: 1px solid var(--line-light); }
+.product-index > a:hover, .product-index > a:focus-visible { border-color: var(--orange); background: var(--paper-deep); }
+.product-index h3 { margin: 0; font-size: 25px; font-weight: 500; line-height: 1.2; letter-spacing: -0.025em; transition: transform 260ms var(--ease-out); }
+.product-index-arrow { justify-self: end; font-size: 22px; color: var(--orange-dark); transition: transform 260ms var(--ease-out); }
+.product-index > a:hover h3 { transform: translateX(4px); }
+.product-index > a:hover .product-index-arrow { transform: translate(3px, -3px); }
 
-.product-index > a:hover,
-.product-index > a:focus-visible {
-  transform: translateY(-2px);
-  border-color: var(--orange);
-  background: color-mix(in oklch, var(--paper-deep) 66%, transparent);
-}
-
-.product-index-title p,
 .example-index a > div p {
   margin-bottom: 7px;
   color: var(--orange-dark);
@@ -1435,7 +1424,6 @@ h3 {
   text-transform: uppercase;
 }
 
-.product-index-title h2,
 .example-index h2 {
   margin: 0;
   font-size: 26px;
@@ -1448,10 +1436,6 @@ h3 {
   color: var(--muted);
   font-size: var(--fs-copy);
   line-height: 1.65;
-}
-
-.product-rules .spec-table dt {
-  color: var(--orange-dark);
 }
 
 .product-hero {
@@ -2361,9 +2345,8 @@ h3 {
     max-width: 720px;
   }
 
-  .product-index > a {
-    grid-template-columns: 42px 56px 160px minmax(0, 1fr) 70px 20px;
-  }
+  .product-index > a { grid-template-columns: 44px 145px minmax(0, 1fr) 76px 20px; gap: 18px; }
+  .home-products-intro { gap: 28px; }
 
   .company-thesis,
   .security-roadmap-grid,
@@ -2445,19 +2428,14 @@ h3 {
     gap: 25px;
   }
 
-  .product-index > a {
-    min-height: 170px;
-    grid-template-columns: 34px 46px 1fr auto;
-  }
-
-  .product-index-copy,
-  .product-index > a > b {
-    display: none;
-  }
-
-  .product-index-title h2 {
-    font-size: 28px;
-  }
+  .home-products { padding-block: 48px 56px; }
+  .home-products-intro { display: block; margin-bottom: 28px; }
+  .home-products-intro p { margin-top: 16px; }
+  .product-index > a { min-height: 0; padding: 24px 0; grid-template-columns: 42px minmax(0, 1fr) auto; gap: 10px 16px; }
+  .product-index h3 { font-size: 23px; }
+  .product-index-copy { grid-column: 2 / -1; grid-row: 2; display: block; }
+  .product-index > a > .status { grid-column: 3; grid-row: 1; }
+  .product-index-arrow { display: none; }
 
   .product-mark {
     width: 42px;
@@ -2658,15 +2636,9 @@ h3 {
     grid-template-columns: 1fr;
   }
 
-  .product-index > a {
-    grid-template-columns: 36px 42px 1fr;
-    gap: 12px;
-  }
-
-  .product-index > a > .status {
-    grid-column: 3;
-    justify-self: start;
-  }
+  .product-index > a { grid-template-columns: 32px minmax(0, 1fr) auto; gap: 10px 12px; }
+  .product-index .product-mark { width: 32px; height: 32px; border-radius: 10px; font-size: 17px; }
+  .product-index h3 { font-size: 21px; }
 
   .security-ledger p,
   .security-roadmap article {
@@ -4351,21 +4323,6 @@ h3 {
 .agent-guide-note a { display: inline-block; color: var(--ink); text-decoration: underline; text-underline-offset: 4px; }
 .home-start-note { margin: 12px 0 0; color: var(--muted); font-size: 13px; }
 .home-start-note a { display: inline-block; padding-block: 8px; margin-left: 8px; color: var(--ink); text-decoration: underline; text-underline-offset: 4px; }
-.home-capabilities { display: grid; grid-template-columns: 0.8fr 1.4fr; gap: 80px; padding-block: 64px 80px; border-top: 1px solid var(--line-light); }
-.home-capabilities h2 { margin: 0; font-size: clamp(28px, 3vw, 38px); letter-spacing: -0.04em; line-height: 1.2; }
-.home-capabilities .text-link { margin-top: 24px; }
-.home-capability-list { margin: 0; }
-.home-capability-list > div { padding-block: 22px; border-bottom: 1px solid var(--line-light); }
-.home-capability-list > div:first-child { padding-top: 0; }
-.home-capability-list > div:last-child { border-bottom: 0; padding-bottom: 0; }
-.home-capability-list dt { margin-bottom: 6px; font-weight: 600; font-size: 16px; }
-.home-capability-list dt a { display: flex; justify-content: space-between; gap: 12px; }
-.home-capability-list dt a:hover { color: var(--orange-dark); }
-.home-capability-list dt span { color: var(--orange-dark); }
-.home-capability-list dd { max-width: 62ch; margin: 0; color: var(--muted); font-size: 14px; line-height: 1.7; }
-@media (max-width: 1000px) {
-  .home-capabilities { gap: 40px; }
-}
 @media (max-width: 640px) {
   .home-intro { padding-block: 56px; }
   .home-intro h1 { max-width: 340px; font-size: 44px; }
@@ -4380,7 +4337,7 @@ h3 {
   .product-hero-grid { text-align: left; gap: 36px; }
   .product-intro { width: 100%; }
   .product-kicker, .product-hero .button-row { justify-content: flex-start; }
-  .home-trees img { width: 130% !important; left: -15% !important; object-fit: contain; object-position: center top; opacity: 0.7; }
+  .home-trees img { width: 130% !important; max-width: none; left: -15% !important; object-fit: contain; object-position: center top; opacity: 0.7; }
   .agent-handoff { margin-top: 28px; }
   .agent-terminal-bar { padding-inline: 12px; gap: 8px; }
   .agent-clients { gap: 12px; }
@@ -4389,9 +4346,6 @@ h3 {
   .agent-terminal-command { padding: 20px 16px; gap: 10px; }
   .agent-guide-note { max-width: 280px; margin-inline: auto; }
   .home-start-note a { margin-left: 0; }
-  .home-capabilities { grid-template-columns: 1fr; gap: 32px; padding-block: 40px 56px; }
-  .home-capabilities h2 br { display: none; }
-  .home-capabilities .text-link { margin-top: 12px; }
 }
 
 @media (max-width: 640px) {
@@ -4400,4 +4354,12 @@ h3 {
   .footer-columns a { font-size: 12px; }
   .footer-columns small { font-size: 8px; letter-spacing: 0; }
   .footer-statement .brand-footer { margin-bottom: 12px; }
+}
+
+/* Decorative motion stays separate from text and controls. */
+.hero-atmosphere { --pointer-x: 0px; --pointer-y: 0px; position: absolute; inset: 0; z-index: -1; pointer-events: none; }
+.hero-atmosphere .home-trees { transform: translate3d(var(--pointer-x), var(--pointer-y), 0); transition: transform 450ms var(--ease-out); }
+.hero-atmosphere .hero-petals { transform: translate3d(calc(var(--pointer-x) * -1.8), calc(var(--pointer-y) * -1.2), 0); transition: transform 550ms var(--ease-out); }
+@media (prefers-reduced-motion: reduce), (pointer: coarse) {
+  .hero-atmosphere .home-trees, .hero-atmosphere .hero-petals, .product-index > a:hover .product-mark, .product-index > a:focus-visible .product-mark, .product-index > a:hover h3, .product-index > a:hover .product-index-arrow { transform: none; transition: none; }
 }

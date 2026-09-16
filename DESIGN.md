@@ -118,3 +118,16 @@ Door, oak and ferns for Library, climbing vines for Switchboard, bamboo for MCP,
 and unfurling ferns for Loops. Product introductions are centered above their
 example panel so the paper center stays clear behind copy. On phones the art
 frames the top and fades before the body text.
+
+## Homepage catalog and pointer response
+
+The homepage owns the complete product overview at `/#products`, after the hero.
+Navigation links scroll to that section; individual product pages keep their
+URLs. The former `/products` index redirects to the homepage section. Do not
+reintroduce a second product index or repeat the catalog in a feature summary.
+
+On fine pointers, branches and petals shift gently in response to cursor
+position. Text and controls stay fixed. Coalesce pointer updates with animation
+frames, reset on leave, and disable pointer motion for touch or reduced-motion
+preferences. Product rows acknowledge hover with restrained icon, title, and
+arrow movement. Descriptions remain visible on phones.

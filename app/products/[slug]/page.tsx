@@ -65,7 +65,7 @@ export default async function ProductPage({ params }: PageProps) {
               >
                 Read {product.name} docs <span aria-hidden="true">→</span>
               </Link>
-              <Link className="button button-outline-dark" href="/products">
+              <Link className="button button-outline-dark" href="/#products">
                 All products
               </Link>
             </div>
