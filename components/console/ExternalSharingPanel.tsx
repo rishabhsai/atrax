@@ -35,7 +35,7 @@ function asGuests(value: unknown): ExternalGuestAccess {
   return {
     guests: result.guests.map((value): ExternalGuest => {
       const guest = parseRecord(value);
-      if (typeof guest.personId !== "string" || typeof guest.email !== "string" || typeof guest.revision !== "number" || !Number.isSafeInteger(guest.revision) || guest.revision < 1)
+      if (typeof guest.personId !== "string" || typeof guest.email !== "string" || typeof guest.revision !== "string" || !guest.revision)
         throw new ApiError("Atrax returned incomplete guest access information.", "invalid_response", true);
       return { personId: guest.personId, email: guest.email, actionNames: actionNames(guest.actionNames), revision: guest.revision };
     }),
@@ -72,7 +72,7 @@ export function ExternalSharingPanel({ appId, appName, appUrl, activeReleaseId, 
   const [pending, setPending] = useState<string | null>(null);
   const [failure, setFailure] = useState<string | null>(null);
   const writeKeys = useRef(new Map<string, { input: string; key: string }>());
-  const [edit, setEdit] = useState<{ kind: "editing" | "conflict"; personId: string; email: string; revision: number; actionNames: string[] } | null>(null);
+  const [edit, setEdit] = useState<{ kind: "editing" | "conflict"; personId: string; email: string; revision: string; actionNames: string[] } | null>(null);
 
   function keyFor(name: string, input: Record<string, unknown>) {
     const encoded = JSON.stringify(input);
@@ -127,7 +127,7 @@ export function ExternalSharingPanel({ appId, appName, appUrl, activeReleaseId, 
   async function revoke(personId: string) {
     setPending(`revoke:${personId}`); setFailure(null);
     const input = { appId, personId };
-    try { await operation("apps.guests.revoke", input, parseRecord, { key: keyFor(`revoke:${personId}`, input) }); setEdit(null); await refresh(); onChange?.(); }
+    try { await operation("apps.guests.revoke", input, parseRecord, { key: keyFor(`revoke:${personId}`, input) }); writeKeys.current.delete(`revoke:${personId}`); setEdit(null); await refresh(); onChange?.(); }
     catch (reason) { setFailure(error(reason)); }
     finally { setPending(null); }
   }

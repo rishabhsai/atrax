@@ -1,6 +1,28 @@
-ALTER TABLE app_guests ADD COLUMN revision INTEGER NOT NULL DEFAULT 1;
-
 DROP TRIGGER removed_member_guest_access;
+-- Revision tokens identify a grant across revoke/reinvite cycles as well as edits.
+CREATE TABLE app_guest_actions_saved AS SELECT * FROM app_guest_actions;
+DROP TABLE app_guest_actions;
+CREATE TABLE app_guests_next (
+  app_id TEXT NOT NULL REFERENCES apps(app_id),
+  person_id TEXT NOT NULL REFERENCES people(person_id),
+  expires_at INTEGER,
+  revision TEXT NOT NULL DEFAULT (lower(hex(randomblob(16)))),
+  PRIMARY KEY(app_id,person_id)
+);
+INSERT INTO app_guests_next(app_id,person_id,expires_at) SELECT app_id,person_id,expires_at FROM app_guests;
+DROP TABLE app_guests;
+ALTER TABLE app_guests_next RENAME TO app_guests;
+CREATE TABLE app_guest_actions (
+  app_id TEXT NOT NULL,
+  person_id TEXT NOT NULL,
+  action_name TEXT NOT NULL,
+  PRIMARY KEY(app_id,person_id,action_name),
+  FOREIGN KEY(app_id,person_id) REFERENCES app_guests(app_id,person_id) ON DELETE CASCADE,
+  FOREIGN KEY(app_id,action_name) REFERENCES action_policies(app_id,action_name)
+);
+INSERT INTO app_guest_actions SELECT * FROM app_guest_actions_saved;
+DROP TABLE app_guest_actions_saved;
+
 CREATE TABLE app_guest_invitations_next (
   invitation_id TEXT PRIMARY KEY,
   app_id TEXT NOT NULL REFERENCES apps(app_id),

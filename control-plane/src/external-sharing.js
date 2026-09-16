@@ -200,7 +200,7 @@ async function setGuestActions(input,context) {
   if(!guest) throw new OperationError('guest_not_found',404,'This person no longer has guest access to this app.');
   if(guest.revision!==input.revision) throw new OperationError('guest_revision_conflict',409,'Guest access changed. Review the current grants before saving your draft.',{currentRevision:guest.revision});
   await guestActionsArePublished(context.env,app,actionNames);
-  const result={guest:{personId:input.personId,email:guest.email,actionNames,revision:guest.revision+1}};
+  const result={guest:{personId:input.personId,email:guest.email,actionNames,revision:crypto.randomUUID()}};
   const published=publishedActionAdmission(actionNames);
   try {
     return {result:await commit(context,{name:'apps.guests.actions.set',targetId:input.appId,appId:input.appId,input:normalized,result,
@@ -211,7 +211,7 @@ async function setGuestActions(input,context) {
         context.env.CP_DB.prepare(`DELETE FROM app_guest_actions WHERE app_id=? AND person_id=? AND ${receiptGuard}`).bind(input.appId,input.personId,operationId),
         context.env.CP_DB.prepare(`INSERT INTO app_guest_actions(app_id,person_id,action_name) SELECT ?,?,value FROM json_each(?) WHERE ${receiptGuard}`)
           .bind(input.appId,input.personId,JSON.stringify(actionNames),operationId),
-        context.env.CP_DB.prepare(`UPDATE app_guests SET revision=revision+1 WHERE app_id=? AND person_id=? AND ${receiptGuard}`).bind(input.appId,input.personId,operationId),
+        context.env.CP_DB.prepare(`UPDATE app_guests SET revision=? WHERE app_id=? AND person_id=? AND ${receiptGuard}`).bind(result.guest.revision,input.appId,input.personId,operationId),
       ],
     })};
   } catch(error) {
@@ -255,7 +255,7 @@ async function acceptGuest(input,context) {
     writes:(operationId)=>[
       context.env.CP_DB.prepare(`INSERT INTO app_guests(app_id,person_id)
         SELECT app_id,? FROM app_guest_invitations WHERE invitation_id=? AND ${receiptGuard}
-        ON CONFLICT(app_id,person_id) DO UPDATE SET revision=app_guests.revision+1,expires_at=NULL`)
+        ON CONFLICT(app_id,person_id) DO UPDATE SET revision=excluded.revision,expires_at=NULL`)
         .bind(context.actor.person.id,input.invitationId,operationId),
       context.env.CP_DB.prepare(`DELETE FROM app_guest_actions WHERE app_id=? AND person_id=? AND ${receiptGuard}`).bind(app.app_id,context.actor.person.id,operationId),
       context.env.CP_DB.prepare(`INSERT INTO app_guest_actions(app_id,person_id,action_name)

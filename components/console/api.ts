@@ -74,7 +74,7 @@ export type PublicPublication = {
   publicationRevision: number;
   activeReleaseId: string | null;
 };
-export type ExternalGuest = { personId: string; email: string; actionNames: string[]; revision: number };
+export type ExternalGuest = { personId: string; email: string; actionNames: string[]; revision: string };
 export type ExternalGuestInvitation = { id: string; email: string; status: "pending" | "accepted" | "expired" | "cancelled" | "revoked"; actionNames: string[]; expiresAt: number };
 export type ExternalGuestAccess = {
   guests: ExternalGuest[];
