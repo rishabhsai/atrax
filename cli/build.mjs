@@ -25,6 +25,7 @@ const mimeTypes = {
   '.wav':'audio/wav','.mp4':'video/mp4','.webm':'video/webm','.vtt':'text/vtt; charset=utf-8',
 };
 const privateNames=new Set(['node_modules','bower_components','credentials','secrets','atrax.json','atrax.lock.json','package.json','package-lock.json','npm-shrinkwrap.json','credentials.json','secrets.json','tsconfig.json','jsconfig.json','yarn.lock','pnpm-lock.yaml','bun.lock','bun.lockb','readme.md','agents.md','claude.md','wrangler.toml','wrangler.json','wrangler.jsonc','dockerfile','docker-compose.yml','docker-compose.yaml']);
+const toolConfigNames=new Set(['vite.config.js','vite.config.mjs','vite.config.cjs','vite.config.json','next.config.js','next.config.mjs','next.config.cjs','next.config.json','eslint.config.js','eslint.config.mjs','eslint.config.cjs','eslint.config.json','postcss.config.js','postcss.config.mjs','postcss.config.cjs','postcss.config.json','tailwind.config.js','tailwind.config.mjs','tailwind.config.cjs','tailwind.config.json','webpack.config.js','webpack.config.mjs','webpack.config.cjs','webpack.config.json','rollup.config.js','rollup.config.mjs','rollup.config.cjs','rollup.config.json','astro.config.js','astro.config.mjs','astro.config.cjs','astro.config.json','svelte.config.js','svelte.config.mjs','svelte.config.cjs','svelte.config.json','nuxt.config.js','nuxt.config.mjs','nuxt.config.cjs','nuxt.config.json','tsup.config.js','tsup.config.mjs','tsup.config.cjs','tsup.config.json','jest.config.js','jest.config.mjs','jest.config.cjs','jest.config.json','babel.config.js','babel.config.mjs','babel.config.cjs','babel.config.json','biome.config.js','biome.config.mjs','biome.config.cjs','biome.config.json']);
 const serverExtensions=new Set(['.php','.py','.rb','.go','.rs','.java','.cs','.asp','.aspx','.jsp','.cgi','.cjs']);
 const serverModules=new Set([...builtinModules.map(name=>name.replace(/^node:/,'')),'express','fastify','koa','hapi','@hapi/hapi','next/server']);
 function unsupportedRuntime(detail) {
@@ -32,7 +33,7 @@ function unsupportedRuntime(detail) {
 }
 function isMetadata(name) {
   const lower=name.toLowerCase();
-  return (lower.startsWith('.') && lower!=='.well-known') || lower.startsWith('.env') || privateNames.has(lower) || lower.endsWith('.map') || /(?:^|[.-])config\.(?:[cm]?js|json)$/.test(lower);
+  return (lower.startsWith('.') && lower!=='.well-known') || lower.startsWith('.env') || privateNames.has(lower) || toolConfigNames.has(lower) || lower.endsWith('.map');
 }
 
 

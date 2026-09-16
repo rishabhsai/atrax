@@ -21,6 +21,8 @@ async function prototype(t) {
   await writeFile(join(root,'index.html'),'<a href="nested/report.html">Review</a><script type="module" src="/app.js"></script>');
   await writeFile(join(root,'nested','report.html'),'review payload');
   await writeFile(join(root,'nested','blob.custom'),'\x00\x01prototype bytes');
+  await writeFile(join(root,'config.js'),'window.reviewConfig = "ready";');
+  await writeFile(join(root,'app-config.json'),'{"mode":"review"}');
   await writeFile(join(root,'app.js'),'document.body.dataset.ready = "yes";');
   await writeFile(join(root,'atrax.lock.json'),'private deployment state');
   await writeFile(join(root,'.env'),'PRIVATE=value');
@@ -36,7 +38,7 @@ test('a current-folder prototype follows init, build, and the protected local ga
   assert.equal(JSON.parse(result.stdout).result.manifest.web.assets,'.');
 
   const artifact=await buildApp(root);
-  assert.deepEqual(Object.keys(artifact.assets).sort(),['/app.js','/index.html','/nested/blob.custom','/nested/report.html']);
+  assert.deepEqual(Object.keys(artifact.assets).sort(),['/app-config.json','/app.js','/config.js','/index.html','/nested/blob.custom','/nested/report.html']);
   assert.equal(artifact.assets['/nested/blob.custom'].contentType,'application/octet-stream');
 
   const local=await startLocalApp(root,{port:0});
@@ -48,6 +50,12 @@ test('a current-folder prototype follows init, build, and the protected local ga
   const binary=await app('/nested/blob.custom');
   assert.equal(binary.headers.get('content-type'),'application/octet-stream');
   assert.deepEqual([...new Uint8Array(await binary.arrayBuffer())],[0,1,...Buffer.from('prototype bytes')]);
+  const config=await app('/config.js');
+  assert.equal(config.headers.get('content-type'),'text/javascript; charset=utf-8');
+  assert.equal(await config.text(),'window.reviewConfig = "ready";');
+  const namedConfig=await app('/app-config.json');
+  assert.equal(namedConfig.headers.get('content-type'),'application/json');
+  assert.equal(await namedConfig.text(),'{"mode":"review"}');
   const fallback=await app('/client-side/route');
   assert.equal(fallback.status,200);
   assert.match(await fallback.text(),/nested\/report\.html/);
