@@ -1059,7 +1059,7 @@
       }
     },
     "apps.guests.list": {
-      "description": "List exact-app guests, outstanding invitations, and current action names available for guest grants.",
+      "description": "Observe the complete app audience, including public web, active workspace people, current guests, invitation states, and action names available for guest grants.",
       "effect": "read",
       "inputSchema": {
         "type": "object",
@@ -1108,6 +1108,74 @@
         "required": [
           "appId",
           "email",
+          "actionNames"
+        ],
+        "additionalProperties": false
+      },
+      "anonymous": false
+    },
+    "apps.guests.invitation.cancel": {
+      "description": "Cancel a pending exact-app invitation. Its acceptance link immediately stops working.",
+      "effect": "write",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "appId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "invitationId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          }
+        },
+        "required": [
+          "appId",
+          "invitationId"
+        ],
+        "additionalProperties": false
+      },
+      "anonymous": false
+    },
+    "apps.guests.actions.set": {
+      "description": "Replace an accepted guest’s allowed actions using the revision observed in the guest list.",
+      "effect": "write",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "appId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "personId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "revision": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "actionNames": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100,
+              "pattern": "^[a-z][a-zA-Z0-9]*(?:[._][a-zA-Z][a-zA-Z0-9]*)+$"
+            },
+            "uniqueItems": true,
+            "maxItems": 100
+          }
+        },
+        "required": [
+          "appId",
+          "personId",
+          "revision",
           "actionNames"
         ],
         "additionalProperties": false

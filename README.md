@@ -5,29 +5,28 @@ Atrax is a company workspace for apps, verified access, named business actions, 
 - Site and docs: [atrax.run](https://atrax.run)
 - Source: [github.com/rishabhsai/atrax](https://github.com/rishabhsai/atrax)
 
-## Install from source
+## Install
 
-Requires Node.js `>=22.13.0`.
+Requires Node.js `>=22.13.0` and npm.
 
 ```bash
-git clone https://github.com/rishabhsai/atrax.git
-cd atrax
-git checkout feat/workspace-launch
-npm ci
-npm link
-node bin/atrax.mjs new team-chat --template chat
+npm install -g atrax-cloud@0.2.0
+atrax setup --client codex
+atrax new team-chat --template chat
 cd team-chat
-node ../bin/atrax.mjs dev
+atrax dev
 ```
 
-The workspace launch is on `feat/workspace-launch`. The npm package release is forthcoming; use the repository CLI above.
+Choose `claude-code`, `codex`, or `cursor` explicitly for skill setup, then start a fresh client session. Setup reports the CLI executable and installed skill location. It preserves locally edited skills and existing client settings.
+
+For an existing static prototype, run `atrax init client-review --assets .` inside its folder. See [static prototype imports](./docs/static-prototypes.md).
 
 ## Deploy to a workspace
 
 Local development needs no account. A hosted deployment verifies an email and uses a workspace. The workspace owns the app and its business data.
 
 ```bash
-node ../bin/atrax.mjs deploy --json
+atrax deploy --json
 ```
 
 The CLI returns structured output with the app and workspace identifiers and its URL. Keep `atrax.lock.json`: it identifies the app for future updates. A repeated deploy resumes its saved work where possible.
@@ -40,7 +39,7 @@ The CLI returns structured output with the app and workspace identifiers and its
 - **Library:** revisioned company guidance and immutable file versions. Text, Markdown, CSV, and JSON are searchable; PDFs are stored and downloadable. Files are limited to 10 MiB.
 - **MCP:** connect an existing agent through the official stdio protocol with a named session and the same workspace permissions.
 
-Hosted agents, scheduled automation, automatic document synchronization, and third-party connectors are deferred from this launch.
+Shared secrets, hosted agents, scheduled automation, automatic document synchronization, and third-party connectors are deferred from this launch.
 
 ## Use the CLI and MCP
 
@@ -57,9 +56,20 @@ atrax workspace use <workspace-id>
 atrax mcp --workspace <workspace-id>
 ```
 
-Operation schemas are published at `/operations.json`. HTTP, CLI, and MCP use the same operation registry. For a write, choose a stable key and reuse it only when retrying the same business intent.
+Use `atrax operations list` and `atrax operations inspect <name>` for the installed operation contracts. Run `atrax recipes list` for tested workflows. See [agent recipes](./docs/agent-recipes.md), [private sharing](./docs/private-sharing.md), and [retrying writes](./docs/cli-writes.md). Operation schemas are also published at `/operations.json`. HTTP, CLI, and MCP use the same operation registry. For a write, choose a stable key and reuse it only when retrying the same business intent.
 
 ## Work on Atrax
+
+Contributor source installation:
+
+```bash
+git clone https://github.com/rishabhsai/atrax.git
+cd atrax
+git checkout feat/workspace-launch
+npm ci
+npm link
+```
+
 
 ```bash
 npm install

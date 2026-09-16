@@ -18,9 +18,16 @@
       "type": "object",
       "properties": {
         "assets": {
-          "type": "string",
-          "minLength": 1,
-          "pattern": "^(?!/)(?![A-Za-z]:)(?!.*\\\\)(?!.*(?:^|/)\\.\\.?(?:/|$))(?!.*//)(?!.*/$).+$"
+          "anyOf": [
+            {
+              "const": "."
+            },
+            {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!/)(?![A-Za-z]:)(?!.*\\\\)(?!.*(?:^|/)\\.\\.?(?:/|$))(?!.*//)(?!.*/$).+$"
+            }
+          ]
         },
         "fallback": {
           "type": "string",

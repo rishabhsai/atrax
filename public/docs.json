@@ -12,9 +12,9 @@
         {
           "heading": "Install Atrax",
           "paragraphs": [
-            "Use Node.js 22.13 or newer. This launch build is available from source; the published npm package is an earlier release. Local development needs no account. Install the checkout below, then run its CLI from any directory."
+            "Use Node.js 22.13 or newer with npm. Install the published CLI, then choose your local agent for the bundled skill. Supported clients are claude-code, codex, and cursor. Start a fresh agent session after setup. Local development needs no account."
           ],
-          "code": "git clone https://github.com/rishabhsai/atrax.git\ncd atrax\ngit checkout feat/workspace-launch\nnpm ci\nnpm link\natrax new team-chat --template chat\ncd team-chat\natrax dev"
+          "code": "npm install -g atrax-cloud@0.2.0\natrax setup --client codex\natrax new team-chat --template chat\ncd team-chat\natrax dev"
         },
         {
           "heading": "Deploy to your workspace",
@@ -74,7 +74,7 @@
           "paragraphs": [
             "Login uses a one-time browser approval. Credentials are stored outside the app in the user configuration directory with owner-only file permissions. Logout revokes the session before removing the saved credential."
           ],
-          "code": "atrax login --agent \"Operations agent\"\natrax workspace list --json\natrax workspace create \"Acme\" --slug acme\natrax workspace use <workspace-id>\natrax logout"
+          "code": "atrax login --agent \"Operations agent\"\natrax workspace list --json\natrax workspace create \"Acme\" --slug acme --key create-acme-v1\natrax workspace use <workspace-id>\natrax logout"
         },
         {
           "heading": "Library commands",

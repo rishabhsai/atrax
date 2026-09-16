@@ -4,14 +4,11 @@ Create an app, run it locally, and share it with your company.
 
 ## Install Atrax
 
-Use Node.js 22.13 or newer. This launch build is available from source; the published npm package is an earlier release. Local development needs no account. Install the checkout below, then run its CLI from any directory.
+Use Node.js 22.13 or newer with npm. Install the published CLI, then choose your local agent for the bundled skill. Supported clients are claude-code, codex, and cursor. Start a fresh agent session after setup. Local development needs no account.
 
 ```
-git clone https://github.com/rishabhsai/atrax.git
-cd atrax
-git checkout feat/workspace-launch
-npm ci
-npm link
+npm install -g atrax-cloud@0.2.0
+atrax setup --client codex
 atrax new team-chat --template chat
 cd team-chat
 atrax dev

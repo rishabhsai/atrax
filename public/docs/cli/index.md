@@ -20,7 +20,7 @@ Login uses a one-time browser approval. Credentials are stored outside the app i
 ```
 atrax login --agent "Operations agent"
 atrax workspace list --json
-atrax workspace create "Acme" --slug acme
+atrax workspace create "Acme" --slug acme --key create-acme-v1
 atrax workspace use <workspace-id>
 atrax logout
 ```
