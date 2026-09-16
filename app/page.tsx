@@ -3,48 +3,31 @@ import { AgentCommand } from "./components/AgentCommand";
 import { ChipGrid } from "./components/ChipGrid";
 import { CompareStrip } from "./components/CompareStrip";
 import { Reveal } from "./components/Reveal";
-import {
-  AccountPreview,
-  LoopTrace,
-  OrgFabric,
-  ProductMark,
-  ShareSheet,
-} from "./components/Visuals";
+import { ProductMark } from "./components/Visuals";
 import { productOrder, products } from "./lib/content";
 
 export const metadata = {
-  title: "Atrax | A cloud for everyone",
+  title: "Atrax | Company apps, access, and knowledge",
   description:
-    "Create, run, deploy, inspect, and debug small full-stack apps from one CLI.",
+    "Build company-owned apps, connect named actions, keep knowledge with history, and use an existing agent through MCP.",
 };
 
 const contractRows = [
   {
-    label: "In the contract today",
+    label: "Available now",
     state: "available" as const,
     chips: [
-      "worker runtime",
-      "static assets",
-      "D1 database",
-      "ordered migrations",
-      "local dev",
-      "stable URL",
-      "versioned JSON",
-      "logs",
-      "lockfile",
-      "plan",
-      "drift",
+      "company-owned apps",
+      "workspace access",
+      "named actions",
+      "Library revisions",
+      "MCP for an existing agent",
     ],
   },
   {
-    label: "Landing next",
+    label: "Planned",
     state: "planned" as const,
-    chips: ["stacks", "releases", "rollback"],
-  },
-  {
-    label: "Planned products",
-    state: "planned" as const,
-    chips: ["Door", "Library", "Switchboard", "Loops"],
+    chips: ["hosted agents", "scheduled automation", "third-party connectors"],
   },
 ];
 
@@ -54,30 +37,26 @@ export default function Home() {
       <section className="hero">
         <div className="shell hero-grid">
           <div className="hero-copy">
-            <p className="eyebrow">The agent-native cloud</p>
-            <h1>A cloud for everyone.</h1>
+            <p className="eyebrow">Company software, kept together</p>
+            <h1>Build the apps your company actually uses.</h1>
             <p className="hero-summary">
-              Tell your coding agent what to build. Atrax deploys the app,
-              keeps its data, connects company tools, and shows you exactly
-              what is running.
+              Build, deploy, and share your company&apos;s apps. Give your team
+              and their agents access to the same tools and company knowledge.
             </p>
             <AgentCommand />
             <p className="hero-note">
-              No account needed: <code>atrax deploy --instant</code> puts the
-              app on a public URL and prints a claim token — claim it, or it
-              disappears in 30 days. Using a coding agent?{" "}
-              <code>curl -fsSL https://atrax.run/agent</code>{" "}
-              gives it the docs, app contract, and safety rules.{" "}
-              <Link href="/docs">Read the quickstart →</Link>
+              Local development needs no account. A hosted deployment begins
+              with email verification and a workspace.{" "}
+              <Link href="/docs/quickstart">Read the quickstart →</Link>
             </p>
           </div>
         </div>
-        <div className="hero-rail" aria-label="Current capabilities">
+        <div className="hero-rail" aria-label="Available capabilities">
           <span>Apps</span>
-          <span>Data</span>
           <span>Access</span>
-          <span>Knowledge</span>
-          <span>Automations</span>
+          <span>Actions</span>
+          <span>Library</span>
+          <span>MCP</span>
         </div>
       </section>
 
@@ -85,25 +64,20 @@ export default function Home() {
         <div className="shell thesis-copy">
           <p className="eyebrow">Why Atrax</p>
           <h2>
-            Clouds deploy apps. Atrax runs the software your company works
-            in.
+            One workspace for the app, the people it serves, and the context it
+            needs.
           </h2>
           <p className="thesis-summary">
-            Every app you ship lands in one workspace — where your team can open
-            it, your other apps can call it, and your agents can keep it
-            running. The first app is a tool. The tenth is an operating system
-            for your company.
-          </p>
-          <p className="thesis-note">
-            Launchpad and Tables are available today. Door, Library,
-            Switchboard, and Loops are planned, and every section below says
-            where it stands.
+            A deployed app belongs to a company. Coworkers can open it, a
+            maintainer can narrow its audience, another app can call a named
+            action, and an existing agent can work through the same current
+            permissions.
           </p>
           <nav className="thesis-jump" aria-label="Jump to a section">
-            <a href="#fabric">Apps that work together</a>
-            <a href="#included">Everything included</a>
-            <a href="#sharing">Share like a doc</a>
-            <a href="#agents">Agents as apps</a>
+            <a href="#products">What is available</a>
+            <a href="#actions">Connected actions</a>
+            <a href="#library">Company knowledge</a>
+            <a href="#agents">Existing agents</a>
           </nav>
         </div>
       </section>
@@ -112,18 +86,18 @@ export default function Home() {
         <div className="shell section-split section-split-center">
           <Reveal className="split-copy">
             <p className="microlabel">
-              01 · <b>Operating surface</b>
+              01 · <b>One operating surface</b>
             </p>
-            <h2>Why an agent can operate it.</h2>
+            <h2>Make the boundaries readable for people and agents.</h2>
             <p>
-              A conventional cloud spreads one app across a console, a policy
-              file, a set of provisioned pieces, and a secret store. An agent
-              has to hold all four and guess when they disagree.
+              An Atrax app declares its assets, data, and named actions. The
+              workspace keeps membership, app access, and Library permissions
+              outside uploaded app code.
             </p>
             <p>
-              Atrax keeps the whole app in one declared contract. The deploy
-              command reconciles it and answers in versioned JSON, so the state
-              is readable without a browser.
+              That separation lets a person and an MCP-connected agent use the
+              same platform operations without passing credentials through a
+              prompt.
             </p>
             <Link className="text-link" href="/docs/app-contract">
               Read the app contract <span aria-hidden="true">→</span>
@@ -135,47 +109,17 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="fabric" id="fabric">
-        <Reveal className="shell fabric-intro">
-          <p className="microlabel">
-            02 · <b>One workspace</b>
-          </p>
-          <h2>Every app can use every other app. On your terms.</h2>
-          <p>
-            An app publishes named actions instead of a database or an API key.
-            Another app receives one action, on one resource, for as long as you
-            allow — and every call lands in a ledger you can read. Nothing is
-            copied, nothing is shared by accident.
-          </p>
-          <p className="section-status">
-            <span className="status status-planned">planned</span>
-            <span>
-              Switchboard, which owns grants, typed tools, and the action
-              ledger, is not available yet. Launchpad and Tables run the apps
-              today.
-            </span>
-          </p>
-          <Link className="text-link" href="/products/switchboard">
-            Read the Switchboard roadmap <span aria-hidden="true">→</span>
-          </Link>
-        </Reveal>
-        <Reveal className="shell" delay={120}>
-          <OrgFabric />
-        </Reveal>
-      </section>
-
-      <section className="products-stage" id="included">
+      <section className="products-stage" id="products">
         <div className="shell">
           <Reveal className="section-intro products-stage-intro">
             <p className="microlabel">
-              03 · <b>Everything included</b>
+              02 · <b>Available launch</b>
             </p>
-            <h2>Six products. One contract. Nothing to assemble.</h2>
+            <h2>Apps, access, actions, Library, and MCP.</h2>
             <p>
-              One `atrax.json` declares the whole app: runtime, data,
-              access, files, connected tools, and background work. You or your
-              agent write the contract, and Atrax reconciles it. Two
-              products run today, four are planned, and each card says which.
+              Build and share company apps, connect their actions, keep their
+              knowledge current, and bring the agent you already use into the
+              same workspace.
             </p>
           </Reveal>
           <Reveal className="product-ledger" delay={100}>
@@ -200,132 +144,144 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="contract-section">
-        <div className="shell section-split">
+      <section className="fabric" id="actions">
+        <div className="shell section-split section-split-center">
           <Reveal className="split-copy">
             <p className="microlabel">
-              04 · <b>Status</b>
+              03 · <b>Connected work</b>
             </p>
-            <h2>What ships today, and what lands next.</h2>
+            <h2>Ask another app to do one named thing.</h2>
             <p>
-              A filled square is in the working v0 contract and you can use it
-              from the CLI now. A hollow square is planned work with a written
-              boundary and no shipped surface.
+              Apps expose actions with input and output schemas. The target
+              checks the current employee’s access before it runs, so a caller
+              does not get raw database access or a general credential.
             </p>
-            <Link className="text-link" href="/docs/status">
-              Read the full status page <span aria-hidden="true">→</span>
+            <p>
+              Write actions take a stable business key. An interrupted request
+              can safely retry the same business intent.
+            </p>
+            <Link className="text-link" href="/docs/inventory-orders">
+              See the Inventory and Orders example{" "}
+              <span aria-hidden="true">→</span>
             </Link>
           </Reveal>
           <Reveal className="panel" delay={120}>
             <div className="panel-head">
-              <span>atrax.json</span>
-              <span>v0 contract</span>
+              <span>Action example</span>
+              <span>Checked when called</span>
             </div>
-            <ChipGrid
-              note="Planned rows have no CLI surface yet. Nothing on this list is enabled by a flag you cannot see."
-              rows={contractRows}
-            />
+            <pre>
+              <code>{`orders.create\n  input: { orderId, sku, quantity }\n  effect: write\n  key: order-42\n\ninventory.stock.reserve\n  input: { sku, quantity }\n  effect: write`}</code>
+            </pre>
+            <p className="compare-caption">
+              Atrax checks the action input and current permissions on every
+              call.
+            </p>
           </Reveal>
         </div>
       </section>
 
-      <section className="share-story" id="sharing">
+      <section className="share-story" id="library">
         <div className="shell share-grid">
           <Reveal className="share-copy">
             <p className="microlabel">
-              05 · <b>Sharing</b>
+              04 · <b>Company Library</b>
             </p>
-            <h2>Share an app the way you share a doc.</h2>
+            <h2>Keep the decision, its correction, and its source together.</h2>
             <p>
-              Invite a teammate by email, choose what they can do, and send one
-              URL. No login screen to build, no sessions to store, no identity
-              provider to wire in. Access belongs to the platform instead of the
-              app code.
+              Library entries and files record authorship, a revision history,
+              and a reason for a correction. Search applies current access
+              before titles, snippets, or content are returned.
             </p>
-            <p className="section-status">
-              <span className="status status-planned">planned</span>
-              <span>
-                Door owns sign-in, teams, roles, and one share control, and is
-                not available yet. A v0 app ships public today, so anyone with
-                its URL can open it.
-              </span>
+            <p>
+              Text, Markdown, CSV, and JSON files are searchable; PDF files are
+              stored and available to download. Files are limited to 10 MiB.
             </p>
-            <Link className="text-link" href="/products/door">
-              Read the Door roadmap <span aria-hidden="true">→</span>
+            <Link className="text-link" href="/docs/library">
+              Read Library docs <span aria-hidden="true">→</span>
             </Link>
           </Reveal>
-          <Reveal delay={120}>
-            <ShareSheet />
+          <Reveal className="panel" delay={120}>
+            <div className="panel-head">
+              <span>Revision example</span>
+              <span>History and source access</span>
+            </div>
+            <pre>
+              <code>{`brand-guidance.md\nrevision: <current-revision-id>\nreason: "Correct the product name"\nsource: <source-item-id>\naudience: company`}</code>
+            </pre>
+            <p className="compare-caption">
+              A derived item remains limited by the current permissions on its
+              sources.
+            </p>
           </Reveal>
         </div>
       </section>
 
-      <section className="loop-story" id="agents">
-        <div className="shell loop-grid">
-          <Reveal className="loop-copy">
-            <p className="microlabel">
-              06 · <b>Agents as apps</b>
-            </p>
-            <h2>Deploy an agent. Let it keep working.</h2>
-            <p>
-              An agent ships behind the same contract as any other app. Loops
-              adds what a single request cannot hold: schedules, webhooks,
-              queues, retries, a pause for approval before a sensitive action,
-              and a trace of every step. The work continues after the tab
-              closes.
-            </p>
-            <p className="section-status">
-              <span className="status status-planned">planned</span>
-              <span>
-                Launchpad deploys the agent app today. The durable execution
-                layer shown here belongs to Loops, which is not available yet.
-              </span>
-            </p>
-            <Link className="text-link" href="/products/loops">
-              Explore Loops <span aria-hidden="true">→</span>
-            </Link>
-          </Reveal>
-          <Reveal delay={120}>
-            <LoopTrace />
-          </Reveal>
-        </div>
-      </section>
-
-      <section className="account-story">
-        <Reveal className="shell account-story-copy">
-          <p className="eyebrow">Your Atrax account</p>
-          <h2>Everything you shipped. In one quiet place.</h2>
-          <p>
-            The workspace where all of it shows up: projects, environments,
-            health, releases, resources, and recent activity, without opening a
-            provider console.
-          </p>
-        </Reveal>
-        <Reveal className="shell account-preview-wrap" delay={120}>
-          <AccountPreview />
-        </Reveal>
-      </section>
-
-      <section className="agent-docs">
+      <section className="agent-docs" id="agents">
         <div className="shell agent-docs-grid">
           <Reveal>
-            <p className="eyebrow">A shared language</p>
-            <h2>People and agents read the same cloud.</h2>
+            <p className="eyebrow">Your existing agent</p>
+            <h2>Connect it through MCP, with your current permissions.</h2>
             <p>
-              The same docs ship as readable pages, Markdown entrypoints,
-              `docs.json`, `llms.txt`, and versioned CLI JSON.
+              Start a named agent session, select a workspace, and run the Atrax
+              MCP server. Its tools come from the platform operation registry;
+              write tools require a stable key.
             </p>
-            <Link className="text-link" href="/docs">
-              Open the docs <span aria-hidden="true">→</span>
+            <Link className="text-link" href="/docs/mcp">
+              Configure MCP <span aria-hidden="true">→</span>
             </Link>
           </Reveal>
           <Reveal delay={120}>
-            <div className="agent-files" aria-label="Agent documentation files">
-              <a href="/docs.json"><span>docs.json</span><small>page manifest</small></a>
-              <a href="/llms.txt"><span>llms.txt</span><small>agent index</small></a>
-              <a href="/llms-full.txt"><span>llms-full.txt</span><small>complete reference</small></a>
-              <Link href="/docs/app-contract"><span>atrax.json</span><small>app contract</small></Link>
+            <div
+              className="agent-files"
+              aria-label="Machine-readable Atrax references"
+            >
+              <a href="/operations.json">
+                <span>operations.json</span>
+                <small>operation schemas</small>
+              </a>
+              <a href="/docs.json">
+                <span>docs.json</span>
+                <small>documentation manifest</small>
+              </a>
+              <a href="/llms.txt">
+                <span>llms.txt</span>
+                <small>agent index</small>
+              </a>
+              <Link href="/docs/security">
+                <span>security model</span>
+                <small>access boundaries</small>
+              </Link>
             </div>
+          </Reveal>
+        </div>
+      </section>
+
+      <section className="contract-section">
+        <div className="shell section-split">
+          <Reveal className="split-copy">
+            <p className="microlabel">
+              05 · <b>Scope</b>
+            </p>
+            <h2>Build company software now.</h2>
+            <p>
+              Hosted agents, scheduled automation, automatic external-document
+              synchronization, and third-party connectors are planned for a
+              later release.
+            </p>
+            <Link className="text-link" href="/docs/status">
+              Read feature status <span aria-hidden="true">→</span>
+            </Link>
+          </Reveal>
+          <Reveal className="panel" delay={120}>
+            <div className="panel-head">
+              <span>Launch scope</span>
+              <span>Current</span>
+            </div>
+            <ChipGrid
+              note="Use available products from the workspace, CLI, or MCP."
+              rows={contractRows}
+            />
           </Reveal>
         </div>
       </section>
@@ -333,15 +289,12 @@ export default function Home() {
       <section className="final-cta">
         <div className="shell final-cta-grid">
           <div>
-            <p className="eyebrow">Shared context, instantly</p>
-            <h2>Teach your agent Atrax.</h2>
+            <p className="eyebrow">Start locally</p>
+            <h2>Build the first company app from the source checkout.</h2>
           </div>
-          <div>
-            <code>curl -fsSL https://atrax.run/agent</code>
-            <Link className="button button-orange" href="/agent">
-              Read the agent file <span aria-hidden="true">→</span>
-            </Link>
-          </div>
+          <Link className="button button-orange" href="/docs/quickstart">
+            Open the quickstart <span aria-hidden="true">→</span>
+          </Link>
         </div>
       </section>
     </main>

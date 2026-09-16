@@ -1,551 +1,513 @@
-export type DocSection = {
-  heading: string;
-  paragraphs?: readonly string[];
-  bullets?: readonly string[];
-  code?: string;
-  note?: string;
-};
-
-export type DocPage = {
-  slug: string;
-  title: string;
-  description: string;
-  group: "Start" | "Build" | "Products" | "Operate";
-  status: "available" | "planned" | "mixed";
-  sections: readonly DocSection[];
-};
-
+export type DocSection = { heading: string; paragraphs?: readonly string[]; bullets?: readonly string[]; code?: string; note?: string };
+export type DocPage = { slug: string; title: string; description: string; group: "Start" | "Build" | "Products" | "Operate"; status: "available" | "planned" | "mixed"; sections: readonly DocSection[] };
 export const docs: Record<string, DocPage> = {
-  quickstart: {
-    slug: "quickstart",
-    title: "Quickstart",
-    description:
-      "Install the local alpha, create a chat app, and deploy it through your Cloudflare account.",
-    group: "Start",
-    status: "available",
-    sections: [
+  "quickstart": {
+    "slug": "quickstart",
+    "title": "Quickstart",
+    "description": "Create an app, run it locally, and share it with your company.",
+    "group": "Start",
+    "status": "available",
+    "sections": [
       {
-        heading: "Brief your coding agent",
-        paragraphs: [
-          "This read-only endpoint gives a coding agent the current docs map, product boundaries, app contract rules, and safe CLI workflow. It does not execute a script or change your machine.",
+        "heading": "Install Atrax",
+        "paragraphs": [
+          "Use Node.js 22.13 or newer. This launch build is available from source; the published npm package is an earlier release. Local development needs no account. Install the checkout below, then run its CLI from any directory."
         ],
-        code: `curl -fsSL https://atrax.run/agent`,
+        "code": "git clone https://github.com/rishabhsai/atrax.git\ncd atrax\ngit checkout feat/workspace-launch\nnpm ci\nnpm link\natrax new team-chat --template chat\ncd team-chat\natrax dev"
       },
       {
-        heading: "Install the local alpha",
-        paragraphs: [
-          "Atrax v0 is installed from the private repository. It needs Node.js 22.13 or newer and an authenticated Wrangler session.",
+        "heading": "Deploy to your workspace",
+        "paragraphs": [
+          "Run deploy from the app directory. On your first hosted deploy, follow the one-time browser approval link and verify your email. If you do not have a workspace yet, create one or accept a team invitation on that approval screen, then connect the CLI. Deployment continues with your only workspace automatically. Your company owns the app; you become its first maintainer.",
+          "You do not need a Cloudflare account. The app is company-only by default: every current workspace member can open it."
         ],
-        code: `git clone https://github.com/rishabhsai/atrax.git
-cd atrax
-npm install
-npm link
-atrax doctor --json`,
+        "code": "atrax deploy --json",
+        "note": "Read the returned URL. Do not guess a hostname. Keep atrax.lock.json: it identifies this app for future updates."
       },
       {
-        heading: "Create the chat",
-        code: `atrax new open-chat --template chat
-cd open-chat
-atrax dev`,
-        paragraphs: [
-          "Development applies ordered migrations to a persistent local D1 database, then starts the Worker and static assets together.",
-        ],
+        "heading": "Invite your team",
+        "paragraphs": [
+          "Open Home, then Team to invite a coworker by email. They verify that address and join the workspace. Workspace-wide apps become available immediately.",
+          "Use the app\u2019s sharing controls to select people, appoint another maintainer, or restrict an action. Removing a teammate revokes their existing app and agent access."
+        ]
       },
       {
-        heading: "Deploy",
-        code: `atrax deploy --json`,
-        paragraphs: [
-          "The first deploy verifies the Cloudflare account, creates D1, applies remote migrations, deploys the Worker and assets, waits for the message API, writes atrax.lock.json, and returns the URL.",
+        "heading": "Update without starting over",
+        "paragraphs": [
+          "Edit the app, check it locally, then deploy again. The app keeps its URL and business database. A private candidate is checked before promotion.",
+          "If a request is interrupted, repeat atrax deploy. The CLI resumes its saved artifact and deployment rather than creating another app."
         ],
-        note: "The generated chat is public. Anyone with the URL can read and post.",
+        "code": "atrax build\natrax deploy --json"
       },
       {
-        heading: "Deploy without a Cloudflare account",
-        code: `atrax deploy --instant
-atrax claim <token>`,
-        paragraphs: [
-          "Deploy takes this path on its own when no Cloudflare account is detected; --instant forces it. Atrax posts the app to its own hosted control plane and returns a real public URL plus a claim token, printed exactly once by the deploy that minted it. An unclaimed app is deleted 30 days after it was created. Claiming keeps the same URL and stops the expiry.",
-          "Every instant deploy names who can open the URL. A public app prints that anyone with the URL can open it, and the JSON carries access: public. Shared apps work here too: set visibility shared in atrax.json, deploy, and atrax share add <email> invites people the same way it does on a Cloudflare account.",
+        "heading": "Connect your existing agent",
+        "paragraphs": [
+          "Sign in with an agent label, then configure your MCP client to run atrax mcp. The agent uses your permissions."
         ],
-        note: "Instant deploys are capped at 10 per day per IP.",
-      },
-      {
-        heading: "Inspect what exists",
-        code: `atrax inspect --json
-atrax logs`,
-        paragraphs: [
-          "Inspect returns the active Worker deployment, stable URL, D1 binding, region, size, and query counters. Logs streams real request outcomes.",
-        ],
-      },
-    ],
+        "code": "atrax login --agent \"My coding agent\"\natrax workspace use <workspace-id>\natrax mcp --workspace <workspace-id>"
+      }
+    ]
   },
-  cli: {
-    slug: "cli",
-    title: "CLI reference",
-    description:
-      "The commands and machine-output guarantees available in Atrax v0.",
-    group: "Start",
-    status: "available",
-    sections: [
+  "cli": {
+    "slug": "cli",
+    "title": "CLI reference",
+    "description": "One CLI for app creation, deployment, company knowledge, and agent operations.",
+    "group": "Start",
+    "status": "available",
+    "sections": [
       {
-        heading: "Commands",
-        bullets: [
-          "atrax new <name> --template chat: scaffold the documented chat app.",
-          "atrax dev [--port 8787]: migrate and run locally with persistent state.",
-          "atrax deploy [--json]: provision, migrate, deploy, wait, lock, and return the URL.",
-          "atrax deploy --dry-run: validate the bundle without changing remote resources.",
-          "atrax deploy --instant: deploy to Atrax instant hosting instead of a Cloudflare account, and print a claim token once. Deploy chooses this path by itself when no Cloudflare account is detected. The deploy names who can open the URL and reports it as access: public or access: shared.",
-          "atrax claim <token> [--json]: claim an instant app so it stops expiring.",
-          "atrax plan [--json]: preview what deploy would create, update, keep, or apply, without changing anything.",
-          "atrax drift [--json]: compare the provider with the lockfile and report changes made outside Atrax.",
-          "atrax inspect [--json]: inspect the live Worker and D1 database.",
-          "atrax logs [--json]: stream live Worker logs; JSON mode is Wrangler NDJSON, not a single result object.",
-          "atrax doctor [--json]: validate declared files, bundle, Wrangler, Cloudflare account, and lock ownership.",
-          "atrax share add <email> [--json]: invite someone to a shared app and return a single-use invite URL. Works on instant apps and Cloudflare-account apps alike.",
-          "atrax share list [--json]: list members as joined, invited, or expired.",
-          "atrax share remove <email> [--json]: remove a member from a shared app.",
-        ],
+        "heading": "App commands",
+        "bullets": [
+          "atrax new <name> --template chat|static|inventory|orders",
+          "atrax init <name> --assets <directory> [--actions <entry>] [--migrations <directory>]",
+          "atrax build or atrax doctor: validate and build the actual artifact.",
+          "atrax dev --port 8787: run the app with persistent local data.",
+          "atrax deploy --dry-run: build without changing hosted resources.",
+          "atrax deploy --access access.json: choose initial audiences for new actions. Existing policies remain unchanged.",
+          "atrax link <app-id>: refresh this checkout’s observed release after reviewing a teammate’s changes. Refuses unfinished deployments or a different linked app.",
+          "atrax deploy --workspace <id> --json: deploy or resume a saved attempt."
+        ]
       },
       {
-        heading: "Sharing",
-        paragraphs: [
-          "The share commands need visibility shared in atrax.json and a deployed app. Deploy provisions the Worker session secret once. Atrax prints the invite URL; sending it is up to you.",
-          "An instant lock routes the share commands through Atrax instant hosting instead of your Cloudflare account. The JSON and the human output are identical either way.",
+        "heading": "Identity and workspaces",
+        "paragraphs": [
+          "Login uses a one-time browser approval. Credentials are stored outside the app in the user configuration directory with owner-only file permissions. Logout revokes the session before removing the saved credential."
         ],
-        code: `atrax share add ana@example.com --json
-
-{
-  "schemaVersion": 1,
-  "status": "invited",
-  "email": "ana@example.com",
-  "inviteUrl": "https://open-chat...workers.dev/.door/join?token=...",
-  "expiresAt": 1790000000000
-}`,
-        note: "This is the Door alpha slice: invite links only. Roles, teams, and email delivery are still planned.",
+        "code": "atrax login --agent \"Operations agent\"\natrax workspace list --json\natrax workspace create \"Acme\" --slug acme\natrax workspace use <workspace-id>\natrax logout"
       },
       {
-        heading: "JSON contract",
-        paragraphs: [
-          "Finite JSON commands write one versioned object to stdout and return a non-zero exit code on failure. Provider logs stay out of successful JSON output. The long-running logs --json stream emits Wrangler NDJSON events instead.",
+        "heading": "Library commands",
+        "paragraphs": [
+          "To replace a file, use library replace <item-id> <file> --revision <current-revision-id> --reason <correction>. Downloads refuse to overwrite an existing local file."
         ],
-        code: `{
-  "schemaVersion": 1,
-  "status": "deployed",
-  "name": "open-chat",
-  "url": "https://open-chat...workers.dev",
-  "deploymentId": "...",
-  "resources": {
-    "tables": { "id": "...", "name": "open-chat-tables" }
-  }
-}`,
+        "code": "atrax library upload ./brand.md --workspace <id> --key brand-v1\natrax library search \"brand\" --workspace <id> --json\natrax library get <item-id> --workspace <id> --json\natrax library download <item-id> --workspace <id> --out ./brand-copy.md"
       },
       {
-        heading: "Exit codes",
-        paragraphs: [
-          "0 means success. 1 means the command failed, including a plan blocked by a name conflict it cannot own. 2 is reserved for atrax drift and means the provider no longer matches the lockfile, so an agent can branch on drift without treating it as an error.",
+        "heading": "Every platform operation",
+        "paragraphs": [
+          "The operation schemas at /operations.json describe the exact inputs for the HTTP, CLI, and MCP interfaces. For a write, choose a stable --key and reuse it only when retrying the same intent."
         ],
+        "code": "atrax call apps.list --input '{\"workspaceId\":\"<id>\"}' --json\natrax call actions.list --input '{\"appId\":\"<id>\"}' --json"
       },
       {
-        heading: "Account safety",
-        paragraphs: [
-          "The first deploy records the Cloudflare account ID. Later remote operations fail before mutation when the active account does not match the lockfile.",
-        ],
-      },
-    ],
+        "heading": "Structured results",
+        "paragraphs": [
+          "--json writes schemaVersion 1 envelopes. Success contains result; failure contains a stable error code, message, and optional recovery details. Device sign-in can emit an authorization-required progress result before the final result. MCP owns stdout for JSON-RPC and does not use CLI result envelopes."
+        ]
+      }
+    ]
   },
   "app-contract": {
-    slug: "app-contract",
-    title: "App contract",
-    description:
-      "atrax.json is the app-owned source of truth; the provider configuration is generated.",
-    group: "Build",
-    status: "available",
-    sections: [
+    "slug": "app-contract",
+    "title": "App contract",
+    "description": "One version 2 artifact runs locally and in the hosted environment.",
+    "group": "Build",
+    "status": "available",
+    "sections": [
       {
-        heading: "atrax.json",
-        code: `{
-  "$schema": "https://atrax.run/schema/v0.json",
-  "version": 1,
-  "name": "open-chat",
-  "visibility": "public",
-  "web": {
-    "entry": "src/worker.js",
-    "assets": "public",
-    "health": "/.well-known/atrax.json"
-  },
-  "tables": {
-    "migrations": "migrations"
-  }
-}`,
-        paragraphs: [
-          "v0 accepts one Worker entry, one static-asset directory, and one ordered migration directory. visibility is public or shared; shared gates the app behind Door invite links. All paths must remain inside the app and may not contain symlinks. The optional same-origin health path defaults to /.well-known/atrax.json.",
+        "heading": "Declare the app",
+        "paragraphs": [
+          "An app needs web assets, named actions, or both. Static apps do not receive a placeholder database or backend. If package.json defines build:web, the build runs it before capturing assets. Existing HTML and React frontends can use this contract; arbitrary server runtimes need adaptation."
         ],
+        "code": "{\"version\":2,\"name\":\"team-chat\",\"web\":{\"assets\":\"public\",\"fallback\":\"index.html\"},\"actions\":{\"entry\":\"src/actions.js\"},\"tables\":{\"migrations\":\"migrations\"}}"
       },
       {
-        heading: "atrax.lock.json",
-        paragraphs: [
-          "The generated lockfile contains stable non-secret resource identities: the Cloudflare account, Worker name and URL, and D1 name and ID. It is a portable identity cache, not the authoritative infrastructure state. Commit it so a fresh checkout targets the same app.",
+        "heading": "Define a named action",
+        "paragraphs": [
+          "Input and output use JSON Schema. The trusted gateway checks both and authorizes the current person before invoking customer code. A write action requires an idempotency key; the handler must implement its business retry semantics."
         ],
+        "code": "export const actions = {\n  'records.list': {\n    description: 'List records', effect: 'read',\n    inputSchema: {type:'object', additionalProperties:false},\n    outputSchema: {type:'object', required:['records'], properties:{records:{type:'array'}}},\n    async handler(input, {db}) {\n      return {records:(await db.prepare('SELECT * FROM records').all()).results};\n    }\n  }\n};"
       },
       {
-        heading: "Generated provider config",
-        paragraphs: [
-          "Atrax writes .atrax/wrangler.jsonc from the app contract and lockfile. Do not edit it. A second provider config is not a second source of truth.",
-        ],
+        "heading": "Resources and request capabilities",
+        "bullets": [
+          "db: the app\u2019s own D1 database when tables are declared.",
+          "actor: descriptive person/session identity, command key, and invocation chain. It contains no session bearer token.",
+          "actions.call(alias,name,input,{key}): a declared dependency, acting as the current employee.",
+          "knowledge.search/get/create/revise: permitted Library operations in the current workspace."
+        ]
       },
-    ],
+      {
+        "heading": "Declare another app",
+        "paragraphs": [
+          "Both apps must belong to the same workspace. The target checks the employee\u2019s current app and action permissions on every call. A preview has no live dependency bindings."
+        ],
+        "code": "\"dependencies\": {\"inventory\": {\"appId\": \"<inventory-app-id>\"}}"
+      },
+      {
+        "heading": "Artifact checks",
+        "paragraphs": [
+          "Build bundles imports and npm dependencies, inspects action declarations in the Worker runtime, and captures hashed assets and an immutable migration history. Hosting checks artifact, asset, and migration checksums again. Uploaded code never receives the platform database, provider credential, or another app\u2019s raw database binding."
+        ]
+      }
+    ]
   },
   "infrastructure-model": {
-    slug: "infrastructure-model",
-    title: "Infrastructure model",
-    description:
-      "The planned reconciliation model separating app intent, stacks, remote state, releases, and company connections.",
-    group: "Build",
-    status: "mixed",
-    sections: [
+    "slug": "infrastructure-model",
+    "title": "Infrastructure model",
+    "description": "What Atrax owns and how releases retain app identity.",
+    "group": "Build",
+    "status": "available",
+    "sections": [
       {
-        heading: "The invariant",
-        paragraphs: [
-          "Atrax products are the user-facing abstraction. Infrastructure-as-code is an internal reconciliation engine. Provider files such as wrangler.jsonc are compiled artifacts and never become the product contract.",
-        ],
+        "heading": "App, release, and deployment",
+        "paragraphs": [
+          "An app belongs to a workspace and has one stable live URL. A release is an immutable built artifact. A deployment records progress toward running a release. A per-app durable coordinator owns provider mutations and serializes publication."
+        ]
       },
       {
-        heading: "Four sources with distinct jobs",
-        bullets: [
-          "atrax.json: provider-neutral desired app architecture.",
-          "stacks/dev.json and stacks/prod.json: environment-specific intent and non-secret references.",
-          "atrax.lock.json: stable resource identities safe to commit.",
-          "Remote locked state: authoritative observed infrastructure, ownership, and drift metadata.",
-        ],
-        note: "Stacks and remote state are roadmap architecture. v0 currently supports one implicit stack and a committed lockfile.",
+        "heading": "Private execution",
+        "paragraphs": [
+          "The public Worker is Atrax\u2019s trusted gateway. App code runs behind a private service binding with public Worker URLs disabled. Identity, policy, input validation, and action invocation records remain outside uploaded code."
+        ]
       },
       {
-        heading: "Three lifecycles",
-        bullets: [
-          "Infrastructure: databases, buckets, queues, domains, and other stateful resources.",
-          "Releases: immutable Worker versions and static assets, promoted or rolled back independently.",
-          "Connections: external secret and OAuth references resolved through Switchboard without entering app files or state.",
-        ],
+        "heading": "Persistent state",
+        "paragraphs": [
+          "Code updates retain the business database. Candidate checks use a different database. Stored progress and stable resource names let the coordinator reconcile a provider response that was lost after a mutation."
+        ]
       },
       {
-        heading: "Reconciliation workflow",
-        code: `atrax plan --json
-atrax deploy --json
-atrax drift --json`,
-        paragraphs: [
-          "Plan compares desired architecture with locked remote state. Deploy reconciles the approved change. Drift reports provider changes made outside Atrax.",
-          "Plan and drift work in v0 against the single implicit environment. Plan exits 1 when a name conflict blocks it; drift exits 2 when the provider no longer matches the lockfile.",
+        "heading": "Correct an interrupted deployment",
+        "paragraphs": [
+          "Run atrax deploy again to resume the saved attempt. To abandon an unpublished attempt, inspect deployments.cancel.plan, then call deployments.cancel with its planHash. Cancellation retains business data and committed migrations. Keep those migration files unchanged, correct the unapplied work, and deploy again; the CLI archives the cancelled attempt and starts a new one for the same app.",
+          "Once publication has been admitted, cancellation is unavailable: resume the attempt so Atrax can reconcile what is live. A timed-out provider response does not prove that publication failed."
         ],
-        note: "The --stack flag is roadmap architecture. v0 has one implicit stack.",
+        "code": "atrax call deployments.cancel.plan --input '{\"appId\":\"APP_ID\",\"deploymentId\":\"DEPLOYMENT_ID\"}' --json\natrax call deployments.cancel --key cancel-reviewed-attempt --input '{\"appId\":\"APP_ID\",\"deploymentId\":\"DEPLOYMENT_ID\",\"planHash\":\"PLAN_HASH\"}' --json"
       },
       {
-        heading: "Provider engines",
-        paragraphs: [
-          "Wrangler is the v0 Cloudflare executor. A future reconciler may use Alchemy, direct Cloudflare APIs, or another engine behind an internal adapter. The engine is replaceable; Atrax's contract and state semantics are not.",
-        ],
-      },
-    ],
+        "heading": "Boundaries",
+        "paragraphs": [
+          "GitHub remains the place for source code and collaboration. Atrax supplies runtime, deployment, data, access, app actions, and company knowledge. Customers do not configure the underlying Cloudflare account."
+        ]
+      }
+    ]
   },
   "chat-example": {
-    slug: "chat-example",
-    title: "Public chat example",
-    description:
-      "A complete login-free app with static UI, Worker API, validation, migrations, D1, and deployment.",
-    group: "Build",
-    status: "available",
-    sections: [
+    "slug": "chat-example",
+    "title": "Chat example",
+    "description": "A small persistent app with two named actions.",
+    "group": "Build",
+    "status": "available",
+    "sections": [
       {
-        heading: "What it proves",
-        bullets: [
-          "A fresh scaffold runs without edits.",
-          "Two browsers see the same messages through short polling.",
-          "Messages survive refresh, local restart, and remote redeploy.",
-          "Invalid input is rejected by the Worker.",
-          "User text is rendered with textContent, never inserted as HTML.",
-          "The deploy command returns a stable public HTTPS URL.",
-          "Posts are capped at 4 KiB and 12 messages per IP per minute.",
-          "The template retains only the latest 500 messages.",
-        ],
+        "heading": "Run it",
+        "code": "atrax new team-chat --template chat\ncd team-chat\natrax dev"
       },
       {
-        heading: "Run it",
-        code: `atrax new open-chat --template chat
-cd open-chat
-atrax dev`,
+        "heading": "Use it",
+        "paragraphs": [
+          "messages.list reads recent messages. messages.send writes one message using the employee and command key as the retry identity. Reusing a key for a different message is rejected. Local data persists across restarts."
+        ]
       },
       {
-        heading: "Deploy it",
-        code: `atrax deploy --json`,
-        note: "Public means public. Do not use this template for private conversations.",
-      },
-    ],
+        "heading": "Share it",
+        "paragraphs": [
+          "Deploy, then invite a teammate into the workspace. Both people open the same company-only URL and see the same stored messages. App access and maintenance are separate permissions."
+        ]
+      }
+    ]
   },
-  launchpad: {
-    slug: "launchpad",
-    title: "Launchpad",
-    description: "Local development, Worker deployment, readiness, inspection, URL, and logs.",
-    group: "Products",
-    status: "mixed",
-    sections: [
+  "inventory-orders": {
+    "slug": "inventory-orders",
+    "title": "Inventory and Orders",
+    "description": "Two company apps perform one business operation with explicit recovery.",
+    "group": "Build",
+    "status": "available",
+    "sections": [
       {
-        heading: "Available in v0",
-        bullets: [
-          "Worker and Static Assets deployment.",
-          "Persistent local development.",
-          "Stable workers.dev URL through a committed lockfile.",
-          "Readiness check against the deployed API.",
-          "Deployment inspection and live logs.",
-          "Read-only plan and drift against the deployed app.",
+        "heading": "Create both apps",
+        "paragraphs": [
+          "Deploy Inventory first. Set orders/atrax.json dependencies.inventory.appId to the returned app ID, then deploy Orders to the same workspace. The Inventory app starts with sample products; inspect them before using the example for real work."
         ],
+        "code": "atrax new inventory --template inventory\natrax new orders --template orders"
       },
       {
-        heading: "Planned",
-        bullets: [
-          "Preview deployments, promotion, and rollback.",
-          "Custom domains.",
-          "Arbitrary framework detection.",
-          "Hosted control-panel deployment history.",
-        ],
+        "heading": "Reserve without overselling",
+        "paragraphs": [
+          "orders.create saves an order intent, then calls stock.reserve in Inventory. Inventory is the authority for stock. A conditional database transaction prevents stock from becoming negative. The order ID is the business command key in both apps.",
+          "An interrupted order remains inspectable and can be retried with the same input and key. A reservation already committed in Inventory is reused. Cancellation records intent and releases stock once; a cancellation that arrives first prevents a later reservation."
+        ]
       },
-    ],
+      {
+        "heading": "Permissions still apply",
+        "paragraphs": [
+          "An employee who cannot reserve stock cannot do so through Orders, a CLI call, an agent, or a retry of a previous order. Removing their workspace membership stops existing sessions. There is no database transaction spanning both apps."
+        ]
+      }
+    ]
   },
-  tables: {
-    slug: "tables",
-    title: "Tables",
-    description: "D1 provisioning, ordered migrations, persistence, and database inspection.",
-    group: "Products",
-    status: "mixed",
-    sections: [
+  "launchpad": {
+    "slug": "launchpad",
+    "title": "Launchpad",
+    "description": "Build and deploy workspace-owned apps.",
+    "group": "Products",
+    "status": "available",
+    "sections": [
       {
-        heading: "Available in v0",
-        bullets: [
-          "One D1 database per app.",
-          "Ordered SQL migrations locally and remotely.",
-          "Stable database binding across releases.",
-          "Database ID, region, size, and query counters through inspect.",
-        ],
+        "heading": "Deploy once, update the same app",
+        "paragraphs": [
+          "Local development is account-free. Hosted deployment uses verified workspace membership. The maintainer\u2019s CLI uploads a validated artifact, prepares an isolated candidate, checks its private gateway, and follows the durable job to completion."
+        ]
       },
       {
-        heading: "Migration rule",
-        paragraphs: [
-          "Never edit an applied migration. Add the next numbered SQL file. D1 records applied migrations and captures a backup before remote application.",
+        "heading": "Inspect progress",
+        "paragraphs": [
+          "Failures identify their phase and whether the provider result is uncertain. Repeat deploy to resume the saved job. A failed or uncertain response is not evidence that a provider mutation did not occur."
         ],
-      },
-      {
-        heading: "Planned",
-        bullets: [
-          "Typed schema and query helpers.",
-          "Data browser, export, and restore commands.",
-          "Preview-database branches.",
-          "Authorization helpers tied to Door.",
-        ],
-      },
-    ],
+        "code": "atrax call deployments.get --input '{\"appId\":\"<id>\",\"deploymentId\":\"<id>\"}' --json"
+      }
+    ]
   },
-  door: {
-    slug: "door",
-    title: "Door",
-    description: "The planned identity, sharing, teams, roles, and app identity product.",
-    group: "Products",
-    status: "planned",
-    sections: [
+  "tables": {
+    "slug": "tables",
+    "title": "Tables",
+    "description": "Persistent structured data for each app.",
+    "group": "Products",
+    "status": "available",
+    "sections": [
       {
-        heading: "Status",
-        paragraphs: [
-          "Door is not available in v0. A deployed app is public by default and has no visitor login.",
-        ],
+        "heading": "Own the records",
+        "paragraphs": [
+          "Each stateful app owns its database. Other apps use its named actions. Local and hosted migrations retain checksums and refuse a changed or missing applied migration."
+        ]
       },
       {
-        heading: "Available alpha slice",
-        paragraphs: [
-          "Setting visibility shared in atrax.json puts the deployed app behind an invite-only gate implemented in the template Worker. Deploy provisions the session secret once, and it never touches disk. Opening an invite URL sets a signed session cookie; members live in the app's own door_members table.",
-          "Shared apps also run on Atrax instant hosting, with no Cloudflare account. The invite flow is identical; only the plumbing differs. Instant hosting generates the session secret itself, once per app, and the same atrax share commands manage members through Atrax instead of through your Cloudflare account.",
+        "heading": "Migration and recovery",
+        "paragraphs": [
+          "Initial setup accepts numbered SQL or JSON migrations. Changes to a live database use numbered JSON migrations that create new tables or nonunique indexes. Existing columns, constraints, and records stay intact. Applied migration files are immutable; their names and checksums are checked against the actual database ledger.",
+          "Inspect deployments.plan before changing a live release. deployments.rollback changes code while retaining business data and compatible additive schema. Changing an existing data model requires a deliberate data migration; arbitrary SQL changes to live tables are not part of this launch."
         ],
-        code: `atrax share add ana@example.com --json
-atrax share list --json
-atrax share remove ana@example.com --json`,
-        note: "This is a template capability the CLI provisions, not the Door product. No roles, teams, email delivery, or central session revocation.",
+        "code": "{\"version\":1,\"operations\":[{\"createTable\":{\"name\":\"notes\",\"columns\":[{\"name\":\"id\",\"type\":\"TEXT\",\"primaryKey\":true},{\"name\":\"body\",\"type\":\"TEXT\",\"notNull\":true}]}}]}"
       },
       {
-        heading: "Planned scope",
-        bullets: [
-          "Guest identities and optional sign-in.",
-          "Private URLs, invitations, and teams.",
-          "Roles enforced in UI, API, and Tables.",
-          "Stable app identity for Switchboard calls.",
+        "heading": "Snapshots and restore",
+        "paragraphs": [
+          "backups.create captures an immutable SQL snapshot. Cloudflare D1 pauses database queries during export; inspect backups.get until capture completes. An interrupted capture can continue through backups.resume.",
+          "data.restore.plan shows the snapshot, original database, and connected apps. data.restore.start requires confirmation of those details and restores into a new database. Verify that deployment before publication. The original database and later writes remain retained. Restoring one app does not rewind records owned by another app."
         ],
+        "code": "atrax call backups.create --key monthly-snapshot --input '{\"appId\":\"APP_ID\",\"expectedReleaseId\":\"RELEASE_ID\"}' --json\natrax call data.restore.plan --input '{\"appId\":\"APP_ID\",\"backupId\":\"BACKUP_ID\"}' --json"
       },
-    ],
+      {
+        "heading": "Isolated previews",
+        "paragraphs": [
+          "previews.create runs a release against a separate database initialized from its migrations. Copying an existing backup requires explicit authorization. Preview actions require current maintainer access; previews receive no live app dependencies or Library access.",
+          "When finished, call previews.delete with confirmation: delete-preview. Access closes immediately and resource cleanup continues durably. Ordinary deployment candidates are also reclaimed after completion or cancellation. deployments.get reports cleanup progress; uncertain provider writes retain affected resources with an explanation rather than risk deleting a resource still in use."
+        ]
+      },
+      {
+        "heading": "Business idempotency",
+        "paragraphs": [
+          "Use a stable business command key and commit its receipt in the same transaction as its data change. The platform records invocation identity; it cannot deduplicate arbitrary application side effects for the app."
+        ]
+      }
+    ]
   },
-  library: {
-    slug: "library",
-    title: "Library",
-    description: "The planned files and company-knowledge product.",
-    group: "Products",
-    status: "planned",
-    sections: [
+  "door": {
+    "slug": "door",
+    "title": "Door",
+    "description": "Verified company access, app sharing, and revocable agent sessions.",
+    "group": "Products",
+    "status": "available",
+    "sections": [
       {
-        heading: "Status",
-        paragraphs: ["Library is not available in v0."],
+        "heading": "Company-only by default",
+        "paragraphs": [
+          "Every active workspace member can open a new app. A maintainer can narrow the audience to selected coworkers, assign maintainers, and control each action\u2019s audience and explicit denials. Workspace owners and admins manage membership."
+        ]
       },
       {
-        heading: "Planned scope",
-        bullets: [
-          "R2-backed uploads, downloads, retention, and deletion.",
-          "Collections with source, owner, and audience.",
-          "Permission-aware keyword and semantic retrieval.",
-          "Provenance, freshness, and review state.",
-        ],
-        note: "Library provides knowledge. It never stores credentials or performs external actions.",
+        "heading": "Private guests and public pages",
+        "paragraphs": [
+          "Workspace admins can invite a verified external email to an exact app and explicitly selected actions. A forwarded invitation is not proof of that email. Public publishing requires explicit confirmation from an admin. It publishes the web interface; app actions and Library remain protected."
+        ]
       },
-    ],
+      {
+        "heading": "Revocation",
+        "paragraphs": [
+          "App cookies refer to the central browser session. Membership, app access, action denials, and session revocation are checked for each operation and delegated app call. Removing a person does not transfer company-owned data to them."
+        ]
+      }
+    ]
   },
-  switchboard: {
-    slug: "switchboard",
-    title: "Switchboard",
-    description: "The planned company vault, typed tools, and app-to-app capability product.",
-    group: "Products",
-    status: "planned",
-    sections: [
+  "library": {
+    "slug": "library",
+    "title": "Library",
+    "description": "Company files and guidance that authorized people and agents can share.",
+    "group": "Products",
+    "status": "available",
+    "sections": [
       {
-        heading: "Status",
-        paragraphs: ["Switchboard is not available in v0."],
+        "heading": "Contribute company knowledge",
+        "paragraphs": [
+          "Save policies, terminology, preferences, and decisions as entries. An agent can deliberately save \u201cwe do not use blue in our company\u201d with library.entry.create. Current stock and orders belong in the apps that own those live records."
+        ]
       },
       {
-        heading: "Planned scope",
-        bullets: [
-          "Cloudflare Secrets Store for key custody.",
-          "Company OAuth connections managed once.",
-          "Typed tools with narrow action and resource grants.",
-          "Short-lived delegation between apps.",
-          "An action ledger preserving person, app, scope, call, and result.",
-        ],
-        note: "Switchboard acts. Knowledge and files belong in Library.",
+        "heading": "Correct with history",
+        "paragraphs": [
+          "Authorized members can correct an entry with its current revision ID and a reason. Concurrent edits produce a revision conflict without overwriting the other contribution. Previous versions retain author, session/agent label, timestamp, and source references."
+        ]
       },
-    ],
+      {
+        "heading": "Upload files",
+        "paragraphs": [
+          "Upload from Library or the CLI. Files are limited to 10 MiB. UTF-8 text, Markdown, CSV, and JSON are searchable as text. PDFs are stored and downloadable; this release does not extract their text. Replacing a file adds an immutable revision."
+        ]
+      },
+      {
+        "heading": "Permission-aware sources",
+        "paragraphs": [
+          "Company-wide is the default audience. Selected audiences restrict access. A derived entry also depends on its sources\u2019 current permissions, including historical revisions. Search filters access before returning titles, snippets, or content. Automatic Drive/Notion synchronization and conversation capture are not included."
+        ]
+      }
+    ]
   },
-  loops: {
-    slug: "loops",
-    title: "Loops",
-    description:
-      "The planned durable execution product for webhooks, schedules, queues, jobs, and operational agents.",
-    group: "Products",
-    status: "planned",
-    sections: [
+  "switchboard": {
+    "slug": "switchboard",
+    "title": "Switchboard",
+    "description": "Named app actions that preserve the employee\u2019s permissions.",
+    "group": "Products",
+    "status": "available",
+    "sections": [
       {
-        heading: "Status",
-        paragraphs: [
-          "Loops is not available in v0. Spark and the separate agent runtime have been removed from the product model.",
+        "heading": "Discover and call",
+        "paragraphs": [
+          "Actions have names, descriptions, effects, and input/output schemas. An app calls declared dependencies with a short-lived request capability. The target checks current permissions; the source app does not acquire a general-purpose credential."
         ],
+        "code": "atrax call actions.list --input '{\"appId\":\"<id>\"}' --json\natrax call actions.call --key order-42 --input '{\"appId\":\"<orders-id>\",\"actionName\":\"orders.create\",\"input\":{\"orderId\":\"order-42\",\"sku\":\"<sku>\",\"quantity\":1}}' --json"
       },
       {
-        heading: "One canonical primitive",
-        code: `loop({
-  on: schedule("0 8 * * 1"),
-  run: reviewRenewals,
-  tools: [accounts, outreach],
-  approve: ["outreach.send"]
-})`,
-        paragraphs: [
-          "A Loop is declared triggered work with durable execution semantics. Model and tool use can make the run agentic, but that does not create a second product. Ordinary Worker request handlers remain part of an app's web runtime until they opt into the Loop contract.",
-        ],
-      },
-      {
-        heading: "Planned Cloudflare foundation",
-        bullets: [
-          "Workers for request and webhook handlers.",
-          "Cron Triggers and Queues for event delivery.",
-          "Workflows for durable steps, retries, waits, and long execution.",
-          "Durable Objects only when coordination or realtime state requires them.",
-          "Switchboard for tools and Door for approval identity.",
-        ],
-      },
-    ],
+        "heading": "Limits",
+        "paragraphs": [
+          "A request capability has bounded lifetime, depth, and call count and closes when the invocation ends. Preview environments do not receive bindings to live apps. Third-party OAuth connectors and a general company secrets vault are separate future work."
+        ]
+      }
+    ]
   },
-  security: {
-    slug: "security",
-    title: "Security",
-    description: "Implemented v0 boundaries and security work that remains planned.",
-    group: "Operate",
-    status: "mixed",
-    sections: [
+  "mcp": {
+    "slug": "mcp",
+    "title": "Connect an agent",
+    "description": "Use your existing agent through the official MCP stdio protocol.",
+    "group": "Start",
+    "status": "available",
+    "sections": [
       {
-        heading: "Implemented",
-        bullets: [
-          "Cloudflare credentials remain in Wrangler.",
-          "Lockfile account mismatch fails before remote mutation.",
-          "The app database has a stable non-secret binding.",
-          "Server-side input validation and safe browser text rendering.",
-          "Public access is stated in the template, docs, UI, and manifest.",
-          "Public posts have request-size, rate, and bounded-retention guardrails.",
+        "heading": "Sign in once",
+        "paragraphs": [
+          "Use a separate named login for each agent connection. It acts as your verified person. You can revoke that session without removing another device\u2019s session."
         ],
+        "code": "atrax login --agent \"Operations agent\"\natrax workspace use <workspace-id>"
       },
       {
-        heading: "Not implemented",
-        bullets: [
-          "Private sharing and roles.",
-          "Vaulted third-party credentials and OAuth.",
-          "Approval binding and agent tool policy.",
-          "Independent security review or compliance reports.",
+        "heading": "Configure your client",
+        "paragraphs": [
+          "Start the installed CLI as a stdio MCP server. It uses the saved credential outside the app. Do not put a token into your prompt or commit one in the project."
         ],
+        "code": "{\"mcpServers\":{\"atrax\":{\"command\":\"atrax\",\"args\":[\"mcp\",\"--workspace\",\"<workspace-id>\"]}}}"
       },
-    ],
+      {
+        "heading": "Use the shared tools",
+        "paragraphs": [
+          "Tools are generated from the platform operation registry. Dots become underscores: library.entry.create is atrax_library_entry_create. Read tools take their operation input directly. Write tools take {input, key}; reuse the key only for the same business intent.",
+          "Discover apps, inspect actions, contribute knowledge, and inspect deployment outcomes through these tools. Sign-in proofs and token-minting operations stay in the interactive login flow. This release brings your existing agent; it does not host agents."
+        ]
+      }
+    ]
   },
-  status: {
-    slug: "status",
-    title: "Feature status",
-    description: "A direct map from the desired platform surface to what exists in v0.",
-    group: "Operate",
-    status: "mixed",
-    sections: [
+  "loops": {
+    "slug": "loops",
+    "title": "Loops",
+    "description": "Hosted agents and scheduled automation are planned.",
+    "group": "Products",
+    "status": "planned",
+    "sections": [
       {
-        heading: "Available",
-        bullets: [
-          "Scaffold, local development, deploy, plan, drift, inspect, and logs CLI.",
-          "Worker server endpoints and static browser client.",
-          "D1 provisioning, migrations, persistence, and inspection.",
-          "Unauthenticated public access with no login.",
-          "Instant anonymous hosting with claim-or-expire: atrax deploy --instant and atrax claim.",
-          "Reference chat example.",
-          "App contract, lockfile, docs.json, llms.txt, and llms-full.txt.",
-        ],
-      },
-      {
-        heading: "Planned for Lakebed-equivalent coverage",
-        bullets: [
-          "Reactive client data hooks and typed server queries and mutations.",
-          "Private identity and first-party sign-in.",
-          "Object storage and upload moderation.",
-          "Database dump, export, and restore.",
-          "Hosted environment and secrets sync.",
-          "Tokens, domains, previews, rollback, and control-panel UI.",
-          "Named stacks and remote locked state. Plan and drift are available against the single v0 environment.",
-        ],
-      },
-      {
-        heading: "Additional Atrax roadmap",
-        bullets: [
-          "Company knowledge in Library.",
-          "Vaulted company connections and app-to-app tools in Switchboard.",
-          "Durable operational agents, approval, and traces in Loops.",
-        ],
-      },
-    ],
+        "heading": "Deferred from this launch",
+        "paragraphs": [
+          "This launch supports request-driven app actions and calls from agents you already run. It does not host background agents, schedules, durable automation products, or automatic document synchronization."
+        ]
+      }
+    ]
   },
+  "security": {
+    "slug": "security",
+    "title": "Security model",
+    "description": "Identity and permissions stay outside uploaded app code.",
+    "group": "Operate",
+    "status": "available",
+    "sections": [
+      {
+        "heading": "Trust boundaries",
+        "paragraphs": [
+          "The central platform owns workspace membership, sessions, app access, and action permissions. The trusted gateway authorizes access and invokes the private app runtime. Customer code receives its app resources and a narrow request capability."
+        ]
+      },
+      {
+        "heading": "Browser and agent sessions",
+        "paragraphs": [
+          "Email proofs are single-use and consumed only by an explicit confirmation. Browser cookies are Secure, HttpOnly, host-only, and SameSite=Lax. App sign-in checks a one-time code, exact callback host, and browser state. CLI sessions use a revocable bearer credential saved outside the app."
+        ]
+      },
+      {
+        "heading": "Data handling",
+        "paragraphs": [
+          "Library source restrictions apply to current and historical content. Files are served only after current authorization. Runtime errors do not expose provider response bodies or platform secrets. Application authors remain responsible for the business behavior of their action handlers."
+        ]
+      },
+      {
+        "heading": "Scope of assurance",
+        "paragraphs": [
+          "The repository contains real local Worker/D1/R2 tests for authentication, sharing, deployment coordination, app composition, Library, and MCP. This is not an independent security audit or a compliance certification."
+        ]
+      }
+    ]
+  },
+  "status": {
+    "slug": "status",
+    "title": "Feature status",
+    "description": "The first launch focuses on a complete company app workflow.",
+    "group": "Operate",
+    "status": "mixed",
+    "sections": [
+      {
+        "heading": "First launch",
+        "bullets": [
+          "Create and run apps locally without an account.",
+          "Verify an email, create/join a workspace, and deploy without a Cloudflare account.",
+          "Keep company-owned apps, stable URLs, persistent data, and current access policies.",
+          "Share with coworkers, appoint maintainers, and restrict named actions.",
+          "Connect Inventory and Orders with reliable business retries.",
+          "Contribute and correct Library guidance; upload files manually or through the CLI.",
+          "Use your existing agent through MCP with the same permissions."
+        ]
+      },
+      {
+        "heading": "Deferred",
+        "bullets": [
+          "Hosted agents and scheduled automation.",
+          "Automatic external-document synchronization.",
+          "Third-party OAuth connectors and general vault management.",
+          "Source hosting, pull requests, and other GitHub replacement features."
+        ]
+      }
+    ]
+  }
 };
-
 export const docOrder = [
   "quickstart",
   "cli",
   "app-contract",
   "infrastructure-model",
   "chat-example",
+  "inventory-orders",
   "launchpad",
   "tables",
   "door",
   "library",
   "switchboard",
+  "mcp",
   "loops",
   "security",
-  "status",
+  "status"
 ] as const;

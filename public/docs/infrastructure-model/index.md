@@ -1,30 +1,30 @@
 # Infrastructure model
 
-Status: mixed
+What Atrax owns and how releases retain app identity.
 
-Atrax products are the user-facing abstraction. Infrastructure-as-code is an internal reconciliation engine.
+## App, release, and deployment
 
-## Sources
+An app belongs to a workspace and has one stable live URL. A release is an immutable built artifact. A deployment records progress toward running a release. A per-app durable coordinator owns provider mutations and serializes publication.
 
-- `atrax.json`: provider-neutral desired app architecture.
-- `stacks/dev.json` and `stacks/prod.json`: environment-specific intent and non-secret references.
-- `atrax.lock.json`: stable resource identities safe to commit.
-- Remote locked state: authoritative observed infrastructure, ownership, and drift metadata.
+## Private execution
 
-Stacks and remote state are planned. v0 has one implicit stack and a committed lockfile.
+The public Worker is Atrax’s trusted gateway. App code runs behind a private service binding with public Worker URLs disabled. Identity, policy, input validation, and action invocation records remain outside uploaded code.
 
-## Lifecycles
+## Persistent state
 
-1. Infrastructure: databases, buckets, queues, domains, and other stateful resources.
-2. Releases: immutable Worker versions and static assets.
-3. Connections: external secret and OAuth references resolved through Switchboard.
+Code updates retain the business database. Candidate checks use a different database. Stored progress and stable resource names let the coordinator reconcile a provider response that was lost after a mutation.
 
-## Planned workflow
+## Correct an interrupted deployment
 
-```bash
-atrax plan --stack prod --json
-atrax deploy --stack prod --json
-atrax drift --stack prod --json
+Run atrax deploy again to resume the saved attempt. To abandon an unpublished attempt, inspect deployments.cancel.plan, then call deployments.cancel with its planHash. Cancellation retains business data and committed migrations. Keep those migration files unchanged, correct the unapplied work, and deploy again; the CLI archives the cancelled attempt and starts a new one for the same app.
+
+Once publication has been admitted, cancellation is unavailable: resume the attempt so Atrax can reconcile what is live. A timed-out provider response does not prove that publication failed.
+
+```
+atrax call deployments.cancel.plan --input '{"appId":"APP_ID","deploymentId":"DEPLOYMENT_ID"}' --json
+atrax call deployments.cancel --key cancel-reviewed-attempt --input '{"appId":"APP_ID","deploymentId":"DEPLOYMENT_ID","planHash":"PLAN_HASH"}' --json
 ```
 
-Provider files such as `.atrax/wrangler.jsonc` are disposable compiled artifacts. Wrangler is the v0 executor. Future engines remain replaceable implementation details behind Atrax's contract and state semantics.
+## Boundaries
+
+GitHub remains the place for source code and collaboration. Atrax supplies runtime, deployment, data, access, app actions, and company knowledge. Customers do not configure the underlying Cloudflare account.

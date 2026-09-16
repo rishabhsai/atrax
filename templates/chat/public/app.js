@@ -34,12 +34,12 @@ async function loadMessages() {
   if (loading || document.hidden) return;
   loading = true;
   try {
-    const response = await fetch(`/api/messages?after=${latestId}`, {
-      cache: "no-store",
+    const response = await fetch("/__atrax/actions/messages.list", {
+      method:"POST", headers:{"content-type":"application/json"}, body:JSON.stringify({after:latestId}), cache: "no-store",
     });
     if (!response.ok) throw new Error("Could not load messages.");
     const payload = await response.json();
-    for (const message of payload.messages) appendMessage(message);
+    for (const message of payload.result.messages) appendMessage(message);
     empty.hidden = messages.childElementCount > 0;
   } catch (cause) {
     error.textContent = cause instanceof Error ? cause.message : "Could not load messages.";
@@ -55,16 +55,16 @@ form.addEventListener("submit", async (event) => {
   submit.disabled = true;
   localStorage.setItem("atrax-chat-name", nickname.value.trim());
   try {
-    const response = await fetch("/api/messages", {
+    const response = await fetch("/__atrax/actions/messages.send", {
       method: "POST",
-      headers: { "content-type": "application/json" },
+      headers: { "content-type": "application/json", "Idempotency-Key": crypto.randomUUID() },
       body: JSON.stringify({
         nickname: nickname.value,
         body: body.value,
       }),
     });
     const payload = await response.json();
-    if (!response.ok) throw new Error(payload.error ?? "Could not send message.");
+    if (!response.ok) throw new Error(payload.error?.message ?? "Could not send message.");
     body.value = "";
     await loadMessages();
     body.focus();

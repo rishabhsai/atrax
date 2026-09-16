@@ -8,123 +8,117 @@ async function readExportedPage(pathname = "/") {
   return readFile(new URL(relativePath, import.meta.url), "utf8");
 }
 
-test("exports the six-product Atrax site", async () => {
-  const html = await readExportedPage();
-  assert.match(
-    html,
-    /<title>Atrax \| A cloud for everyone/,
+const publicRoutes = [
+  "/",
+  "/products",
+  "/products/launchpad",
+  "/products/door",
+  "/products/library",
+  "/products/switchboard",
+  "/products/mcp",
+  "/products/loops",
+  "/solutions",
+  "/solutions/company-apps",
+  "/solutions/connected-apps",
+  "/solutions/agent-workspace",
+  "/developers",
+  "/security",
+  "/pricing",
+  "/company",
+];
+
+const staleLaunchClaims = [
+  /atrax deploy --instant/i,
+  /claim token/i,
+  /your Cloudflare account/i,
+  /npx atrax-cloud/i,
+  /free unlimited/i,
+  /public chat/i,
+];
+
+test("exports the company-app routes and leaves deferred work explicit", async () => {
+  const rendered = await Promise.all(
+    publicRoutes.map(async (route) => [route, await readExportedPage(route)]),
   );
-  assert.match(html, /A cloud for everyone\./);
-  assert.match(html, /Start in your terminal/);
-  assert.match(html, /npx atrax-cloud new my-app/);
-  assert.match(html, /curl -fsSL https:\/\/atrax\.run\/agent/);
-  assert.match(html, /atrax deploy --json/);
-  assert.match(html, /Launchpad/);
-  assert.match(html, /Tables/);
-  assert.match(html, /Door/);
-  assert.match(html, /Library/);
-  assert.match(html, /Switchboard/);
-  assert.match(html, /Loops/);
-  assert.doesNotMatch(html, />Spark</);
-  assert.match(html, /\/products\/loops/);
-  assert.match(html, /\/products\/switchboard/);
-  assert.match(html, /Clouds deploy apps\./);
-  assert.match(html, /Every app can use every other app\. On your terms\./);
-  assert.match(html, /Six products\. One contract\. Nothing to assemble\./);
-  assert.match(html, /Share an app the way you share a doc\./);
-  assert.match(html, /Deploy an agent\. Let it keep working\./);
-  assert.match(html, /Planned interface\. Door is not available yet/);
-  assert.match(html, /Planned interface\. Not a recorded run\./);
-  assert.doesNotMatch(html, /loops-agents\.png/);
-  assert.doesNotMatch(html, /switchboard-apps\.png/);
-  assert.doesNotMatch(html, /deploy \/ production/);
-  const developersHtml = await readExportedPage("/developers");
-  assert.match(developersHtml, /deploy \/ production/);
-  assert.doesNotMatch(html, /From an idea to running software\./);
-  assert.doesNotMatch(html, /Six products\. Six responsibilities\./);
-  assert.match(html, /\/docs/);
-  assert.match(html, /\/docs\.json/);
-  assert.match(html, /\/llms\.txt/);
-  assert.match(html, /Use cases/);
-  assert.match(html, /Everything you shipped\. In one quiet place\./);
-  assert.match(html, /\/account/);
-  assert.match(html, /nav-menu-products/);
-  assert.match(html, /nav-menu-use-cases/);
-  const header = html.match(/<header[\s\S]*?<\/header>/)?.[0] ?? "";
-  assert.doesNotMatch(header, /GitHub|atrax-chat-demo|Open live chat/);
-  assert.doesNotMatch(
-    html,
-    /\/products\/(workers|agent-runtime|hosting|database|auth|storage|secrets)/,
-  );
-  assert.doesNotMatch(html, /tiny-cloud-hero|company-switchboard|company-library/);
-  assert.match(html, /og\.png/);
-  assert.match(html, /icon\.svg/);
-  assert.doesNotMatch(html, /codex-preview|Building your site|loading skeleton/i);
-  const accountHtml = await readExportedPage("/account");
-  assert.match(accountHtml, /Your software, without the provider maze\./);
-  assert.match(accountHtml, /Cloudflare Access is not enabled on this account yet/);
-  assert.match(accountHtml, /Your first deploy will appear here\./);
+  for (const [route, html] of rendered) {
+    assert.match(html, /<main/i, `${route} is a rendered public page`);
+    for (const staleClaim of staleLaunchClaims)
+      assert.doesNotMatch(
+        html,
+        staleClaim,
+        `${route} has no retired launch claim`,
+      );
+  }
+
+  const home = new Map(rendered).get("/");
+  assert.match(home, /company-owned apps/i);
+  assert.match(home, /named actions/i);
+  assert.match(home, /Company Library/i);
+  assert.match(home, /existing agent/i);
+  assert.match(home, /Hosted agents, scheduled automation/i);
+
+  const security = new Map(rendered).get("/security");
+  assert.match(security, /current membership, app access, action permissions/i);
+  assert.match(security, /Public publish exposes web assets only/i);
+
+  const pricing = new Map(rendered).get("/pricing");
+  assert.match(pricing, /Start with the source checkout/i);
+  assert.match(pricing, /Hosted pricing will be published/i);
+  assert.doesNotMatch(pricing, /\$0/);
+
+  const developers = new Map(rendered).get("/developers");
+  assert.match(developers, /same operations from the CLI and MCP/i);
+  assert.match(developers, /MCP stdio/i);
+
   await access(new URL("../out/og.png", import.meta.url));
   await access(new URL("../out/icon.svg", import.meta.url));
-  await access(new URL("../out/agent", import.meta.url));
-  await access(new URL("../out/loops-agents.png", import.meta.url));
-  await access(new URL("../out/switchboard-apps.png", import.meta.url));
 });
 
-test("exports canonical product detail routes", async () => {
-  const loopsHtml = await readExportedPage("/products/loops");
-  assert.match(loopsHtml, /Keep useful work running after the tab closes\./);
-  assert.match(loopsHtml, /Planned canonical API/);
-  assert.match(loopsHtml, /One trigger model/);
-  assert.doesNotMatch(loopsHtml, /Spark and Loop/);
-
-  const switchboardHtml = await readExportedPage("/products/switchboard");
-  assert.match(switchboardHtml, /Let apps call tools without handing them keys\./);
-  assert.match(switchboardHtml, /Company vault/);
-  assert.match(switchboardHtml, /Roadmap architecture/);
-});
-
-test("exports human and agent-native docs", async () => {
-  const docsHtml = await readExportedPage("/docs");
-  assert.match(docsHtml, /Install the local alpha/);
-  assert.match(docsHtml, /atrax new open-chat --template chat/);
-  assert.match(docsHtml, /Anyone with the URL can read and post/);
-
-  const cliHtml = await readExportedPage("/docs/cli");
-  assert.match(cliHtml, /JSON contract/);
-  assert.match(cliHtml, /atrax inspect/);
-
-  const statusHtml = await readExportedPage("/docs/status");
-  assert.match(statusHtml, /Planned for Lakebed-equivalent coverage/);
-  assert.match(statusHtml, /Additional Atrax roadmap/);
-
-  const docsManifest = JSON.parse(
+test("exports documentation and operation schemas for the shared interfaces", async () => {
+  const docs = JSON.parse(
     await readFile(new URL("../out/docs.json", import.meta.url), "utf8"),
   );
-  assert.equal(docsManifest.agentEntrypoints.agent, "/agent");
-  assert.equal(docsManifest.agentEntrypoints.llms, "/llms.txt");
-  assert.equal(docsManifest.pages.length, 13);
-  for (const page of docsManifest.pages) {
-    await access(new URL(`../out${page.markdownUrl}`, import.meta.url));
-  }
-  await access(
-    new URL("../out/docs/infrastructure-model/index.md", import.meta.url),
-  );
-  await access(new URL("../out/llms.txt", import.meta.url));
-  await access(new URL("../out/llms-full.txt", import.meta.url));
-  await access(new URL("../out/docs/loops/index.md", import.meta.url));
-  await access(new URL("../out/schema/v0.json", import.meta.url));
-});
+  assert.equal(docs.schemaVersion, 2);
+  assert.equal(docs.operationsUrl, "https://atrax.run/operations.json");
+  assert.ok(Array.isArray(docs.documents));
 
-test("publishes the same-origin health contract enforced by the CLI", async () => {
-  const schema = JSON.parse(
-    await readFile(new URL("../out/schema/v0.json", import.meta.url), "utf8"),
+  const documentSlugs = new Set(
+    docs.documents.map((document) => document.slug),
   );
-  const healthPattern = new RegExp(schema.properties.web.properties.health.pattern);
-  assert.equal(healthPattern.test("/.well-known/atrax.json"), true);
-  assert.equal(healthPattern.test("//example.com/probe"), false);
-  assert.equal(healthPattern.test("/\\example.com/probe"), false);
-  assert.equal(schema.additionalProperties, false);
-  assert.equal(schema.properties.web.additionalProperties, false);
-  assert.equal(schema.properties.tables.additionalProperties, false);
+  for (const slug of [
+    "quickstart",
+    "door",
+    "library",
+    "switchboard",
+    "mcp",
+    "security",
+    "status",
+  ]) {
+    assert.ok(documentSlugs.has(slug), `docs include ${slug}`);
+    await access(new URL(`../out/docs/${slug}/index.md`, import.meta.url));
+  }
+
+  const status = docs.documents.find((document) => document.slug === "status");
+  assert.match(
+    JSON.stringify(status),
+    /Hosted agents and scheduled automation/i,
+  );
+  assert.match(JSON.stringify(status), /third-party OAuth connectors/i);
+
+  const operations = JSON.parse(
+    await readFile(new URL("../out/operations.json", import.meta.url), "utf8"),
+  );
+  assert.equal(operations.schemaVersion, 1);
+  assert.equal(operations.transport.method, "POST");
+  for (const name of [
+    "apps.create",
+    "actions.list",
+    "actions.call",
+    "library.entry.create",
+    "library.file.upload",
+  ]) {
+    const operation = operations.operations[name];
+    assert.ok(operation, `operations include ${name}`);
+    assert.ok(operation.inputSchema, `${name} has an input schema`);
+  }
 });

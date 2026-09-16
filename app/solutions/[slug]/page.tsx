@@ -3,11 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ChipGrid } from "../../components/ChipGrid";
 import { Reveal } from "../../components/Reveal";
-import {
-  products,
-  solutions,
-  type SolutionSlug,
-} from "../../lib/content";
+import { products, solutions, type SolutionSlug } from "../../lib/content";
 
 type PageProps = {
   params: Promise<{ slug: string }>;
@@ -17,7 +13,9 @@ export function generateStaticParams() {
   return Object.keys(solutions).map((slug) => ({ slug }));
 }
 
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: PageProps): Promise<Metadata> {
   const { slug } = await params;
   const solution = solutions[slug as SolutionSlug];
   if (!solution) return {};
@@ -67,23 +65,14 @@ export default async function SolutionPage({ params }: PageProps) {
               <span>{solution.stack.length} products</span>
             </div>
             <ChipGrid
-              note="Steps that depend on a planned product cannot run yet. The available products still deploy the app itself."
+              note="Use these products together in one company workflow."
               rows={[
                 {
                   label: "Available now",
                   state: "available" as const,
-                  chips: solution.stack
-                    .filter((slug) => products[slug].availability === "available")
-                    .map((slug) => products[slug].name),
+                  chips: solution.stack.map((slug) => products[slug].name),
                 },
-                {
-                  label: "Planned",
-                  state: "planned" as const,
-                  chips: solution.stack
-                    .filter((slug) => products[slug].availability === "planned")
-                    .map((slug) => products[slug].name),
-                },
-              ].filter((row) => row.chips.length > 0)}
+              ]}
             />
           </Reveal>
         </div>
@@ -98,7 +87,9 @@ export default async function SolutionPage({ params }: PageProps) {
             {solution.stack.map((slug) => (
               <Link href={`/products/${slug}`} key={slug}>
                 <strong>{products[slug].name}</strong>
-                <span className={`status status-${products[slug].availability}`}>
+                <span
+                  className={`status status-${products[slug].availability}`}
+                >
                   {products[slug].availability}
                 </span>
                 <p>{products[slug].cardTitle}</p>
@@ -111,11 +102,11 @@ export default async function SolutionPage({ params }: PageProps) {
       <section className="final-cta">
         <div className="shell final-cta-grid">
           <div>
-            <p className="eyebrow">Build the available slice</p>
-            <h2>Start with the public chat.</h2>
+            <p className="eyebrow">Build the company workflow</p>
+            <h2>Start with a workspace-owned app.</h2>
           </div>
-          <Link className="button button-orange" href="/docs/chat-example">
-            Open the guide <span aria-hidden="true">→</span>
+          <Link className="button button-orange" href="/docs/quickstart">
+            Open the quickstart <span aria-hidden="true">→</span>
           </Link>
         </div>
       </section>

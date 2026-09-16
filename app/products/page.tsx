@@ -7,19 +7,19 @@ import { productOrder, products } from "../lib/content";
 export const metadata = {
   title: "Products",
   description:
-    "Six products for releases, data, identity, knowledge, tools, and durable execution.",
+    "Company apps, access, named actions, Library, and MCP for existing agents.",
 };
 
 const availabilityRows = [
   {
-    label: "Available in v0",
+    label: "Available",
     state: "available" as const,
     chips: productOrder
       .filter((slug) => products[slug].availability === "available")
       .map((slug) => products[slug].name),
   },
   {
-    label: "Planned",
+    label: "Deferred",
     state: "planned" as const,
     chips: productOrder
       .filter((slug) => products[slug].availability === "planned")
@@ -34,18 +34,14 @@ export default function ProductsPage() {
         <div className="shell page-hero-grid">
           <p className="eyebrow">Product model</p>
           <div>
-            <h1>Six products. One contract.</h1>
+            <h1>One company workspace, clear responsibilities.</h1>
             <p>
-              One `atrax.json` declares runtime, data, access, files,
-              connected tools, and background work, and each product owns one
-              job inside it. Launchpad and Tables are available in v0. The
-              other four are documented as roadmap so the product can be judged
-              without pretending the platform is finished.
+              Atrax ships apps, access, Library, named actions, and MCP for an
+              existing agent.
             </p>
           </div>
         </div>
       </section>
-
       <section className="shell product-index">
         {productOrder.map((slug) => {
           const product = products[slug];
@@ -66,29 +62,28 @@ export default function ProductsPage() {
           );
         })}
       </section>
-
       <section className="section shell product-rules rule-top">
         <div className="section-split">
           <Reveal className="split-copy">
             <p className="microlabel">
-              01 · <b>No overlap</b>
+              01 · <b>Clear boundaries</b>
             </p>
-            <h2>The boundary is part of the product.</h2>
+            <h2>Each surface has one job.</h2>
             <p>
-              Each product owns one responsibility and hands the next one off by
-              name. That is what keeps the contract small enough for an agent to
-              hold, and what stops two products from becoming two sources of
-              truth.
+              The app runtime does not own identity. An action does not expose a
+              raw database. Library guidance does not become an unbounded source
+              of access. These boundaries keep the workspace understandable when
+              people and agents both use it.
             </p>
             <ChipGrid
-              note="A planned product has a written boundary and no shipped surface. It is not behind a flag."
+              note="Automation is planned for a later release."
               rows={availabilityRows}
             />
           </Reveal>
           <Reveal className="panel" delay={120}>
             <div className="panel-head">
               <span>Responsibility</span>
-              <span>Six products</span>
+              <span>Product surface</span>
             </div>
             <dl className="spec-table">
               {productOrder.map((slug) => (
@@ -101,15 +96,14 @@ export default function ProductsPage() {
           </Reveal>
         </div>
       </section>
-
       <section className="final-cta">
         <div className="shell final-cta-grid">
           <div>
-            <p className="eyebrow">Working v0</p>
-            <h2>Launchpad + Tables can deploy the chat today.</h2>
+            <p className="eyebrow">Available workflow</p>
+            <h2>Build and share a company app.</h2>
           </div>
-          <Link className="button button-orange" href="/docs/chat-example">
-            Read the guide <span aria-hidden="true">→</span>
+          <Link className="button button-orange" href="/docs/quickstart">
+            Read the quickstart <span aria-hidden="true">→</span>
           </Link>
         </div>
       </section>

@@ -4,69 +4,88 @@ import { Reveal } from "../components/Reveal";
 
 export const metadata = {
   title: "Security",
-  description:
-    "The implemented v0 security boundary and the planned Door, Switchboard, and Loops model.",
+  description: "Atrax identity, authorization, and data boundaries.",
 };
+
+const boundaries = [
+  [
+    "Identity",
+    "Email verification establishes the person behind a workspace, browser session, CLI session, or named agent session.",
+  ],
+  [
+    "Authorization",
+    "The trusted gateway checks current membership, app access, action permissions, and revocation before an operation or delegated call.",
+  ],
+  [
+    "App runtime",
+    "Uploaded app code runs behind a private binding. It receives its own resources and a narrow request capability, not platform credentials.",
+  ],
+  [
+    "Library",
+    "Search filters access before returning content. File bytes require current authorization, and derived material remains restricted by its sources.",
+  ],
+  [
+    "Public pages",
+    "An explicit public publish exposes web assets only. App actions and Library remain protected and require a verified person.",
+  ],
+] as const;
 
 export default function SecurityPage() {
   return (
     <main>
       <section className="page-hero page-hero-dark">
         <div className="shell page-hero-grid">
-          <p className="eyebrow">Security status</p>
+          <p className="eyebrow">Security model</p>
           <div>
-            <h1>Clear about the boundary that exists today.</h1>
+            <h1>Identity and permissions stay outside uploaded app code.</h1>
             <p>
-              v0 deploys into your Cloudflare account through your local
-              Wrangler session. The generated chat is intentionally public and
-              stores messages in its own D1 database.
+              Atrax makes the company, the current person, and the action
+              boundary explicit before it invokes an app or returns company
+              knowledge.
             </p>
           </div>
         </div>
       </section>
-
       <section className="section shell security-now">
         <div className="section-split">
           <Reveal className="split-copy">
             <p className="microlabel">
-              01 · <b>Implemented</b>
+              01 · <b>Access boundary</b>
             </p>
-            <h2>The v0 boundary.</h2>
+            <h2>Check access where work actually happens.</h2>
             <p>
-              Everything below is enforced by the CLI or the generated app
-              today. The list on the right separates what already holds from
-              what is still only a written plan, because the difference matters
-              before you put anything real behind a URL.
+              Browser, CLI, MCP, and app-to-app calls use the same central
+              permission seams. Removing membership or a grant affects existing
+              access rather than waiting for a new app version.
             </p>
           </Reveal>
           <Reveal className="panel" delay={120}>
             <div className="panel-head">
-              <span>Boundary status</span>
-              <span>v0</span>
+              <span>Scope</span>
+              <span>Current release</span>
             </div>
             <ChipGrid
-              note="The generated chat is public by design. Nothing in v0 restricts who can open a deployed app."
+              note="Atrax checks these boundaries for browser, CLI, MCP, and app requests."
               rows={[
                 {
-                  label: "Enforced today",
+                  label: "Enforced",
                   state: "available" as const,
                   chips: [
-                    "account check",
-                    "credentials stay in Wrangler",
-                    "one D1 per app",
-                    "server-side input limits",
-                    "textContent rendering",
+                    "verified sessions",
+                    "current workspace access",
+                    "action permissions",
+                    "private app runtime",
+                    "Library source ACLs",
                   ],
                 },
                 {
-                  label: "Not enforced yet",
+                  label: "Not offered",
                   state: "planned" as const,
                   chips: [
-                    "sign-in",
-                    "roles",
-                    "private sharing",
-                    "scoped grants",
-                    "action ledger",
+                    "public app actions",
+                    "public Library",
+                    "third-party connector vault",
+                    "hosted agents",
                   ],
                 },
               ]}
@@ -74,14 +93,7 @@ export default function SecurityPage() {
           </Reveal>
         </div>
         <div className="security-ledger security-ledger-below">
-          {[
-            ["Cloud account", "The CLI checks the active account against atrax.lock.json before remote mutation."],
-            ["Credentials", "Cloudflare credentials stay in Wrangler. Atrax stores no API token."],
-            ["App state", "Each generated app binds one named D1 database recorded by non-secret ID."],
-            ["Input", "The chat validates nickname and message length on the server."],
-            ["Rendering", "The browser renders user messages with textContent, not HTML."],
-            ["Access", "The chat is public. Anyone with the URL can read and post."],
-          ].map(([title, copy], index) => (
+          {boundaries.map(([title, copy], index) => (
             <p key={title}>
               <span>0{index + 1}</span>
               <strong>{title}</strong>
@@ -90,37 +102,11 @@ export default function SecurityPage() {
           ))}
         </div>
       </section>
-
-      <section className="security-roadmap">
-        <div className="shell security-roadmap-grid">
-          <Reveal>
-            <p className="microlabel">
-              02 · <b>Planned</b>
-            </p>
-            <h2>Identity, capabilities, and execution.</h2>
-          </Reveal>
-          <Reveal delay={120}>
-            <article>
-              <strong>Door</strong>
-              <p>Guest identity, private sharing, teams, roles, and app identity.</p>
-            </article>
-            <article>
-              <strong>Switchboard</strong>
-              <p>Vaulted connections, typed tools, scoped grants, and an action ledger.</p>
-            </article>
-            <article>
-              <strong>Loops</strong>
-              <p>Retries, approval binding, idempotency, durable state, and complete traces.</p>
-            </article>
-          </Reveal>
-        </div>
-      </section>
-
       <section className="final-cta">
         <div className="shell final-cta-grid">
           <div>
-            <p className="eyebrow">Read the exact contract</p>
-            <h2>Public means public in v0.</h2>
+            <p className="eyebrow">Exact contract</p>
+            <h2>Read the security model and operation schemas.</h2>
           </div>
           <Link className="button button-orange" href="/docs/security">
             Open security docs <span aria-hidden="true">→</span>

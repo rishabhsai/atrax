@@ -59,7 +59,7 @@ export function SiteHeader() {
             <div className="nav-menu-panel">
               <Link className="nav-menu-overview" href="/products">
                 <strong>All products</strong>
-                <small>Six clear system boundaries →</small>
+                <small>Explore the platform →</small>
               </Link>
               <div className="nav-menu-grid">
                 {productOrder.map((slug) => (

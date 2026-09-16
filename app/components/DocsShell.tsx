@@ -1,39 +1,56 @@
 import Link from "next/link";
 import { docOrder, docs, type DocPage } from "../lib/docs";
 
+const groups = ["Start", "Build", "Products", "Operate"] as const;
+
+function DocsDirectory({ currentSlug }: { currentSlug: string }) {
+  return (
+    <>
+      <nav aria-label="Documentation">
+        {groups.map((group) => (
+          <div key={group}>
+            <p>{group}</p>
+            {docOrder
+              .map((slug) => docs[slug])
+              .filter((item) => item.group === group)
+              .map((item) => (
+                <Link
+                  aria-current={item.slug === currentSlug ? "page" : undefined}
+                  href={
+                    item.slug === "quickstart" ? "/docs" : `/docs/${item.slug}`
+                  }
+                  key={item.slug}
+                >
+                  {item.title}
+                  <i className={`status-dot status-dot-${item.status}`} />
+                </Link>
+              ))}
+          </div>
+        ))}
+      </nav>
+      <div className="docs-machine-links">
+        <a href="/agent">agent ↗</a>
+        <a href="/docs.json">docs.json ↗</a>
+        <a href="/llms.txt">llms.txt ↗</a>
+        <a href="/llms-full.txt">llms-full.txt ↗</a>
+      </div>
+    </>
+  );
+}
+
 export function DocsShell({ doc }: { doc: DocPage }) {
-  const groups = ["Start", "Build", "Products", "Operate"] as const;
   return (
     <main className="docs-page">
       <div className="shell docs-layout">
         <aside className="docs-sidebar">
           <Link className="docs-wordmark" href="/docs">Atrax docs</Link>
-          <nav aria-label="Documentation">
-            {groups.map((group) => (
-              <div key={group}>
-                <p>{group}</p>
-                {docOrder
-                  .map((slug) => docs[slug])
-                  .filter((item) => item.group === group)
-                  .map((item) => (
-                    <Link
-                      aria-current={item.slug === doc.slug ? "page" : undefined}
-                      href={item.slug === "quickstart" ? "/docs" : `/docs/${item.slug}`}
-                      key={item.slug}
-                    >
-                      {item.title}
-                      <i className={`status-dot status-dot-${item.status}`} />
-                    </Link>
-                  ))}
-              </div>
-            ))}
-          </nav>
-          <div className="docs-machine-links">
-            <a href="/agent">agent ↗</a>
-            <a href="/docs.json">docs.json ↗</a>
-            <a href="/llms.txt">llms.txt ↗</a>
-            <a href="/llms-full.txt">llms-full.txt ↗</a>
+          <div className="docs-directory-desktop">
+            <DocsDirectory currentSlug={doc.slug} />
           </div>
+          <details className="docs-directory-mobile">
+            <summary>Browse documentation</summary>
+            <DocsDirectory currentSlug={doc.slug} />
+          </details>
         </aside>
 
         <article className="docs-article">

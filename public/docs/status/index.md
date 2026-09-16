@@ -1,9 +1,20 @@
 # Feature status
 
-Status: mixed
+The first launch focuses on a complete company app workflow.
 
-Available: new, dev, deploy, deploy --instant with claim-or-expire instant hosting, claim, inspect, logs, tables export, Worker endpoints, Static Assets, D1, migrations, unauthenticated public access, chat example, app contract, lockfile, JSON output, docs.json, llms.txt, and llms-full.txt.
+## First launch
 
-Planned for broader full-stack coverage: reactive client hooks, typed queries and mutations, private identity, object storage, database restore, secrets sync, tokens, domains, previews, rollback, named stacks, remote locked state, plan, drift detection, and a control-panel UI.
+- Create and run apps locally without an account.
+- Verify an email, create/join a workspace, and deploy without a Cloudflare account.
+- Keep company-owned apps, stable URLs, persistent data, and current access policies.
+- Share with coworkers, appoint maintainers, and restrict named actions.
+- Connect Inventory and Orders with reliable business retries.
+- Contribute and correct Library guidance; upload files manually or through the CLI.
+- Use your existing agent through MCP with the same permissions.
 
-Additional Atrax roadmap: Library company knowledge, Switchboard tools and vault, and durable operational agents in Loops.
+## Deferred
+
+- Hosted agents and scheduled automation.
+- Automatic external-document synchronization.
+- Third-party OAuth connectors and general vault management.
+- Source hosting, pull requests, and other GitHub replacement features.

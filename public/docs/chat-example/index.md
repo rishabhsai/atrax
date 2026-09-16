@@ -1,18 +1,19 @@
-# Public chat example
+# Chat example
 
-Status: available
+A small persistent app with two named actions.
 
-The template contains a static UI, Worker API, server validation, D1 migration, tests, `AGENTS.md`, and the Atrax app contract.
+## Run it
 
-```bash
-atrax new open-chat --template chat
-cd open-chat
+```
+atrax new team-chat --template chat
+cd team-chat
 atrax dev
-atrax deploy --json
 ```
 
-Two browsers see the same rows through short polling. Messages survive refresh and redeploy. User text is rendered with `textContent`.
+## Use it
 
-Public-write guardrails cap request bodies at 4 KiB, allow 12 messages per IP per minute, and retain only the latest 500 messages.
+messages.list reads recent messages. messages.send writes one message using the employee and command key as the retry identity. Reusing a key for a different message is rejected. Local data persists across restarts.
 
-Public means public. Anyone with the URL can read and post.
+## Share it
+
+Deploy, then invite a teammate into the workspace. Both people open the same company-only URL and see the same stored messages. App access and maintenance are separate permissions.

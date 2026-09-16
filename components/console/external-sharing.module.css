@@ -1,0 +1,22 @@
+.panel { margin-top: 32px; display: grid; gap: 16px; }
+.header { display: flex; justify-content: space-between; align-items: start; gap: 16px; border-top: 1px solid var(--border); padding-top: 28px; }
+.header h2, .card h3 { margin: 0; }
+.eyebrow { margin: 0 0 5px; color: var(--accent); font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.copy { color: var(--muted); max-width: 70ch; margin: 0; }
+.columns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.card { display: grid; align-content: start; gap: 14px; padding: 18px; border: 1px solid var(--border); border-radius: 8px; background: color-mix(in oklab, var(--bg), white 55%); }
+.form, .card label { display: grid; gap: 7px; }
+.card input { min-height: 40px; width: 100%; border: 1px solid var(--border); border-radius: 6px; padding: 8px 10px; background: var(--bg); color: var(--ink); font: inherit; }
+.form fieldset { border: 0; padding: 0; margin: 0; display: grid; gap: 8px; }
+.form legend { margin-bottom: 7px; font-weight: 600; }
+.check { grid-template-columns: auto 1fr; align-items: start; padding: 9px 0; border-top: 1px solid var(--border); cursor: pointer; }
+.check input { min-height: auto; width: auto; margin: 4px 0 0; }
+.check span { display: grid; gap: 3px; }
+.check small, .guestList small { color: var(--muted); }
+.status { margin: 0; font-weight: 650; }
+.notice { margin: 0; color: oklch(.43 .12 48); }
+.guestList { list-style: none; padding: 0; margin: 0; display: grid; }
+.guestList li { display: flex; justify-content: space-between; gap: 16px; align-items: center; border-top: 1px solid var(--border); padding: 12px 0; }
+.guestList li > div { display: grid; gap: 3px; min-width: 0; overflow-wrap: anywhere; }
+.pending { margin: 0; font-size: 12px; color: var(--muted); }
+@media (max-width: 700px) { .columns { grid-template-columns: 1fr; } .header { align-items: center; } }

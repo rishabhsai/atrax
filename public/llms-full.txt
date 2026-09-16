@@ -1,150 +1,414 @@
-# Atrax v0 complete agent reference
+# Quickstart
 
-Atrax creates, runs, deploys, inspects, and debugs small full-stack apps from one CLI. v0 deploys public Cloudflare Workers with Static Assets and one D1 database.
+Create an app, run it locally, and share it with your company.
 
-Read-only agent onboarding: `curl -fsSL https://atrax.run/agent`
+## Install Atrax
 
-## Install
+Use Node.js 22.13 or newer. This launch build is available from source; the published npm package is an earlier release. Local development needs no account. Install the checkout below, then run its CLI from any directory.
 
-Requires Node.js 22.13 or newer and an authenticated Wrangler session.
-
-```bash
+```
 git clone https://github.com/rishabhsai/atrax.git
 cd atrax
-npm install
+git checkout feat/workspace-launch
+npm ci
 npm link
-atrax doctor --json
-```
-
-## Create and deploy
-
-```bash
-atrax new open-chat --template chat
-cd open-chat
+atrax new team-chat --template chat
+cd team-chat
 atrax dev
-atrax plan --json
+```
+
+## Deploy to your workspace
+
+Run deploy from the app directory. On your first hosted deploy, follow the one-time browser approval link and verify your email. If you do not have a workspace yet, create one or accept a team invitation on that approval screen, then connect the CLI. Deployment continues with your only workspace automatically. Your company owns the app; you become its first maintainer.
+
+You do not need a Cloudflare account. The app is company-only by default: every current workspace member can open it.
+
+```
 atrax deploy --json
-atrax inspect --json
-atrax drift --json
-atrax tables export --out backup.json
-atrax logs
 ```
 
-The chat is public. Anyone with the URL can read and post.
+Read the returned URL. Do not guess a hostname. Keep atrax.lock.json: it identifies this app for future updates.
 
-## CLI
+## Invite your team
 
-- `atrax new <name> --template chat`
-- `atrax dev [--port 8787]`
-- `atrax deploy [--json]`
-- `atrax deploy --dry-run`
-- `atrax deploy --instant`
-- `atrax claim <token> [--json]`
-- `atrax plan [--json]`
-- `atrax drift [--json]`
-- `atrax inspect [--json]`
-- `atrax tables export [--out <file>]`
-- `atrax logs [--json]`
-- `atrax doctor [--json]`
-- `atrax share add <email> [--json]`
-- `atrax share list [--json]`
-- `atrax share remove <email> [--json]`
+Open Home, then Team to invite a coworker by email. They verify that address and join the workspace. Workspace-wide apps become available immediately.
 
-Finite JSON commands return one object with `schemaVersion: 1`. `logs --json` is a long-running Wrangler NDJSON event stream. Errors return a non-zero exit code, and unknown flags fail before mutation.
+Use the app’s sharing controls to select people, appoint another maintainer, or restrict an action. Removing a teammate revokes their existing app and agent access.
 
-`plan` is read-only. It emits `{ schemaVersion, status: "planned" | "blocked", name, changes, actions[], migrations: { pending[] }, conflicts[] }`, where each action is `{ product, resource, action, reason }` with an action of create, recreate, update, keep, apply, or none.
+## Update without starting over
 
-`tables export` is read-only. It emits `{ schemaVersion, status: "exported", app, exportedAt, tables }`, where `tables` maps each user table to `{ columns[], rows[] }`; columns come from the first row, and SQLite's internal tables and the `d1_migrations` ledger are left out. Without `--out` the dump is the whole of stdout in both modes; with `--out` it is written to that file and stdout carries only the destination.
+Edit the app, check it locally, then deploy again. The app keeps its URL and business database. A private candidate is checked before promotion.
 
-`drift` is read-only and requires a lockfile. It emits `{ schemaVersion, status: "clean" | "drifted", name, checks[] }`, where each check is `{ check, expected, observed, result }` with a result of ok, drift, or unknown. Checks cover account, worker, deployment, url, tables, and migrations.
+If a request is interrupted, repeat atrax deploy. The CLI resumes its saved artifact and deployment rather than creating another app.
 
-Exit codes: `0` success, `1` error including a blocked plan, `2` only from `drift` when the provider no longer matches the lockfile.
-
-## Instant hosting
-
-`atrax deploy` uses Atrax instant hosting when no Cloudflare account is detected; `--instant` forces it. The app runs on Atrax's own Cloudflare account as one Worker plus one D1 database, on a real public `https://<name>.atrax.run` URL — with a four-character suffix when that name is already taken, and a `workers.dev` URL when the subdomain cannot be attached, so read the `url` field rather than assuming the shape. The claim token is printed exactly once, by the deploy that mints it: it is never written to disk and redeploys never reprint it. An unclaimed app is deleted 30 days after creation; `atrax claim <token>` keeps the same URL and clears the expiry.
-
-```json
-{ "schemaVersion": 1, "status": "deployed", "mode": "instant", "name": "open-chat",
-  "url": "https://open-chat.atrax.run", "appId": "3f9a2c81be",
-  "access": "public", "ready": true, "claimToken": "...", "expiresAt": 1790000000000,
-  "resources": { "tables": { "name": "i-3f9a2c81be-tables" } } }
+```
+atrax build
+atrax deploy --json
 ```
 
-```json
-{ "schemaVersion": 1, "status": "claimed", "appId": "3f9a2c81be",
-  "url": "https://open-chat.atrax.run" }
+## Connect your existing agent
+
+Sign in with an agent label, then configure your MCP client to run atrax mcp. The agent uses your permissions.
+
+```
+atrax login --agent "My coding agent"
+atrax workspace use <workspace-id>
+atrax mcp --workspace <workspace-id>
 ```
 
-`claimToken` and `expiresAt` (epoch milliseconds) appear only on the deploy that creates the app. `ready` is on every instant deploy: `false` means the deploy succeeded but the URL is not answering yet — a new domain can take a few minutes to get its certificate — and the claim token in that payload is still the real one. Local state lives in `.atrax/instant.json` (mode 0600, gitignored) as `{ appId, manageToken, url }`, and `atrax.lock.json` records `{ "provider": "atrax-instant", "mode": "instant", "appId", "worker": { "name", "url" } }`. Creates are capped at 10 per day per IP. `logs`, `plan`, and `drift` refuse instant locks, since each reads Cloudflare through Wrangler against an account the deployer does not have. `inspect` and `tables export` do not: both ask Atrax instant hosting with the manage token instead, `inspect` returning `{ schemaVersion, status: "claimed" | "unclaimed", mode: "instant", name, url, appId, expiresAt, claimedAt, lastDeployAt, resources }` and `tables export` returning the same dump as the account path, capped at 5 MB.
+# CLI reference
 
-`access` is `"public"` or `"shared"` and names who can open the URL; the human output prints the same fact in one line under the URL, and a public first deploy appends the `atrax claim <token>` line to it. Instant hosting serves both visibilities: a `"visibility": "shared"` app deploys normally, instant hosting generates that app's `DOOR_SESSION_SECRET` itself once and never returns it, and `atrax share` manages members through Atrax instead of the caller's Cloudflare account. The commands, the payloads, and the `door_members` table are the same on both paths.
+One CLI for app creation, deployment, company knowledge, and agent operations.
 
-## Shared visibility
+## App commands
 
-`visibility` accepts `"public"` (default, unchanged) or `"shared"`. A shared app is gated inside the template Worker by a small Door module. Deploy provisions the `DOOR_SESSION_SECRET` Worker secret once and records `"door": { "secretProvisioned": true }` in the lockfile; the secret is never written to disk.
+- atrax new <name> --template chat|static|inventory|orders
+- atrax init <name> --assets <directory> [--actions <entry>] [--migrations <directory>]
+- atrax build or atrax doctor: validate and build the actual artifact.
+- atrax dev --port 8787: run the app with persistent local data.
+- atrax deploy --dry-run: build without changing hosted resources.
+- atrax deploy --access access.json: choose initial audiences for new actions. Existing policies remain unchanged.
+- atrax link <app-id>: refresh this checkout’s observed release after reviewing a teammate’s changes. Refuses unfinished deployments or a different linked app.
+- atrax deploy --workspace <id> --json: deploy or resume a saved attempt.
 
-`atrax share add <email>` stores a hashed, single-use, 14-day invite token in the app's own `door_members` D1 table and returns the invite URL; an instant lock routes the same command through Atrax instant hosting. `share list` reports each member as joined, invited, or expired. `share remove` deletes the row. Visiting `/.door/join?token=...` sets a 30-day HMAC-signed `__door_session` cookie and redirects to `/`. `/.door/whoami` returns the signed-in member. `/.well-known/*` stays reachable so readiness checks work. Every other request without a valid session gets a 401 invitation page.
+## Identity and workspaces
 
-```json
-{ "schemaVersion": 1, "status": "invited", "email": "ana@example.com",
-  "inviteUrl": "https://open-chat...workers.dev/.door/join?token=...", "expiresAt": 1790000000000 }
+Login uses a one-time browser approval. Credentials are stored outside the app in the user configuration directory with owner-only file permissions. Logout revokes the session before removing the saved credential.
+
+```
+atrax login --agent "Operations agent"
+atrax workspace list --json
+atrax workspace create "Acme" --slug acme
+atrax workspace use <workspace-id>
+atrax logout
 ```
 
-This is the Door alpha slice, not the Door product. There are no roles, teams, email delivery, or central session revocation. `plan` reports a `door / session-secret` action and `drift` adds a `door` check for shared apps.
+## Library commands
 
-## App contract
+To replace a file, use library replace <item-id> <file> --revision <current-revision-id> --reason <correction>. Downloads refuse to overwrite an existing local file.
 
-`atrax.json` is the provider-neutral desired architecture. `atrax.lock.json` records stable non-secret resource identities and is safe to commit; it is not the future authoritative infrastructure state. Do not edit `.atrax/wrangler.jsonc`; Atrax generates it as a disposable provider artifact. Declared files must remain inside the app and may not contain symlinks.
-
-```json
-{
-  "version": 1,
-  "name": "open-chat",
-  "visibility": "public",
-  "web": {
-    "entry": "src/worker.js",
-    "assets": "public",
-    "health": "/.well-known/atrax.json"
-  },
-  "tables": { "migrations": "migrations" }
-}
+```
+atrax library upload ./brand.md --workspace <id> --key brand-v1
+atrax library search "brand" --workspace <id> --json
+atrax library get <item-id> --workspace <id> --json
+atrax library download <item-id> --workspace <id> --out ./brand-copy.md
 ```
 
-`visibility` accepts `"public"` or `"shared"`. Nothing else validates.
+## Every platform operation
 
-## Infrastructure model
+The operation schemas at /operations.json describe the exact inputs for the HTTP, CLI, and MCP interfaces. For a write, choose a stable --key and reuse it only when retrying the same intent.
 
-Atrax products are the public abstraction. Infrastructure-as-code is an internal reconciliation engine. `plan` and `drift` work today against the single implicit v0 environment. The planned model adds `stacks/dev.json` and `stacks/prod.json` for environment intent, remote locked state for authoritative observations and drift metadata, and stack-aware `plan`, `deploy`, and `drift`.
+```
+atrax call apps.list --input '{"workspaceId":"<id>"}' --json
+atrax call actions.list --input '{"appId":"<id>"}' --json
+```
 
-Stateful infrastructure, immutable releases, and Switchboard secret/connection references have separate lifecycles. Provider engines remain replaceable implementation details.
+## Structured results
 
-## Available products
+--json writes schemaVersion 1 envelopes. Success contains result; failure contains a stable error code, message, and optional recovery details. Device sign-in can emit an authorization-required progress result before the final result. MCP owns stdout for JSON-RPC and does not use CLI result envelopes.
 
-Launchpad v0 runs locally, deploys Worker and Static Assets, waits for readiness, keeps a stable workers.dev URL, inspects deployment state, and streams logs.
+# App contract
 
-Tables v0 provisions D1, applies ordered local and remote migrations, keeps the binding across releases, reports database state, and exports every user table as JSON with `atrax tables export`.
+One version 2 artifact runs locally and in the hosted environment.
 
-## Planned products
+## Declare the app
 
-Door will own guest identity, sign-in, sharing, teams, roles, and app identity. An alpha slice ships today: shared visibility with invite links via `atrax share`.
+An app needs web assets, named actions, or both. Static apps do not receive a placeholder database or backend. If package.json defines build:web, the build runs it before capturing assets. Existing HTML and React frontends can use this contract; arbitrary server runtimes need adaptation.
 
-Library will own files and company knowledge, including collections, provenance, freshness, and permission-aware retrieval. It will not store credentials or perform actions.
+```
+{"version":2,"name":"team-chat","web":{"assets":"public","fallback":"index.html"},"actions":{"entry":"src/actions.js"},"tables":{"migrations":"migrations"}}
+```
 
-Switchboard will own the company vault, OAuth connections, typed tools, scoped grants, app-to-app capabilities, and the action ledger. It will not store company knowledge.
+## Define a named action
 
-Loops will own declared webhooks, schedules, queues, background jobs, and operational agents with durable execution semantics. Ordinary Worker request handlers remain part of an app's web runtime until they opt into one `loop({ on, run, tools?, approve? })` contract.
+Input and output use JSON Schema. The trusted gateway checks both and authorizes the current person before invoking customer code. A write action requires an idempotency key; the handler must implement its business retry semantics.
 
-## Security
+```
+export const actions = {
+  'records.list': {
+    description: 'List records', effect: 'read',
+    inputSchema: {type:'object', additionalProperties:false},
+    outputSchema: {type:'object', required:['records'], properties:{records:{type:'array'}}},
+    async handler(input, {db}) {
+      return {records:(await db.prepare('SELECT * FROM records').all()).results};
+    }
+  }
+};
+```
 
-Cloudflare credentials remain in Wrangler. Account mismatch, lock-name mismatch, and unlocked Worker or D1 collisions fail before mutation. The chat validates input on the server, caps posts at 4 KiB and 12 per IP per minute, retains 500 messages, and renders messages with `textContent`. Public access is intentional and stated in the generated app.
+## Resources and request capabilities
 
-Private access, vaulted third-party connections, approval binding, compliance reports, scheduled backups and restore, custom domains, previews, rollback, and a hosted control panel are not available in v0. `atrax tables export` is the one export path that exists: a manual JSON dump of the app's own tables.
+- db: the app’s own D1 database when tables are declared.
+- actor: descriptive person/session identity, command key, and invocation chain. It contains no session bearer token.
+- actions.call(alias,name,input,{key}): a declared dependency, acting as the current employee.
+- knowledge.search/get/create/revise: permitted Library operations in the current workspace.
 
-## Machine entrypoints
+## Declare another app
 
-- `/docs.json`
-- `/llms.txt`
-- `/llms-full.txt`
-- `/schema/v0.json`
-- `/.well-known/atrax.json` on generated apps
+Both apps must belong to the same workspace. The target checks the employee’s current app and action permissions on every call. A preview has no live dependency bindings.
+
+```
+"dependencies": {"inventory": {"appId": "<inventory-app-id>"}}
+```
+
+## Artifact checks
+
+Build bundles imports and npm dependencies, inspects action declarations in the Worker runtime, and captures hashed assets and an immutable migration history. Hosting checks artifact, asset, and migration checksums again. Uploaded code never receives the platform database, provider credential, or another app’s raw database binding.
+
+# Infrastructure model
+
+What Atrax owns and how releases retain app identity.
+
+## App, release, and deployment
+
+An app belongs to a workspace and has one stable live URL. A release is an immutable built artifact. A deployment records progress toward running a release. A per-app durable coordinator owns provider mutations and serializes publication.
+
+## Private execution
+
+The public Worker is Atrax’s trusted gateway. App code runs behind a private service binding with public Worker URLs disabled. Identity, policy, input validation, and action invocation records remain outside uploaded code.
+
+## Persistent state
+
+Code updates retain the business database. Candidate checks use a different database. Stored progress and stable resource names let the coordinator reconcile a provider response that was lost after a mutation.
+
+## Correct an interrupted deployment
+
+Run atrax deploy again to resume the saved attempt. To abandon an unpublished attempt, inspect deployments.cancel.plan, then call deployments.cancel with its planHash. Cancellation retains business data and committed migrations. Keep those migration files unchanged, correct the unapplied work, and deploy again; the CLI archives the cancelled attempt and starts a new one for the same app.
+
+Once publication has been admitted, cancellation is unavailable: resume the attempt so Atrax can reconcile what is live. A timed-out provider response does not prove that publication failed.
+
+```
+atrax call deployments.cancel.plan --input '{"appId":"APP_ID","deploymentId":"DEPLOYMENT_ID"}' --json
+atrax call deployments.cancel --key cancel-reviewed-attempt --input '{"appId":"APP_ID","deploymentId":"DEPLOYMENT_ID","planHash":"PLAN_HASH"}' --json
+```
+
+## Boundaries
+
+GitHub remains the place for source code and collaboration. Atrax supplies runtime, deployment, data, access, app actions, and company knowledge. Customers do not configure the underlying Cloudflare account.
+
+# Chat example
+
+A small persistent app with two named actions.
+
+## Run it
+
+```
+atrax new team-chat --template chat
+cd team-chat
+atrax dev
+```
+
+## Use it
+
+messages.list reads recent messages. messages.send writes one message using the employee and command key as the retry identity. Reusing a key for a different message is rejected. Local data persists across restarts.
+
+## Share it
+
+Deploy, then invite a teammate into the workspace. Both people open the same company-only URL and see the same stored messages. App access and maintenance are separate permissions.
+
+# Inventory and Orders
+
+Two company apps perform one business operation with explicit recovery.
+
+## Create both apps
+
+Deploy Inventory first. Set orders/atrax.json dependencies.inventory.appId to the returned app ID, then deploy Orders to the same workspace. The Inventory app starts with sample products; inspect them before using the example for real work.
+
+```
+atrax new inventory --template inventory
+atrax new orders --template orders
+```
+
+## Reserve without overselling
+
+orders.create saves an order intent, then calls stock.reserve in Inventory. Inventory is the authority for stock. A conditional database transaction prevents stock from becoming negative. The order ID is the business command key in both apps.
+
+An interrupted order remains inspectable and can be retried with the same input and key. A reservation already committed in Inventory is reused. Cancellation records intent and releases stock once; a cancellation that arrives first prevents a later reservation.
+
+## Permissions still apply
+
+An employee who cannot reserve stock cannot do so through Orders, a CLI call, an agent, or a retry of a previous order. Removing their workspace membership stops existing sessions. There is no database transaction spanning both apps.
+
+# Launchpad
+
+Build and deploy workspace-owned apps.
+
+## Deploy once, update the same app
+
+Local development is account-free. Hosted deployment uses verified workspace membership. The maintainer’s CLI uploads a validated artifact, prepares an isolated candidate, checks its private gateway, and follows the durable job to completion.
+
+## Inspect progress
+
+Failures identify their phase and whether the provider result is uncertain. Repeat deploy to resume the saved job. A failed or uncertain response is not evidence that a provider mutation did not occur.
+
+```
+atrax call deployments.get --input '{"appId":"<id>","deploymentId":"<id>"}' --json
+```
+
+# Tables
+
+Persistent structured data for each app.
+
+## Own the records
+
+Each stateful app owns its database. Other apps use its named actions. Local and hosted migrations retain checksums and refuse a changed or missing applied migration.
+
+## Migration and recovery
+
+Initial setup accepts numbered SQL or JSON migrations. Changes to a live database use numbered JSON migrations that create new tables or nonunique indexes. Existing columns, constraints, and records stay intact. Applied migration files are immutable; their names and checksums are checked against the actual database ledger.
+
+Inspect deployments.plan before changing a live release. deployments.rollback changes code while retaining business data and compatible additive schema. Changing an existing data model requires a deliberate data migration; arbitrary SQL changes to live tables are not part of this launch.
+
+```
+{"version":1,"operations":[{"createTable":{"name":"notes","columns":[{"name":"id","type":"TEXT","primaryKey":true},{"name":"body","type":"TEXT","notNull":true}]}}]}
+```
+
+## Snapshots and restore
+
+backups.create captures an immutable SQL snapshot. Cloudflare D1 pauses database queries during export; inspect backups.get until capture completes. An interrupted capture can continue through backups.resume.
+
+data.restore.plan shows the snapshot, original database, and connected apps. data.restore.start requires confirmation of those details and restores into a new database. Verify that deployment before publication. The original database and later writes remain retained. Restoring one app does not rewind records owned by another app.
+
+```
+atrax call backups.create --key monthly-snapshot --input '{"appId":"APP_ID","expectedReleaseId":"RELEASE_ID"}' --json
+atrax call data.restore.plan --input '{"appId":"APP_ID","backupId":"BACKUP_ID"}' --json
+```
+
+## Isolated previews
+
+previews.create runs a release against a separate database initialized from its migrations. Copying an existing backup requires explicit authorization. Preview actions require current maintainer access; previews receive no live app dependencies or Library access.
+
+When finished, call previews.delete with confirmation: delete-preview. Access closes immediately and resource cleanup continues durably. Ordinary deployment candidates are also reclaimed after completion or cancellation. deployments.get reports cleanup progress; uncertain provider writes retain affected resources with an explanation rather than risk deleting a resource still in use.
+
+## Business idempotency
+
+Use a stable business command key and commit its receipt in the same transaction as its data change. The platform records invocation identity; it cannot deduplicate arbitrary application side effects for the app.
+
+# Door
+
+Verified company access, app sharing, and revocable agent sessions.
+
+## Company-only by default
+
+Every active workspace member can open a new app. A maintainer can narrow the audience to selected coworkers, assign maintainers, and control each action’s audience and explicit denials. Workspace owners and admins manage membership.
+
+## Private guests and public pages
+
+Workspace admins can invite a verified external email to an exact app and explicitly selected actions. A forwarded invitation is not proof of that email. Public publishing requires explicit confirmation from an admin. It publishes the web interface; app actions and Library remain protected.
+
+## Revocation
+
+App cookies refer to the central browser session. Membership, app access, action denials, and session revocation are checked for each operation and delegated app call. Removing a person does not transfer company-owned data to them.
+
+# Library
+
+Company files and guidance that authorized people and agents can share.
+
+## Contribute company knowledge
+
+Save policies, terminology, preferences, and decisions as entries. An agent can deliberately save “we do not use blue in our company” with library.entry.create. Current stock and orders belong in the apps that own those live records.
+
+## Correct with history
+
+Authorized members can correct an entry with its current revision ID and a reason. Concurrent edits produce a revision conflict without overwriting the other contribution. Previous versions retain author, session/agent label, timestamp, and source references.
+
+## Upload files
+
+Upload from Library or the CLI. Files are limited to 10 MiB. UTF-8 text, Markdown, CSV, and JSON are searchable as text. PDFs are stored and downloadable; this release does not extract their text. Replacing a file adds an immutable revision.
+
+## Permission-aware sources
+
+Company-wide is the default audience. Selected audiences restrict access. A derived entry also depends on its sources’ current permissions, including historical revisions. Search filters access before returning titles, snippets, or content. Automatic Drive/Notion synchronization and conversation capture are not included.
+
+# Switchboard
+
+Named app actions that preserve the employee’s permissions.
+
+## Discover and call
+
+Actions have names, descriptions, effects, and input/output schemas. An app calls declared dependencies with a short-lived request capability. The target checks current permissions; the source app does not acquire a general-purpose credential.
+
+```
+atrax call actions.list --input '{"appId":"<id>"}' --json
+atrax call actions.call --key order-42 --input '{"appId":"<orders-id>","actionName":"orders.create","input":{"orderId":"order-42","sku":"<sku>","quantity":1}}' --json
+```
+
+## Limits
+
+A request capability has bounded lifetime, depth, and call count and closes when the invocation ends. Preview environments do not receive bindings to live apps. Third-party OAuth connectors and a general company secrets vault are separate future work.
+
+# Connect an agent
+
+Use your existing agent through the official MCP stdio protocol.
+
+## Sign in once
+
+Use a separate named login for each agent connection. It acts as your verified person. You can revoke that session without removing another device’s session.
+
+```
+atrax login --agent "Operations agent"
+atrax workspace use <workspace-id>
+```
+
+## Configure your client
+
+Start the installed CLI as a stdio MCP server. It uses the saved credential outside the app. Do not put a token into your prompt or commit one in the project.
+
+```
+{"mcpServers":{"atrax":{"command":"atrax","args":["mcp","--workspace","<workspace-id>"]}}}
+```
+
+## Use the shared tools
+
+Tools are generated from the platform operation registry. Dots become underscores: library.entry.create is atrax_library_entry_create. Read tools take their operation input directly. Write tools take {input, key}; reuse the key only for the same business intent.
+
+Discover apps, inspect actions, contribute knowledge, and inspect deployment outcomes through these tools. Sign-in proofs and token-minting operations stay in the interactive login flow. This release brings your existing agent; it does not host agents.
+
+# Loops
+
+Hosted agents and scheduled automation are planned.
+
+## Deferred from this launch
+
+This launch supports request-driven app actions and calls from agents you already run. It does not host background agents, schedules, durable automation products, or automatic document synchronization.
+
+# Security model
+
+Identity and permissions stay outside uploaded app code.
+
+## Trust boundaries
+
+The central platform owns workspace membership, sessions, app access, and action permissions. The trusted gateway authorizes access and invokes the private app runtime. Customer code receives its app resources and a narrow request capability.
+
+## Browser and agent sessions
+
+Email proofs are single-use and consumed only by an explicit confirmation. Browser cookies are Secure, HttpOnly, host-only, and SameSite=Lax. App sign-in checks a one-time code, exact callback host, and browser state. CLI sessions use a revocable bearer credential saved outside the app.
+
+## Data handling
+
+Library source restrictions apply to current and historical content. Files are served only after current authorization. Runtime errors do not expose provider response bodies or platform secrets. Application authors remain responsible for the business behavior of their action handlers.
+
+## Scope of assurance
+
+The repository contains real local Worker/D1/R2 tests for authentication, sharing, deployment coordination, app composition, Library, and MCP. This is not an independent security audit or a compliance certification.
+
+# Feature status
+
+The first launch focuses on a complete company app workflow.
+
+## First launch
+
+- Create and run apps locally without an account.
+- Verify an email, create/join a workspace, and deploy without a Cloudflare account.
+- Keep company-owned apps, stable URLs, persistent data, and current access policies.
+- Share with coworkers, appoint maintainers, and restrict named actions.
+- Connect Inventory and Orders with reliable business retries.
+- Contribute and correct Library guidance; upload files manually or through the CLI.
+- Use your existing agent through MCP with the same permissions.
+
+## Deferred
+
+- Hosted agents and scheduled automation.
+- Automatic external-document synchronization.
+- Third-party OAuth connectors and general vault management.
+- Source hosting, pull requests, and other GitHub replacement features.

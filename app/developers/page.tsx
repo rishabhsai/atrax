@@ -2,19 +2,42 @@ import Link from "next/link";
 import { DeployTerminal } from "../components/Visuals";
 
 export const metadata = {
-  title: "CLI",
+  title: "CLI and MCP",
   description:
-    "The working Atrax CLI contract for creating, running, deploying, inspecting, and debugging an app.",
+    "Create company apps, operate them through the CLI, and connect an existing agent through MCP.",
 };
 
 const commands = [
-  ["new", "atrax new open-chat --template chat", "Write the app, migration, tests, and agent instructions."],
-  ["dev", "atrax dev", "Apply local migrations and run the Worker, assets, and D1 together."],
-  ["plan", "atrax plan --json", "Preview what a deploy would create, update, keep, or apply. Changes nothing."],
-  ["deploy", "atrax deploy --json", "Provision remote D1, migrate, deploy, wait for readiness, and return the URL."],
-  ["drift", "atrax drift --json", "Compare the provider with the lockfile. Exits 2 when they no longer match."],
-  ["inspect", "atrax inspect --json", "Read the real Worker deployment and D1 state."],
-  ["logs", "atrax logs", "Stream request outcomes from the deployed Worker."],
+  [
+    "new",
+    "node bin/atrax.mjs new team-chat --template chat",
+    "Create a source-owned app from a working template.",
+  ],
+  [
+    "dev",
+    "node bin/atrax.mjs dev",
+    "Run the app and its declared local data together.",
+  ],
+  [
+    "deploy",
+    "node bin/atrax.mjs deploy --json",
+    "Verify identity when needed, publish a workspace-owned app, and return structured output.",
+  ],
+  [
+    "library",
+    'atrax library search "brand" --workspace <id> --json',
+    "Search company knowledge that the current identity may read.",
+  ],
+  [
+    "actions",
+    'atrax call actions.list --input \'{"appId":"<id>"}\' --json',
+    "Discover the named actions an app currently exposes.",
+  ],
+  [
+    "mcp",
+    "atrax mcp --workspace <id>",
+    "Run the official MCP stdio server for a named agent session.",
+  ],
 ] as const;
 
 export default function DevelopersPage() {
@@ -22,26 +45,26 @@ export default function DevelopersPage() {
     <main>
       <section className="page-hero page-hero-dark">
         <div className="shell page-hero-grid">
-          <p className="eyebrow">The working CLI</p>
+          <p className="eyebrow">CLI and MCP</p>
           <div>
-            <h1>The whole v0 loop fits in seven commands.</h1>
+            <h1>
+              Use one operation contract from the terminal or an existing agent.
+            </h1>
             <p>
-              The CLI owns the app contract, Cloudflare account check, D1
-              provisioning, migrations, deployment readiness, lockfile, and
-              machine output.
+              The CLI creates and deploys company apps, contributes Library
+              content, and calls named actions. MCP exposes the same platform
+              operations to an agent you already run.
             </p>
           </div>
         </div>
       </section>
-
       <section className="section shell cli-demo-section">
         <div className="section-intro">
-          <p className="eyebrow">Agent-readable output</p>
-          <h2>Every deploy explains what it created.</h2>
+          <p className="eyebrow">Structured output</p>
+          <h2>Use the CLI and MCP in the same workspace.</h2>
         </div>
         <DeployTerminal />
       </section>
-
       <section className="cli-reference">
         <div className="shell">
           {commands.map(([name, command, copy], index) => (
@@ -54,41 +77,31 @@ export default function DevelopersPage() {
           ))}
         </div>
       </section>
-
       <section className="section shell agent-contract">
         <div className="section-intro">
-          <p className="eyebrow">Built for coding agents</p>
-          <h2>State is readable without a browser.</h2>
+          <p className="eyebrow">Shared interface</p>
+          <h2>Use the same operations from the CLI and MCP.</h2>
         </div>
         <div className="agent-contract-grid">
           <div>
-            <h3>Predictable files</h3>
-            <pre><code>{`atrax.json
-atrax.lock.json
-src/worker.js
-public/
-migrations/
-AGENTS.md`}</code></pre>
+            <h3>App files</h3>
+            <pre>
+              <code>{`atrax.json\natrax.lock.json\nsrc/actions.js\npublic/\nmigrations/\nAGENTS.md`}</code>
+            </pre>
           </div>
           <div>
-            <h3>Predictable output</h3>
-            <pre><code>{`{
-  "schemaVersion": 1,
-  "status": "deployed",
-  "name": "open-chat",
-  "url": "https://...",
-  "deploymentId": "...",
-  "resources": { "tables": { ... } }
-}`}</code></pre>
+            <h3>Write operation</h3>
+            <pre>
+              <code>{`{\n  "input": { "appId": "<app-id>" },\n  "key": "<stable-business-key>"\n}`}</code>
+            </pre>
           </div>
         </div>
       </section>
-
       <section className="final-cta">
         <div className="shell final-cta-grid">
           <div>
-            <p className="eyebrow">Exact commands and files</p>
-            <h2>Continue in the docs.</h2>
+            <p className="eyebrow">Exact commands</p>
+            <h2>Continue in the CLI and MCP docs.</h2>
           </div>
           <Link className="button button-orange" href="/docs/cli">
             Open CLI reference <span aria-hidden="true">→</span>

@@ -1,31 +1,21 @@
-# Atrax Docs
+# Atrax
 
-Atrax v0 is an agent-native CLI for public Cloudflare Worker apps with Static Assets and D1. Prefer the Markdown pages or docs.json when reading programmatically.
+Cloud for your company’s apps. Company-only by default; existing agents use the same authorized operations.
 
-Agent onboarding command: `curl -fsSL https://atrax.run/agent`
+- [Quickstart](https://atrax.run/docs/quickstart/index.md): Create an app, run it locally, and share it with your company.
+- [CLI reference](https://atrax.run/docs/cli/index.md): One CLI for app creation, deployment, company knowledge, and agent operations.
+- [App contract](https://atrax.run/docs/app-contract/index.md): One version 2 artifact runs locally and in the hosted environment.
+- [Infrastructure model](https://atrax.run/docs/infrastructure-model/index.md): What Atrax owns and how releases retain app identity.
+- [Chat example](https://atrax.run/docs/chat-example/index.md): A small persistent app with two named actions.
+- [Inventory and Orders](https://atrax.run/docs/inventory-orders/index.md): Two company apps perform one business operation with explicit recovery.
+- [Launchpad](https://atrax.run/docs/launchpad/index.md): Build and deploy workspace-owned apps.
+- [Tables](https://atrax.run/docs/tables/index.md): Persistent structured data for each app.
+- [Door](https://atrax.run/docs/door/index.md): Verified company access, app sharing, and revocable agent sessions.
+- [Library](https://atrax.run/docs/library/index.md): Company files and guidance that authorized people and agents can share.
+- [Switchboard](https://atrax.run/docs/switchboard/index.md): Named app actions that preserve the employee’s permissions.
+- [Connect an agent](https://atrax.run/docs/mcp/index.md): Use your existing agent through the official MCP stdio protocol.
+- [Loops](https://atrax.run/docs/loops/index.md): Hosted agents and scheduled automation are planned.
+- [Security model](https://atrax.run/docs/security/index.md): Identity and permissions stay outside uploaded app code.
+- [Feature status](https://atrax.run/docs/status/index.md): The first launch focuses on a complete company app workflow.
 
-Deploy uses the caller's Cloudflare account. Without one, `atrax deploy --instant` returns `{ "schemaVersion": 1, "status": "deployed", "mode": "instant", "url": "...", "appId": "...", "access": "public", "ready": true, "claimToken": "...", "expiresAt": 1790000000000 }`; `access` is `public` or `shared` and the deploy says so in one line under the URL. The token is printed once and `atrax claim <token>` returns `{ "schemaVersion": 1, "status": "claimed", "appId": "...", "url": "..." }`. Unclaimed apps are deleted after 30 days. Shared apps and `atrax share` work on instant hosting too, as do `atrax inspect` and `atrax tables export [--out <file>]`, which dumps every user table as JSON.
-
-## Available
-
-- [Quickstart](https://atrax.run/docs/quickstart/index.md)
-- [CLI reference](https://atrax.run/docs/cli/index.md)
-- [App contract](https://atrax.run/docs/app-contract/index.md)
-- [Infrastructure model](https://atrax.run/docs/infrastructure-model/index.md)
-- [Public chat example](https://atrax.run/docs/chat-example/index.md)
-- [Launchpad](https://atrax.run/docs/launchpad/index.md)
-- [Tables](https://atrax.run/docs/tables/index.md)
-
-## Planned products
-
-- [Door](https://atrax.run/docs/door/index.md)
-- [Library](https://atrax.run/docs/library/index.md)
-- [Switchboard](https://atrax.run/docs/switchboard/index.md)
-- [Loops](https://atrax.run/docs/loops/index.md)
-
-## Operate
-
-- [Security](https://atrax.run/docs/security/index.md)
-- [Feature status](https://atrax.run/docs/status/index.md)
-- [docs.json](https://atrax.run/docs.json)
-- [llms-full.txt](https://atrax.run/llms-full.txt)
+- [Operation schemas](https://atrax.run/operations.json)

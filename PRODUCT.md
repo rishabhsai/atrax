@@ -10,16 +10,22 @@ brand
 
 ## Users
 
-Small companies building focused internal tools, customer portals, prototypes, and operational software with coding agents. The primary user is a founder or small technical team that wants to ship useful software without assembling and operating a conventional cloud stack.
+Small businesses building internal tools and operational software with coding agents. The primary user is a founder or small team that wants software suited to how their business works, without assembling and operating a conventional cloud stack.
 
 ## Product Purpose
 
-Atrax is a cloud for everyone, operated through an agent-native CLI and a
+Atrax is a cloud for internal software at small businesses, operated through an agent-native CLI and a
 quiet account console. A coding agent can create, run, inspect, and deploy a
 small full-stack app through one compact contract. The account shows projects,
 releases, resources, health, connections, and activity without becoming a
 second source of truth. The platform includes hosting, data, access, files and
 company knowledge, connected tools, and durable background work.
+
+For the first launch, users bring their own agents. Atrax hosts apps and exposes
+their operations and shared company knowledge. Hosted agents and background
+automations follow later. GitHub retains source hosting and code collaboration;
+Atrax owns the deployment and operation of the running software. The current
+agreed scope is recorded in [notes/launch-scope.md](./notes/launch-scope.md).
 
 ## Brand Personality
 

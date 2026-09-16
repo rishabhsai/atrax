@@ -1,41 +1,57 @@
 # Quickstart
 
-Status: available
+Create an app, run it locally, and share it with your company.
 
-Brief a coding agent with the read-only agent reference:
+## Install Atrax
 
-```bash
-curl -fsSL https://atrax.run/agent
+Use Node.js 22.13 or newer. This launch build is available from source; the published npm package is an earlier release. Local development needs no account. Install the checkout below, then run its CLI from any directory.
+
 ```
-
-This prints the current docs map, contract rules, and safe CLI workflow. It does not execute a script or change the machine.
-
-```bash
 git clone https://github.com/rishabhsai/atrax.git
 cd atrax
-npm install
+git checkout feat/workspace-launch
+npm ci
 npm link
-atrax new open-chat --template chat
-cd open-chat
+atrax new team-chat --template chat
+cd team-chat
 atrax dev
+```
+
+## Deploy to your workspace
+
+Run deploy from the app directory. On your first hosted deploy, follow the one-time browser approval link and verify your email. If you do not have a workspace yet, create one or accept a team invitation on that approval screen, then connect the CLI. Deployment continues with your only workspace automatically. Your company owns the app; you become its first maintainer.
+
+You do not need a Cloudflare account. The app is company-only by default: every current workspace member can open it.
+
+```
 atrax deploy --json
 ```
 
-The deployer uses an authenticated Wrangler session. The generated chat is public and requires no visitor login.
+Read the returned URL. Do not guess a hostname. Keep atrax.lock.json: it identifies this app for future updates.
 
-## Deploy without a Cloudflare account
+## Invite your team
 
-```bash
-atrax deploy --instant
-atrax claim <token>
+Open Home, then Team to invite a coworker by email. They verify that address and join the workspace. Workspace-wide apps become available immediately.
+
+Use the app’s sharing controls to select people, appoint another maintainer, or restrict an action. Removing a teammate revokes their existing app and agent access.
+
+## Update without starting over
+
+Edit the app, check it locally, then deploy again. The app keeps its URL and business database. A private candidate is checked before promotion.
+
+If a request is interrupted, repeat atrax deploy. The CLI resumes its saved artifact and deployment rather than creating another app.
+
+```
+atrax build
+atrax deploy --json
 ```
 
-Deploy takes this path on its own when no Cloudflare account is detected; `--instant` forces it. Atrax posts the app to its own hosted control plane and returns a real public URL plus a claim token, printed exactly once by the deploy that minted it. An unclaimed app is deleted 30 days after it was created. `atrax claim <token>` keeps the same URL and stops the expiry. Instant deploys are capped at 10 per day per IP.
+## Connect your existing agent
 
-Every instant deploy names who can open the URL. A public app prints `This app is public: anyone with the URL can open it.`, and the JSON carries `"access": "public"`. Shared apps work here too: set `"visibility": "shared"` in `atrax.json`, deploy, and `atrax share add <email>` invites people the same way it does on a Cloudflare account.
+Sign in with an agent label, then configure your MCP client to run atrax mcp. The agent uses your permissions.
 
-```bash
-atrax share add ana@example.com --json
 ```
-
-Inspect the live state with `atrax inspect --json` and stream requests with `atrax logs`.
+atrax login --agent "My coding agent"
+atrax workspace use <workspace-id>
+atrax mcp --workspace <workspace-id>
+```

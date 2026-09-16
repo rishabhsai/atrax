@@ -2,8 +2,7 @@ import Link from "next/link";
 
 export const metadata = {
   title: "Company",
-  description:
-    "Atrax is building an agent-native cloud for small software.",
+  description: "Atrax builds company-owned software with shared context.",
 };
 
 export default function CompanyPage() {
@@ -13,41 +12,53 @@ export default function CompanyPage() {
         <div className="shell page-hero-grid">
           <p className="eyebrow">Atrax</p>
           <div>
-            <h1>Small software needs a smaller cloud.</h1>
+            <h1>Company software should carry its own context.</h1>
             <p>
-              Coding agents can write an app quickly. Atrax is reducing the
-              work between a folder and software people can keep using.
+              Apps are more useful when their ownership, access, business
+              actions, and guidance stay legible to the people and agents doing
+              the work.
             </p>
           </div>
         </div>
       </section>
-
       <section className="section shell company-thesis">
         <div className="section-intro">
           <p className="eyebrow">The thesis</p>
-          <h2>Optimize for coherence, not service count.</h2>
+          <h2>Build software that keeps company context close.</h2>
         </div>
         <div>
           <p>
-            A coding agent should create the app, run its data locally, deploy
-            it, inspect production, and fix a failure without scraping five
-            dashboards.
+            A coding agent can create an interface quickly. The durable work is
+            giving that interface a company owner, current permissions, a
+            reliable way to ask another app for work, and shared guidance that
+            can be corrected later.
           </p>
-          <p>
-            The current v0 proves that loop for public Workers apps with D1.
-            The roadmap adds identity, knowledge, connected tools, and durable
-            execution without adding overlapping products.
-          </p>
+          <p>Atrax starts with the company-app workflow people use every day.</p>
         </div>
       </section>
-
       <section className="principles">
         <div className="shell">
           {[
-            ["01", "Working proof before positioning", "A command appears on the site only after it runs."],
-            ["02", "One product per responsibility", "Library reads, Switchboard acts, and Loops runs."],
-            ["03", "One workflow for people and agents", "Every control-plane action needs a CLI and machine output."],
-            ["04", "Small companies first", "The default path should end at a useful link this week."],
+            [
+              "01",
+              "Workflows people can use",
+              "Build, share, and operate company apps from the workspace, CLI, or MCP.",
+            ],
+            [
+              "02",
+              "Company ownership",
+              "Apps and their business data belong to a workspace instead of to an individual session.",
+            ],
+            [
+              "03",
+              "Current permissions",
+              "Access is checked when a person, agent, or another app performs work.",
+            ],
+            [
+              "04",
+              "One interface for people and agents",
+              "The operation registry feeds the HTTP, CLI, and MCP surfaces.",
+            ],
           ].map(([number, title, copy]) => (
             <article key={number}>
               <span>{number}</span>
@@ -57,15 +68,17 @@ export default function CompanyPage() {
           ))}
         </div>
       </section>
-
       <section className="final-cta">
         <div className="shell final-cta-grid">
           <div>
-            <p className="eyebrow">Private repository, public proof app</p>
-            <h2>Follow the implementation.</h2>
+            <p className="eyebrow">Learn more</p>
+            <h2>Start with the workspace workflow.</h2>
           </div>
           <div className="button-row">
-            <a className="button button-orange" href="https://github.com/rishabhsai/atrax">
+            <a
+              className="button button-orange"
+              href="https://github.com/rishabhsai/atrax"
+            >
               View GitHub <span aria-hidden="true">↗</span>
             </a>
             <Link className="button button-outline-light" href="/docs">

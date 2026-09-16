@@ -1,32 +1,33 @@
 import Link from "next/link";
 import { ChipGrid } from "../components/ChipGrid";
 import { Reveal } from "../components/Reveal";
-import { productOrder, products, solutions } from "../lib/content";
+import { products, solutions } from "../lib/content";
 
 export const metadata = {
   title: "Use cases",
   description:
-    "Public tools and prototypes available in v0, plus the private and operational software roadmap.",
+    "Company apps, connected business actions, and existing agents operating through MCP.",
 };
 
 export default function SolutionsPage() {
+  const available = Object.values(products)
+    .filter((product) => product.availability === "available")
+    .map((product) => product.name);
   return (
     <main>
       <section className="page-hero page-hero-orange">
         <div className="shell page-hero-grid">
           <p className="eyebrow">What to build</p>
           <div>
-            <h1>Start with one useful app.</h1>
+            <h1>Start with work your company needs now.</h1>
             <p>
-              Public tools and prototypes work today on Launchpad and Tables.
-              Sharing like a doc, typed actions between apps, and scheduled
-              agent work are planned, and depend on Door, Switchboard, Library,
-              and Loops.
+              Build a workspace-owned app, give it a clear action boundary, keep
+              its guidance in Library, and connect the agent you already use
+              through MCP.
             </p>
           </div>
         </div>
       </section>
-
       <section className="shell example-index">
         {Object.values(solutions).map((solution, index) => (
           <Link href={`/solutions/${solution.slug}`} key={solution.slug}>
@@ -40,49 +41,37 @@ export default function SolutionsPage() {
           </Link>
         ))}
       </section>
-
       <section className="section shell fit-check rule-top">
         <div className="section-split">
           <Reveal className="split-copy">
             <p className="microlabel">
-              01 · <b>Good v0 fit</b>
+              01 · <b>Launch fit</b>
             </p>
-            <h2>Public, focused, full-stack.</h2>
+            <h2>Company work with explicit boundaries.</h2>
             <p>
-              The alpha is narrow on purpose. If an app matches every row on the
-              right, the current CLI can take it from a folder to a URL today.
-              Anything that needs private access or scheduled work waits on a
-              planned product.
+              Build persistent company apps with current access checks, named
+              actions, Library history, and MCP for an existing agent.
             </p>
             <div className="fit-chips">
-              <p>One small interface</p>
-              <p>Structured data in D1</p>
-              <p>Public access by design</p>
-              <p>A stable URL matters</p>
-              <p>A coding agent should operate the deployment</p>
+              <p>One clear workflow</p>
+              <p>Company ownership</p>
+              <p>Named actions</p>
+              <p>Library history</p>
+              <p>An existing agent</p>
             </div>
           </Reveal>
           <Reveal className="panel" delay={120}>
             <div className="panel-head">
-              <span>Product stack</span>
-              <span>v0 status</span>
+              <span>Available surfaces</span>
+              <span>Launch</span>
             </div>
             <ChipGrid
-              note="A use case that needs sign-in, company knowledge, connected tools, or schedules depends on a planned product."
+              note="Start with the products in your company workflow."
               rows={[
                 {
-                  label: "Runs it today",
+                  label: "Available",
                   state: "available" as const,
-                  chips: productOrder
-                    .filter((slug) => products[slug].availability === "available")
-                    .map((slug) => products[slug].name),
-                },
-                {
-                  label: "Planned",
-                  state: "planned" as const,
-                  chips: productOrder
-                    .filter((slug) => products[slug].availability === "planned")
-                    .map((slug) => products[slug].name),
+                  chips: available,
                 },
               ]}
             />

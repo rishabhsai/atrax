@@ -1,19 +1,7 @@
 # __APP_NAME__
 
-A public, login-free shared chat built with Atrax.
+Run `atrax dev` to start company chat locally. No account is required; data stays in `.atrax/state` between restarts. Run `atrax build` to validate the exact artifact used for hosting.
 
-```bash
-atrax dev
-```
+`atrax login`, select your workspace, then `atrax deploy` to publish a company-only app. The workspace owns it. App access and action access are managed by Atrax, outside your code.
 
-Deploy it through your configured Cloudflare account:
-
-```bash
-atrax deploy
-```
-
-The command provisions Tables, applies migrations, deploys the Worker and static assets, writes `atrax.lock.json`, and returns the public URL.
-
-Anyone with the URL can read and post messages. Do not use this template for private conversations.
-
-The public template accepts JSON bodies up to 4 KiB, allows 12 messages per IP per minute, and keeps the latest 500 messages.
+The frontend calls named actions in `src/actions.js`. Handlers receive their own database, the current person and invocation, and scoped capabilities for declared app dependencies and company knowledge. Write actions use the invocation’s idempotency key to prevent duplicate business changes.

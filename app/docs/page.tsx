@@ -4,7 +4,7 @@ import { docs } from "../lib/docs";
 export const metadata = {
   title: "Docs",
   description:
-    "Install Atrax, deploy the public chat, and inspect the live Cloudflare resources.",
+    "Create and deploy company apps, share them with your team, and connect your existing agent.",
 };
 
 export default function DocsPage() {

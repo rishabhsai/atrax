@@ -4,7 +4,7 @@ import { Reveal } from "../components/Reveal";
 
 export const metadata = {
   title: "Pricing",
-  description: "Current alpha pricing and Cloudflare account responsibilities.",
+  description: "Start with the Atrax source checkout and local development.",
 };
 
 export default function PricingPage() {
@@ -14,59 +14,55 @@ export default function PricingPage() {
         <div className="shell page-hero-grid">
           <p className="eyebrow">Pricing</p>
           <div>
-            <h1>The local alpha has no Atrax bill.</h1>
+            <h1>Start with the source checkout.</h1>
             <p>
-              The CLI deploys into your Cloudflare account. Cloudflare usage
-              and plan limits still apply to the Worker and D1 database.
+              Build and run company apps locally from the repository. Atrax will
+              publish hosted pricing before hosted plans are offered.
             </p>
           </div>
         </div>
       </section>
-
       <section className="section shell pricing-now">
         <div className="section-split section-split-center">
           <Reveal className="split-copy pricing-figure">
             <p className="microlabel">
-              01 · <b>Current v0</b>
+              01 · <b>Current scope</b>
             </p>
-            <strong>$0</strong>
-            <h2>Bring your Cloudflare account.</h2>
+            <strong>—</strong>
+            <h2>Build locally from the repository.</h2>
             <p>
-              Install the alpha locally from the private repository. Your
-              configured Wrangler identity provisions and owns the deployed
-              resources, so Cloudflare bills you directly for what the app uses.
+              Install dependencies, create an app, and run it locally. Hosted
+              deployment uses a verified workspace; its commercial terms will be
+              stated before they are offered.
             </p>
           </Reveal>
           <Reveal className="panel" delay={120}>
             <div className="panel-head">
-              <span>What $0 covers</span>
-              <span>alpha</span>
+              <span>Start here</span>
+              <span>Current</span>
             </div>
             <ChipGrid
-              note="Atrax charges nothing today. Instant hosting runs on Atrax's own account and is free; a deploy into your Cloudflare account is billed by Cloudflare."
+              note="Hosted pricing will be published before hosted plans are offered."
               rows={[
                 {
-                  label: "Included today",
+                  label: "Available",
                   state: "available" as const,
                   chips: [
-                    "the CLI",
-                    "chat template",
-                    "local dev",
-                    "deploy to your account",
-                    "instant hosting",
-                    "versioned JSON output",
-                    "docs and agent files",
+                    "source checkout",
+                    "local development",
+                    "workspace deployment",
+                    "Library",
+                    "MCP",
                   ],
                 },
                 {
-                  label: "Not priced yet",
+                  label: "Hosted pricing",
                   state: "planned" as const,
                   chips: [
-                    "hosted control plane",
-                    "Door",
-                    "Library",
-                    "Switchboard",
-                    "Loops",
+                    "hosted pricing",
+                    "usage limits",
+                    "free tier",
+                    "paid plans",
                   ],
                 },
               ]}
@@ -74,25 +70,20 @@ export default function PricingPage() {
           </Reveal>
         </div>
         <div className="pricing-notes">
-          <p>Cloudflare can bill Worker and D1 usage.</p>
           <p>
-            Instant hosting costs nothing: run atrax deploy --instant,
-            and an unclaimed app is deleted after 30 days. Limits may change.
+            Hosted pricing, usage limits, and plans will be published before
+            they are offered.
           </p>
-          <p>There is no hosted Atrax control plane yet.</p>
-          <p>Door, Library, Switchboard, and Loops do not have prices yet.</p>
-          <p>Pricing will be published before any hosted paid alpha.</p>
         </div>
       </section>
-
       <section className="final-cta">
         <div className="shell final-cta-grid">
           <div>
-            <p className="eyebrow">Start with the working slice</p>
-            <h2>Deploy the public chat.</h2>
+            <p className="eyebrow">Start locally</p>
+            <h2>Read the source install and quickstart.</h2>
           </div>
-          <Link className="button button-orange" href="/docs/chat-example">
-            Open the guide <span aria-hidden="true">→</span>
+          <Link className="button button-orange" href="/docs/quickstart">
+            Open the quickstart <span aria-hidden="true">→</span>
           </Link>
         </div>
       </section>

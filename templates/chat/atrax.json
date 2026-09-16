@@ -1,14 +1,8 @@
 {
-  "$schema": "https://atrax.run/schema/v0.json",
-  "version": 1,
+  "$schema": "https://atrax.run/schema/v2.json",
+  "version": 2,
   "name": "__APP_NAME__",
-  "visibility": "public",
-  "web": {
-    "entry": "src/worker.js",
-    "assets": "public",
-    "health": "/.well-known/atrax.json"
-  },
-  "tables": {
-    "migrations": "migrations"
-  }
+  "web": { "assets": "public", "fallback": "index.html" },
+  "actions": { "entry": "src/actions.js" },
+  "tables": { "migrations": "migrations" }
 }

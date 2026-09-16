@@ -1,268 +1,300 @@
 export const products = {
   launchpad: {
     slug: "launchpad",
-    name: "Launchpad",
+    name: "Apps",
     number: "01",
     availability: "available",
-    eyebrow: "Build, deploy, inspect",
-    cardTitle: "Run and release an app. Keep one stable URL.",
-    title: "Deploy the app. Get the URL.",
+    eyebrow: "Build and deploy",
+    cardTitle: "Company-owned apps with a stable URL and persistent data.",
+    title: "Ship an app your company can keep using.",
     summary:
-      "Launchpad builds a Worker and its static assets, deploys them through your Cloudflare account, waits for the app to become ready, and returns versioned JSON.",
+      "Atrax builds an app artifact, checks a private candidate, and publishes it to a workspace. The app keeps its URL and its business database across ordinary code updates.",
     boundary:
-      "Launchpad owns runtime, releases, and inspection. It never decides who can access the app; that is Door.",
+      "Apps own their interface, action handlers, and business data. Atrax owns deployment, identity, and the access checks around them.",
     features: [
-      ["Local runtime", "Run the same Worker, assets, bindings, and migrations before deploying."],
-      ["Stable deployment", "A committed lockfile updates the same Worker and keeps its URL."],
-      ["Machine output", "Deploy and inspect commands return versioned JSON with real resource IDs."],
-      ["Live logs", "Stream request outcomes from the deployed Worker through the CLI."],
+      ["Local first", "Create and run an app locally without signing in."],
+      [
+        "Workspace release",
+        "A verified workspace member deploys an immutable artifact to the company.",
+      ],
+      [
+        "Persistent data",
+        "Declared D1 migrations retain their checksums and business records.",
+      ],
+      [
+        "Resumable deploys",
+        "A repeated deploy resumes its saved work instead of creating another app.",
+      ],
     ],
-    code: `atrax deploy --json
-
-{
-  "status": "deployed",
-  "url": "https://open-chat...workers.dev",
-  "resources": { "tables": { "name": "open-chat-tables" } }
-}`,
-    codeLabel: "Working v0 command",
+    code: `# From a source checkout\nnode bin/atrax.mjs new team-chat --template chat\ncd team-chat\nnode ../bin/atrax.mjs dev\nnode ../bin/atrax.mjs deploy --json`,
+    codeLabel: "Available workflow",
     spec: [
-      { property: "Command", value: "atrax deploy --json", code: true },
-      { property: "Output", value: "schemaVersion 1 JSON", code: true },
-      { property: "State", value: "atrax.lock.json", code: true },
-      { property: "Runtime", value: "Worker plus static assets" },
-      { property: "Status", value: "Available in v0" },
+      { property: "Commands", value: "new, dev, build, deploy", code: true },
+      { property: "Ownership", value: "One workspace owns each app" },
+      { property: "Data", value: "Declared D1 migrations", code: true },
+      { property: "Output", value: "schemaVersion 1 envelopes", code: true },
+      { property: "Status", value: "Available" },
     ],
-    related: ["tables", "door", "loops"],
-  },
-  tables: {
-    slug: "tables",
-    name: "Tables",
-    number: "02",
-    availability: "available",
-    eyebrow: "Structured app data",
-    cardTitle: "Provision D1 and apply ordered SQL migrations.",
-    title: "Keep the data when the code changes.",
-    summary:
-      "Tables v0 provisions a D1 database, applies ordered migrations locally and remotely, and keeps the same database across releases.",
-    boundary:
-      "Tables owns structured transactional state. Files and knowledge belong in Library; execution history belongs in Loops.",
-    features: [
-      ["Provisioning", "The first deploy creates the app database and records its non-secret ID."],
-      ["Ordered migrations", "SQL migrations apply in order and remain tracked by D1."],
-      ["Local persistence", "Development state survives a local server restart."],
-      ["Release persistence", "A second deploy keeps the same database and existing rows."],
-    ],
-    code: `{
-  "tables": {
-    "migrations": "migrations"
-  }
-}
-
-# migrations/0001_messages.sql`,
-    codeLabel: "Working v0 contract",
-    spec: [
-      { property: "Contract", value: "tables.migrations", code: true },
-      { property: "Resource", value: "One D1 database per app" },
-      { property: "Migrations", value: "Ordered SQL in migrations/", code: true },
-      { property: "State", value: "Non-secret database ID in the lockfile" },
-      { property: "Status", value: "Available in v0" },
-    ],
-    related: ["launchpad", "door", "library"],
+    related: ["door", "switchboard", "library"],
   },
   door: {
     slug: "door",
-    name: "Door",
-    number: "03",
-    availability: "planned",
-    eyebrow: "Identity and access",
-    cardTitle: "Control who can open an app and what they can do.",
-    title: "Give people access without rebuilding login.",
+    name: "Access",
+    number: "02",
+    availability: "available",
+    eyebrow: "Company access",
+    cardTitle: "Verified people, selected audiences, and revocable sessions.",
+    title: "Keep company apps company-only by default.",
     summary:
-      "Door will add guest identity, sign-in, sessions, teams, invitations, roles, app identity, and one share control for every app. An alpha slice ships today: shared visibility with invite links via atrax share.",
+      "Workspace membership controls app access. Maintainers can narrow an app or an action, and admins can invite a verified external email to one app with selected action grants.",
     boundary:
-      "Door owns identity, sessions, sharing, and roles. It never deploys or runs software; that is Launchpad. Switchboard owns external capabilities.",
+      "Access owns verified identity, workspace membership, sessions, app audiences, and action permissions. App code does not receive a general-purpose credential.",
     features: [
-      ["Guest identity", "Start without login when the app is intentionally public."],
-      ["Private sharing", "Invite a person or team and send one URL."],
-      ["Roles", "Apply the same role in the UI, API, and data layer."],
-      ["App identity", "Give each deployed app its own narrow service identity."],
+      [
+        "Workspace members",
+        "New apps are available to current members of their workspace.",
+      ],
+      [
+        "Selected access",
+        "Maintainers can limit an app or named action to selected coworkers.",
+      ],
+      [
+        "Private guests",
+        "Admins invite a verified external email to an exact app and selected actions.",
+      ],
+      [
+        "Current revocation",
+        "Membership and permission checks apply to browser, CLI, agent, and delegated calls.",
+      ],
     ],
-    code: `atrax share add ana@example.com --json
-
-Alpha slice only: invite links for a
-shared app. Roles and teams are planned.`,
-    codeLabel: "Alpha slice",
+    code: `atrax workspace create "Acme" --slug acme\natrax deploy --workspace <workspace-id> --json\n\n# Manage app audiences in the workspace console.`,
+    codeLabel: "Available workflow",
     spec: [
-      { property: "Command", value: "atrax share add <email>", code: true },
-      { property: "Owns", value: "Identity, sessions, sharing, roles" },
-      { property: "Today", value: "Public apps, or shared apps behind invite links" },
-      { property: "Foundation", value: "Cloudflare Access and app identity" },
-      { property: "Status", value: "Planned" },
+      { property: "Default", value: "Company-only workspace audience" },
+      { property: "Guests", value: "Verified email; exact app and actions" },
+      {
+        property: "Public publish",
+        value: "Web assets only; actions and Library stay protected",
+      },
+      { property: "Status", value: "Available" },
     ],
-    related: ["launchpad", "tables", "switchboard"],
+    related: ["launchpad", "switchboard", "mcp"],
   },
   library: {
     slug: "library",
     name: "Library",
-    number: "04",
-    availability: "planned",
-    eyebrow: "Files and company knowledge",
-    cardTitle: "Give apps one trusted place to read from.",
-    title: "Keep company knowledge ready for people and agents.",
+    number: "03",
+    availability: "available",
+    eyebrow: "Company knowledge",
+    cardTitle: "Company guidance and files with history and source access.",
+    title: "Keep company knowledge useful and attributable.",
     summary:
-      "Library will store uploads, documents, policies, notes, and generated artifacts with permission-aware search, sources, owners, and freshness.",
+      "Library stores guidance and files with immutable revisions, reasons for corrections, authorship, source links, and permission-aware search for people and agents.",
     boundary:
-      "Library provides knowledge. It never holds credentials or performs external actions; those belong in Switchboard.",
+      "Library owns company guidance and files. Live operational records remain in the app that owns them, and app actions remain in the action contract.",
     features: [
-      ["Object storage", "Upload, download, retain, and delete files through app permissions."],
-      ["Collections", "Organize company material by owner, source, and audience."],
-      ["Search", "Retrieve only the knowledge the current identity may read."],
-      ["Freshness", "Track sources and flag documents that need review."],
+      [
+        "Revision history",
+        "Corrections use the current revision ID and a reason; concurrent edits preserve a draft conflict.",
+      ],
+      [
+        "File versions",
+        "Manual and CLI uploads create immutable file versions up to 10 MiB.",
+      ],
+      [
+        "Searchable text",
+        "UTF-8 text, Markdown, CSV, and JSON are searchable. PDFs are available to download.",
+      ],
+      [
+        "Source-aware access",
+        "Derived knowledge remains subject to its sources’ current access rules.",
+      ],
     ],
-    code: `Planned foundation:
-
-R2          file bytes
-Vectorize   semantic retrieval
-Door        read permissions`,
-    codeLabel: "Roadmap architecture",
+    code: `atrax library upload ./brand.md --workspace <workspace-id> --key brand-v1\natrax library search "brand" --workspace <workspace-id> --json\natrax library get <item-id> --workspace <workspace-id> --json`,
+    codeLabel: "Available workflow",
     spec: [
-      { property: "Command", value: "None yet" },
-      { property: "Owns", value: "Files, collections, permission-aware search" },
-      { property: "Today", value: "Apps store their own files" },
-      { property: "Foundation", value: "R2, Vectorize, and Door permissions" },
-      { property: "Status", value: "Planned" },
+      { property: "Storage", value: "Immutable R2 file versions" },
+      { property: "Maximum file", value: "10 MiB" },
+      { property: "Text search", value: "Text, Markdown, CSV, JSON" },
+      { property: "Status", value: "Available" },
     ],
-    related: ["door", "switchboard", "loops"],
+    related: ["door", "mcp", "launchpad"],
   },
   switchboard: {
     slug: "switchboard",
-    name: "Switchboard",
-    number: "05",
-    availability: "planned",
-    eyebrow: "Vault and connected tools",
-    cardTitle: "Connect a company tool once, then grant narrow actions.",
-    title: "Let apps call tools without handing them keys.",
+    name: "Actions",
+    number: "04",
+    availability: "available",
+    eyebrow: "Named app operations",
+    cardTitle: "Let one app call another through named, checked actions.",
+    title: "Connect apps through explicit business actions.",
     summary:
-      "Switchboard will keep API keys and OAuth connections in a company vault, expose typed actions, and record every scoped app-to-app or external call.",
+      "Apps describe actions with JSON schemas. Calls preserve the current employee’s permissions, validate input and output, and use stable business keys for writes.",
     boundary:
-      "Switchboard performs actions and protects credentials. Company files and searchable context belong in Library.",
+      "Actions own the declared app-to-app interface and request capability. They do not turn an app into a general credential or expose its raw database.",
     features: [
-      ["Company vault", "Keep keys and OAuth connections out of app code."],
-      ["Typed tools", "Expose explicit actions instead of ambient provider access."],
-      ["Scoped grants", "Limit an app by action, resource, environment, and time."],
-      ["Action ledger", "Record the person, app, delegated scope, call, and result."],
+      [
+        "Named schemas",
+        "Each action declares its description, effect, and input and output JSON schemas.",
+      ],
+      [
+        "Current permissions",
+        "The target authorizes the person at call time, including explicit denials.",
+      ],
+      [
+        "Business retry keys",
+        "Write calls require a stable key; handlers own their business idempotency.",
+      ],
+      [
+        "Bounded calls",
+        "Request capabilities have a limited lifetime, depth, and call count.",
+      ],
     ],
-    code: `Planned foundation:
-
-Secrets Store   key custody
-OAuth           company connections
-Service binding typed app tools
-Audit log       actor and result`,
-    codeLabel: "Roadmap architecture",
+    code: `atrax call actions.list --input '{"appId":"<app-id>"}' --json\natrax call actions.call --key order-42 --input '{"appId":"<app-id>","actionName":"orders.create","input":{"orderId":"order-42"}}' --json`,
+    codeLabel: "Available workflow",
     spec: [
-      { property: "Command", value: "None yet" },
-      { property: "Owns", value: "Credentials, typed actions, grants, ledger" },
-      { property: "Today", value: "Apps hold their own keys" },
-      { property: "Foundation", value: "Secrets Store, OAuth, service bindings" },
-      { property: "Status", value: "Planned" },
+      { property: "Contract", value: "Named JSON Schema actions" },
+      { property: "Writes", value: "Stable business command key", code: true },
+      { property: "Authorization", value: "Current employee permission" },
+      { property: "Status", value: "Available" },
     ],
-    related: ["door", "library", "loops"],
+    related: ["launchpad", "door", "mcp"],
+  },
+  mcp: {
+    slug: "mcp",
+    name: "MCP",
+    number: "05",
+    availability: "available",
+    eyebrow: "Your existing agent",
+    cardTitle:
+      "Give an existing agent the same workspace permissions you have.",
+    title: "Connect the agent you already use.",
+    summary:
+      "Atrax runs as an MCP stdio server after a named agent login. The generated tools use the platform operation registry and the same current workspace permissions.",
+    boundary:
+      "MCP connects an existing agent to Atrax. It does not host agents, mint prompt tokens, or give an agent permissions its verified person does not have.",
+    features: [
+      [
+        "Named agent sessions",
+        "Sign in each agent connection with a label and revoke it independently.",
+      ],
+      [
+        "Registry tools",
+        "Operation schemas become MCP tools instead of a second, divergent API.",
+      ],
+      [
+        "Write safety",
+        "Write tools require a stable user-provided key for the same business intent.",
+      ],
+      [
+        "No secret prompts",
+        "The saved credential stays outside the app and MCP owns stdout for protocol traffic.",
+      ],
+    ],
+    code: `atrax login --agent "Operations agent"\natrax workspace use <workspace-id>\natrax mcp --workspace <workspace-id>`,
+    codeLabel: "Available workflow",
+    spec: [
+      { property: "Protocol", value: "Official MCP stdio" },
+      { property: "Identity", value: "Named, revocable agent session" },
+      { property: "Tools", value: "Operation registry schemas" },
+      { property: "Status", value: "Available" },
+    ],
+    related: ["door", "library", "switchboard"],
   },
   loops: {
     slug: "loops",
-    name: "Loops",
+    name: "Automation",
     number: "06",
     availability: "planned",
-    eyebrow: "Functions and operational agents",
-    cardTitle: "Run code or an agent after a request, event, or schedule.",
-    title: "Keep useful work running after the tab closes.",
+    eyebrow: "Planned",
+    cardTitle: "Hosted agents and scheduled automation are planned for a later release.",
+    title: "Automation is planned for a later release.",
     summary:
-      "Loops will cover declared webhooks, schedules, queues, background jobs, and operational agents through one durable execution model.",
+      "Today, connect an existing agent through MCP for request-driven company work. Hosted agents, schedules, durable automation, and automatic document synchronization are planned for later releases.",
     boundary:
-      "A Loop is triggered work. Models and tools can make it agentic, but there is no separate worker product or agent runtime.",
+      "Automation will own scheduled and durable execution. It will build on the existing company, action, and Library permissions instead of creating a second authorization path.",
     features: [
-      ["One trigger model", "Start from a request, webhook, event, queue, or schedule."],
-      ["Durable execution", "Retry safe steps and resume long work after interruption."],
-      ["Bound tools", "Use only the actions granted through Switchboard."],
-      ["Approval and trace", "Pause exact payloads for approval and preserve each step and result."],
+      ["Hosted agents", "Planned for a later release."],
+      ["Schedules", "Planned for a later release."],
+      ["Durable automation", "Planned for a later release."],
+      [
+        "External sync",
+        "Automatic document synchronization is planned for a later release.",
+      ],
     ],
-    code: `loop({
-  on: schedule("0 8 * * 1"),
-  run: reviewRenewals,
-  tools: [accounts, outreach],
-  approve: ["outreach.send"]
-})`,
-    codeLabel: "Planned canonical API",
+    code: `Use an existing agent through MCP for\nrequest-driven company work today.`,
+    codeLabel: "Use today",
     spec: [
-      { property: "Command", value: "None yet" },
-      { property: "Owns", value: "Triggers, durable steps, approval, traces" },
-      { property: "Today", value: "Launchpad deploys the agent app itself" },
-      { property: "Planned API", value: "loop({ on, run, tools, approve })", code: true },
+      { property: "Today", value: "Request-driven app actions and MCP" },
+      { property: "Planned", value: "Hosted agents and schedules" },
       { property: "Status", value: "Planned" },
     ],
-    related: ["switchboard", "library", "tables"],
+    related: ["mcp", "library", "switchboard"],
   },
 } as const;
 
 export type ProductSlug = keyof typeof products;
-
 export const productOrder: ProductSlug[] = [
   "launchpad",
-  "tables",
   "door",
   "library",
   "switchboard",
+  "mcp",
   "loops",
 ];
 
 export const solutions = {
-  "team-tools": {
-    slug: "team-tools",
-    name: "Team tools",
-    eyebrow: "For one small team",
-    short: "Replace a fragile spreadsheet or recurring status chase with a focused app.",
-    title: "Build the internal tool your team keeps working around.",
+  "company-apps": {
+    slug: "company-apps",
+    name: "Company apps",
+    eyebrow: "For your team",
+    short: "Replace a fragile shared process with a workspace-owned app.",
+    title: "Build an app your company can safely share.",
     summary:
-      "Start with one specific workflow. Deploy it publicly today, then share it like a doc, grant typed actions to company tools, and schedule the run as Door, Switchboard, and Loops land.",
-    example: "Renewal review",
-    steps: ["Load account data", "Show one shared review", "Grant narrow tool actions later", "Automate the weekly run later"],
-    stack: ["launchpad", "tables", "door", "switchboard", "loops"],
+      "Start locally, deploy to a workspace, and give current coworkers access by default. Narrow an app or an action when the work calls for it.",
+    example: "Team intake",
+    steps: [
+      "Create the app locally",
+      "Declare its data and named actions",
+      "Deploy to the workspace",
+      "Invite coworkers or select an audience",
+    ],
+    stack: ["launchpad", "door"],
   },
-  "public-tools": {
-    slug: "public-tools",
-    name: "Public tools",
-    eyebrow: "Available in v0",
-    short: "Ship a small public app with persistent data and a stable link.",
-    title: "Deploy a useful public app without opening a cloud console.",
+  "connected-apps": {
+    slug: "connected-apps",
+    name: "Connected apps",
+    eyebrow: "For a business workflow",
+    short:
+      "Keep a record authoritative while another app requests a named action.",
+    title: "Connect two company apps without sharing a database.",
     summary:
-      "The current alpha is built for public Workers apps with static assets and D1. The chat template is the complete reference.",
-    example: "Shared chat",
-    steps: ["Scaffold the template", "Run it locally", "Deploy through the CLI", "Send the URL"],
-    stack: ["launchpad", "tables"],
+      "Inventory and Orders demonstrate a real boundary: one app owns stock while the other requests a reservation through an explicit, permission-checked action.",
+    example: "Inventory and Orders",
+    steps: [
+      "Deploy the record-owning app",
+      "Declare the dependency in the caller",
+      "Use a stable order key",
+      "Retry the same business intent when interrupted",
+    ],
+    stack: ["launchpad", "switchboard", "door"],
   },
-  prototypes: {
-    slug: "prototypes",
-    name: "Working prototypes",
-    eyebrow: "For a real test",
-    short: "Move generated code from a folder to a URL people can use.",
-    title: "Turn an agent-built prototype into a deployed test.",
+  "agent-workspace": {
+    slug: "agent-workspace",
+    name: "Existing agent",
+    eyebrow: "For a trusted agent",
+    short: "Connect the agent you already run to your workspace through MCP.",
+    title: "Let an existing agent use company context with your permissions.",
     summary:
-      "Use one app contract, local D1 state, ordered migrations, and a real Worker deployment. Keep the data when you change the code.",
-    example: "Customer intake pilot",
-    steps: ["Write the app", "Test the schema locally", "Deploy with JSON output", "Inspect the real state"],
-    stack: ["launchpad", "tables"],
-  },
-  "agent-operations": {
-    slug: "agent-operations",
-    name: "Operational software",
-    eyebrow: "Loops roadmap",
-    short: "Put recurring agent work inside an app people can inspect and supervise.",
-    title: "Turn a recurring agent task into bounded software.",
-    summary:
-      "An agent ships behind the same app contract as any other app. Loops, Switchboard, Library, and Door are the planned foundation for schedules, company knowledge, typed actions, approval, and a trace of every step.",
-    example: "Customer risk review",
-    steps: ["Trigger a Loop", "Read approved knowledge", "Call typed actions", "Pause before sensitive actions"],
-    stack: ["loops", "switchboard", "library", "door", "tables"],
+      "A named MCP session can discover apps, inspect actions, contribute Library guidance, and call operations the verified person is currently allowed to perform.",
+    example: "Operations assistant",
+    steps: [
+      "Sign in with an agent label",
+      "Select a workspace",
+      "Configure atrax mcp in the client",
+      "Use stable keys for write operations",
+    ],
+    stack: ["mcp", "library", "door", "switchboard"],
   },
 } as const;
 

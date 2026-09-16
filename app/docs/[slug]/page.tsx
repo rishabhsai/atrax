@@ -9,7 +9,6 @@ type PageProps = {
 
 export function generateStaticParams() {
   return docOrder
-    .filter((slug) => slug !== "quickstart")
     .map((slug) => ({ slug }));
 }
 
@@ -23,6 +22,6 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 export default async function DocPage({ params }: PageProps) {
   const { slug } = await params;
   const doc = docs[slug];
-  if (!doc || slug === "quickstart") notFound();
+  if (!doc) notFound();
   return <DocsShell doc={doc} />;
 }

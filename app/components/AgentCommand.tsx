@@ -1,8 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 
-const command = "npx atrax-cloud new my-app";
+const command = "node bin/atrax.mjs new team-chat --template chat";
 
 export function AgentCommand() {
   const [copied, setCopied] = useState(false);
@@ -16,13 +17,17 @@ export function AgentCommand() {
   return (
     <div className="agent-command">
       <div className="agent-command-label">
-        <span>Start in your terminal</span>
-        <a href="/agent">Read the agent file ↗</a>
+        <span>From a source checkout</span>
+        <Link href="/docs/quickstart">Read the quickstart →</Link>
       </div>
       <div className="agent-command-line">
         <span aria-hidden="true">$</span>
         <code>{command}</code>
-        <button type="button" onClick={copy} aria-label="Copy the start command">
+        <button
+          type="button"
+          onClick={copy}
+          aria-label="Copy the start command"
+        >
           {copied ? "Copied" : "Copy"}
         </button>
       </div>

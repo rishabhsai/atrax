@@ -5,11 +5,7 @@ import { ChipGrid } from "../../components/ChipGrid";
 import { Reveal } from "../../components/Reveal";
 import { SpecTable } from "../../components/SpecTable";
 import { ProductConsole, ProductMark } from "../../components/Visuals";
-import {
-  productOrder,
-  products,
-  type ProductSlug,
-} from "../../lib/content";
+import { productOrder, products, type ProductSlug } from "../../lib/content";
 
 type PageProps = {
   params: Promise<{ slug: string }>;
@@ -19,7 +15,9 @@ export function generateStaticParams() {
   return productOrder.map((slug) => ({ slug }));
 }
 
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: PageProps): Promise<Metadata> {
   const { slug } = await params;
   const product = products[slug as ProductSlug];
   if (!product) return {};
@@ -43,7 +41,9 @@ export default async function ProductPage({ params }: PageProps) {
           <div>
             <div className="product-kicker">
               <ProductMark type={product.slug} />
-              <span>{product.number} / {product.name}</span>
+              <span>
+                {product.number} / {product.name}
+              </span>
               <small className={`status status-${product.availability}`}>
                 {product.availability}
               </small>
@@ -51,7 +51,10 @@ export default async function ProductPage({ params }: PageProps) {
             <h1>{product.title}</h1>
             <p>{product.summary}</p>
             <div className="button-row">
-              <Link className="button button-dark" href={`/docs/${product.slug}`}>
+              <Link
+                className="button button-dark"
+                href={`/docs/${product.slug}`}
+              >
                 Read {product.name} docs <span aria-hidden="true">→</span>
               </Link>
               <Link className="button button-outline-dark" href="/products">
@@ -74,7 +77,7 @@ export default async function ProductPage({ params }: PageProps) {
         <div className="section-split">
           <Reveal className="split-copy">
             <p className="microlabel">
-              01 · <b>{available ? "Included in v0" : "Planned scope"}</b>
+              01 · <b>{available ? "Available now" : "Planned"}</b>
             </p>
             <h2>What belongs here.</h2>
             <div className="capability-list">
@@ -91,8 +94,8 @@ export default async function ProductPage({ params }: PageProps) {
             <SpecTable
               caption={
                 available
-                  ? "Implemented in the deployable chat template."
-                  : "Roadmap surface. No CLI command ships this yet."
+                  ? "Available for your company workflow."
+                  : "Planned for a later release."
               }
               meta={product.availability}
               rows={product.spec}
@@ -105,20 +108,11 @@ export default async function ProductPage({ params }: PageProps) {
               <ChipGrid
                 rows={[
                   {
-                    label: "Available",
+                    label: "Related",
                     state: "available" as const,
-                    chips: product.related
-                      .filter((s) => products[s].availability === "available")
-                      .map((s) => products[s].name),
+                    chips: product.related.map((slug) => products[slug].name),
                   },
-                  {
-                    label: "Planned",
-                    state: "planned" as const,
-                    chips: product.related
-                      .filter((s) => products[s].availability === "planned")
-                      .map((s) => products[s].name),
-                  },
-                ].filter((row) => row.chips.length > 0)}
+                ]}
               />
             </div>
           </Reveal>
@@ -133,16 +127,18 @@ export default async function ProductPage({ params }: PageProps) {
             </p>
             <h2>
               {available
-                ? "Use it from the app folder."
-                : "The target stays explicit."}
+                ? "Use it through the CLI or workspace."
+                : "Use an existing agent today."}
             </h2>
             <p>
               {available
-                ? "This surface is implemented in the deployable chat template."
-                : "This is roadmap architecture, not an available CLI promise."}
+                ? "Build and operate this product from the workspace, CLI, or MCP."
+                : "Connect an existing agent through MCP for request-driven work."}
             </p>
           </div>
-          <pre><code>{product.code}</code></pre>
+          <pre>
+            <code>{product.code}</code>
+          </pre>
         </div>
       </section>
 

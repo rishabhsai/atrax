@@ -9,6 +9,9 @@ const eslintConfig = defineConfig([
   globalIgnores([
     // Default ignores of eslint-config-next:
     ".next/**",
+    ".scratch/**",
+    "dist-npm/**",
+    "cli/vendor/**",
     ".wrangler/**",
     ".tarantula/**",
     "out/**",

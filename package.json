@@ -16,23 +16,30 @@
     "test": "npm run build && node --test tests/*.test.mjs",
     "test:cli": "node --test tests/cli.test.mjs",
     "package:cli": "node scripts/package-cli.mjs",
-    "lint": "eslint . --ignore-pattern dist --ignore-pattern .next"
+    "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",
+    "prebuild": "node scripts/generate-docs.mjs",
+    "build:control-plane": "node scripts/build-control-plane.mjs"
   },
   "dependencies": {
-    "next": "16.2.6",
+    "@cfworker/json-schema": "4.1.1",
+    "@modelcontextprotocol/server": "2.0.0",
+    "esbuild": "0.28.2",
+    "miniflare": "5.20260911.1-alpha",
+    "next": "16.3.5",
     "react": "19.2.6",
     "react-dom": "19.2.6"
   },
   "devDependencies": {
+    "@modelcontextprotocol/client": "2.0.0",
     "@tailwindcss/postcss": "4.2.1",
     "@types/node": "22.19.19",
     "@types/react": "19.2.14",
     "@types/react-dom": "19.2.3",
     "eslint": "9.39.4",
-    "eslint-config-next": "16.2.6",
+    "eslint-config-next": "16.3.5",
     "tailwindcss": "4.2.1",
     "typescript": "5.9.3",
-    "wrangler": "^4.114.0"
+    "wrangler": "4.131.2"
   },
   "type": "module"
 }

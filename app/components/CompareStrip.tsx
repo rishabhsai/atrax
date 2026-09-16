@@ -1,18 +1,13 @@
 import type { CSSProperties } from "react";
 
-const conventionalSteps = [
-  "console setup",
-  "YAML + IAM",
-  "provision each piece",
-  "wire secrets",
-  "deploy",
+const disconnectedSteps = [
+  "app code",
+  "access rules",
+  "company files",
+  "agent setup",
 ] as const;
 
-type SegmentProps = {
-  label: string;
-  delay: number;
-  className?: string;
-};
+type SegmentProps = { label: string; delay: number; className?: string };
 
 function Segment({ label, delay, className }: SegmentProps) {
   return (
@@ -26,55 +21,44 @@ function Segment({ label, delay, className }: SegmentProps) {
   );
 }
 
-/**
- * Two rows of joined segments comparing the number of surfaces a person or
- * agent has to hold, not speed. There are deliberately no timings here: the
- * CLI has no published benchmark, so the honest contrast is steps and outputs.
- *
- * Wrap in `<Reveal>` so the segments fill once, left to right, on entry.
- */
 export function CompareStrip({ dark = false }: { dark?: boolean }) {
   return (
     <div className={`panel${dark ? " panel-dark" : ""} compare-panel`}>
       <div className="panel-head">
-        <span>Surfaces to operate</span>
-        <span>Steps, not timings</span>
+        <span>How work fits together</span>
+        <span>One workspace</span>
       </div>
       <div className="compare-strip">
         <div className="compare-row">
           <p className="compare-row-head">
-            <span className="microlabel">A conventional cloud</span>
-            <small>five surfaces, five places state can drift</small>
+            <span className="microlabel">Separate tools</span>
+            <small>app code, access, files, and agent setup</small>
           </p>
           <ol className="compare-track">
-            {conventionalSteps.map((step, index) => (
+            {disconnectedSteps.map((step, index) => (
               <Segment delay={index * 130} key={step} label={step} />
             ))}
           </ol>
         </div>
-
         <div className="compare-row">
           <p className="compare-row-head">
             <span className="microlabel">
               <b>Atrax</b>
             </span>
-            <small>one command, one contract</small>
+            <small>one workspace with explicit boundaries</small>
           </p>
           <ol className="compare-track compare-track-accent">
-            <Segment delay={780} label="atrax deploy --json" />
+            <Segment delay={650} label="app contract + workspace" />
             <Segment
               className="compare-seg-result"
-              delay={960}
-              label="url + versioned JSON state"
+              delay={820}
+              label="checked actions and knowledge"
             />
           </ol>
         </div>
-
         <p className="compare-caption">
-          The deploy command provisions, migrates, waits for readiness, and
-          returns the URL with a versioned JSON record of what it created. This
-          compares the number of surfaces you hold, not speed — Atrax
-          publishes no benchmark.
+          Atrax keeps deployment, current access, named actions, Library
+          history, and MCP operations in one workspace.
         </p>
       </div>
     </div>

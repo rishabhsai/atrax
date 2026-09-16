@@ -1,26 +1,499 @@
 {
-  "name": "Atrax Docs",
-  "url": "https://atrax.run/docs/",
-  "description": "Agent-native documentation for the Atrax v0 CLI and product roadmap.",
-  "agentEntrypoints": {
-    "agent": "/agent",
-    "manifest": "/docs.json",
-    "llms": "/llms.txt",
-    "llmsFull": "/llms-full.txt"
-  },
-  "pages": [
-    { "title": "Quickstart", "status": "available", "url": "/docs/", "markdownUrl": "/docs/quickstart/index.md" },
-    { "title": "CLI reference", "status": "available", "url": "/docs/cli/", "markdownUrl": "/docs/cli/index.md" },
-    { "title": "App contract", "status": "available", "url": "/docs/app-contract/", "markdownUrl": "/docs/app-contract/index.md" },
-    { "title": "Infrastructure model", "status": "mixed", "url": "/docs/infrastructure-model/", "markdownUrl": "/docs/infrastructure-model/index.md" },
-    { "title": "Public chat example", "status": "available", "url": "/docs/chat-example/", "markdownUrl": "/docs/chat-example/index.md" },
-    { "title": "Launchpad", "status": "mixed", "url": "/docs/launchpad/", "markdownUrl": "/docs/launchpad/index.md" },
-    { "title": "Tables", "status": "mixed", "url": "/docs/tables/", "markdownUrl": "/docs/tables/index.md" },
-    { "title": "Door", "status": "planned", "url": "/docs/door/", "markdownUrl": "/docs/door/index.md" },
-    { "title": "Library", "status": "planned", "url": "/docs/library/", "markdownUrl": "/docs/library/index.md" },
-    { "title": "Switchboard", "status": "planned", "url": "/docs/switchboard/", "markdownUrl": "/docs/switchboard/index.md" },
-    { "title": "Loops", "status": "planned", "url": "/docs/loops/", "markdownUrl": "/docs/loops/index.md" },
-    { "title": "Security", "status": "mixed", "url": "/docs/security/", "markdownUrl": "/docs/security/index.md" },
-    { "title": "Feature status", "status": "mixed", "url": "/docs/status/", "markdownUrl": "/docs/status/index.md" }
-  ]
+  "schemaVersion": 2,
+  "title": "Atrax documentation",
+  "documents": [
+    {
+      "slug": "quickstart",
+      "title": "Quickstart",
+      "description": "Create an app, run it locally, and share it with your company.",
+      "group": "Start",
+      "status": "available",
+      "sections": [
+        {
+          "heading": "Install Atrax",
+          "paragraphs": [
+            "Use Node.js 22.13 or newer. This launch build is available from source; the published npm package is an earlier release. Local development needs no account. Install the checkout below, then run its CLI from any directory."
+          ],
+          "code": "git clone https://github.com/rishabhsai/atrax.git\ncd atrax\ngit checkout feat/workspace-launch\nnpm ci\nnpm link\natrax new team-chat --template chat\ncd team-chat\natrax dev"
+        },
+        {
+          "heading": "Deploy to your workspace",
+          "paragraphs": [
+            "Run deploy from the app directory. On your first hosted deploy, follow the one-time browser approval link and verify your email. If you do not have a workspace yet, create one or accept a team invitation on that approval screen, then connect the CLI. Deployment continues with your only workspace automatically. Your company owns the app; you become its first maintainer.",
+            "You do not need a Cloudflare account. The app is company-only by default: every current workspace member can open it."
+          ],
+          "code": "atrax deploy --json",
+          "note": "Read the returned URL. Do not guess a hostname. Keep atrax.lock.json: it identifies this app for future updates."
+        },
+        {
+          "heading": "Invite your team",
+          "paragraphs": [
+            "Open Home, then Team to invite a coworker by email. They verify that address and join the workspace. Workspace-wide apps become available immediately.",
+            "Use the app’s sharing controls to select people, appoint another maintainer, or restrict an action. Removing a teammate revokes their existing app and agent access."
+          ]
+        },
+        {
+          "heading": "Update without starting over",
+          "paragraphs": [
+            "Edit the app, check it locally, then deploy again. The app keeps its URL and business database. A private candidate is checked before promotion.",
+            "If a request is interrupted, repeat atrax deploy. The CLI resumes its saved artifact and deployment rather than creating another app."
+          ],
+          "code": "atrax build\natrax deploy --json"
+        },
+        {
+          "heading": "Connect your existing agent",
+          "paragraphs": [
+            "Sign in with an agent label, then configure your MCP client to run atrax mcp. The agent uses your permissions."
+          ],
+          "code": "atrax login --agent \"My coding agent\"\natrax workspace use <workspace-id>\natrax mcp --workspace <workspace-id>"
+        }
+      ]
+    },
+    {
+      "slug": "cli",
+      "title": "CLI reference",
+      "description": "One CLI for app creation, deployment, company knowledge, and agent operations.",
+      "group": "Start",
+      "status": "available",
+      "sections": [
+        {
+          "heading": "App commands",
+          "bullets": [
+            "atrax new <name> --template chat|static|inventory|orders",
+            "atrax init <name> --assets <directory> [--actions <entry>] [--migrations <directory>]",
+            "atrax build or atrax doctor: validate and build the actual artifact.",
+            "atrax dev --port 8787: run the app with persistent local data.",
+            "atrax deploy --dry-run: build without changing hosted resources.",
+            "atrax deploy --access access.json: choose initial audiences for new actions. Existing policies remain unchanged.",
+            "atrax link <app-id>: refresh this checkout’s observed release after reviewing a teammate’s changes. Refuses unfinished deployments or a different linked app.",
+            "atrax deploy --workspace <id> --json: deploy or resume a saved attempt."
+          ]
+        },
+        {
+          "heading": "Identity and workspaces",
+          "paragraphs": [
+            "Login uses a one-time browser approval. Credentials are stored outside the app in the user configuration directory with owner-only file permissions. Logout revokes the session before removing the saved credential."
+          ],
+          "code": "atrax login --agent \"Operations agent\"\natrax workspace list --json\natrax workspace create \"Acme\" --slug acme\natrax workspace use <workspace-id>\natrax logout"
+        },
+        {
+          "heading": "Library commands",
+          "paragraphs": [
+            "To replace a file, use library replace <item-id> <file> --revision <current-revision-id> --reason <correction>. Downloads refuse to overwrite an existing local file."
+          ],
+          "code": "atrax library upload ./brand.md --workspace <id> --key brand-v1\natrax library search \"brand\" --workspace <id> --json\natrax library get <item-id> --workspace <id> --json\natrax library download <item-id> --workspace <id> --out ./brand-copy.md"
+        },
+        {
+          "heading": "Every platform operation",
+          "paragraphs": [
+            "The operation schemas at /operations.json describe the exact inputs for the HTTP, CLI, and MCP interfaces. For a write, choose a stable --key and reuse it only when retrying the same intent."
+          ],
+          "code": "atrax call apps.list --input '{\"workspaceId\":\"<id>\"}' --json\natrax call actions.list --input '{\"appId\":\"<id>\"}' --json"
+        },
+        {
+          "heading": "Structured results",
+          "paragraphs": [
+            "--json writes schemaVersion 1 envelopes. Success contains result; failure contains a stable error code, message, and optional recovery details. Device sign-in can emit an authorization-required progress result before the final result. MCP owns stdout for JSON-RPC and does not use CLI result envelopes."
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "app-contract",
+      "title": "App contract",
+      "description": "One version 2 artifact runs locally and in the hosted environment.",
+      "group": "Build",
+      "status": "available",
+      "sections": [
+        {
+          "heading": "Declare the app",
+          "paragraphs": [
+            "An app needs web assets, named actions, or both. Static apps do not receive a placeholder database or backend. If package.json defines build:web, the build runs it before capturing assets. Existing HTML and React frontends can use this contract; arbitrary server runtimes need adaptation."
+          ],
+          "code": "{\"version\":2,\"name\":\"team-chat\",\"web\":{\"assets\":\"public\",\"fallback\":\"index.html\"},\"actions\":{\"entry\":\"src/actions.js\"},\"tables\":{\"migrations\":\"migrations\"}}"
+        },
+        {
+          "heading": "Define a named action",
+          "paragraphs": [
+            "Input and output use JSON Schema. The trusted gateway checks both and authorizes the current person before invoking customer code. A write action requires an idempotency key; the handler must implement its business retry semantics."
+          ],
+          "code": "export const actions = {\n  'records.list': {\n    description: 'List records', effect: 'read',\n    inputSchema: {type:'object', additionalProperties:false},\n    outputSchema: {type:'object', required:['records'], properties:{records:{type:'array'}}},\n    async handler(input, {db}) {\n      return {records:(await db.prepare('SELECT * FROM records').all()).results};\n    }\n  }\n};"
+        },
+        {
+          "heading": "Resources and request capabilities",
+          "bullets": [
+            "db: the app’s own D1 database when tables are declared.",
+            "actor: descriptive person/session identity, command key, and invocation chain. It contains no session bearer token.",
+            "actions.call(alias,name,input,{key}): a declared dependency, acting as the current employee.",
+            "knowledge.search/get/create/revise: permitted Library operations in the current workspace."
+          ]
+        },
+        {
+          "heading": "Declare another app",
+          "paragraphs": [
+            "Both apps must belong to the same workspace. The target checks the employee’s current app and action permissions on every call. A preview has no live dependency bindings."
+          ],
+          "code": "\"dependencies\": {\"inventory\": {\"appId\": \"<inventory-app-id>\"}}"
+        },
+        {
+          "heading": "Artifact checks",
+          "paragraphs": [
+            "Build bundles imports and npm dependencies, inspects action declarations in the Worker runtime, and captures hashed assets and an immutable migration history. Hosting checks artifact, asset, and migration checksums again. Uploaded code never receives the platform database, provider credential, or another app’s raw database binding."
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "infrastructure-model",
+      "title": "Infrastructure model",
+      "description": "What Atrax owns and how releases retain app identity.",
+      "group": "Build",
+      "status": "available",
+      "sections": [
+        {
+          "heading": "App, release, and deployment",
+          "paragraphs": [
+            "An app belongs to a workspace and has one stable live URL. A release is an immutable built artifact. A deployment records progress toward running a release. A per-app durable coordinator owns provider mutations and serializes publication."
+          ]
+        },
+        {
+          "heading": "Private execution",
+          "paragraphs": [
+            "The public Worker is Atrax’s trusted gateway. App code runs behind a private service binding with public Worker URLs disabled. Identity, policy, input validation, and action invocation records remain outside uploaded code."
+          ]
+        },
+        {
+          "heading": "Persistent state",
+          "paragraphs": [
+            "Code updates retain the business database. Candidate checks use a different database. Stored progress and stable resource names let the coordinator reconcile a provider response that was lost after a mutation."
+          ]
+        },
+        {
+          "heading": "Correct an interrupted deployment",
+          "paragraphs": [
+            "Run atrax deploy again to resume the saved attempt. To abandon an unpublished attempt, inspect deployments.cancel.plan, then call deployments.cancel with its planHash. Cancellation retains business data and committed migrations. Keep those migration files unchanged, correct the unapplied work, and deploy again; the CLI archives the cancelled attempt and starts a new one for the same app.",
+            "Once publication has been admitted, cancellation is unavailable: resume the attempt so Atrax can reconcile what is live. A timed-out provider response does not prove that publication failed."
+          ],
+          "code": "atrax call deployments.cancel.plan --input '{\"appId\":\"APP_ID\",\"deploymentId\":\"DEPLOYMENT_ID\"}' --json\natrax call deployments.cancel --key cancel-reviewed-attempt --input '{\"appId\":\"APP_ID\",\"deploymentId\":\"DEPLOYMENT_ID\",\"planHash\":\"PLAN_HASH\"}' --json"
+        },
+        {
+          "heading": "Boundaries",
+          "paragraphs": [
+            "GitHub remains the place for source code and collaboration. Atrax supplies runtime, deployment, data, access, app actions, and company knowledge. Customers do not configure the underlying Cloudflare account."
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "chat-example",
+      "title": "Chat example",
+      "description": "A small persistent app with two named actions.",
+      "group": "Build",
+      "status": "available",
+      "sections": [
+        {
+          "heading": "Run it",
+          "code": "atrax new team-chat --template chat\ncd team-chat\natrax dev"
+        },
+        {
+          "heading": "Use it",
+          "paragraphs": [
+            "messages.list reads recent messages. messages.send writes one message using the employee and command key as the retry identity. Reusing a key for a different message is rejected. Local data persists across restarts."
+          ]
+        },
+        {
+          "heading": "Share it",
+          "paragraphs": [
+            "Deploy, then invite a teammate into the workspace. Both people open the same company-only URL and see the same stored messages. App access and maintenance are separate permissions."
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "inventory-orders",
+      "title": "Inventory and Orders",
+      "description": "Two company apps perform one business operation with explicit recovery.",
+      "group": "Build",
+      "status": "available",
+      "sections": [
+        {
+          "heading": "Create both apps",
+          "paragraphs": [
+            "Deploy Inventory first. Set orders/atrax.json dependencies.inventory.appId to the returned app ID, then deploy Orders to the same workspace. The Inventory app starts with sample products; inspect them before using the example for real work."
+          ],
+          "code": "atrax new inventory --template inventory\natrax new orders --template orders"
+        },
+        {
+          "heading": "Reserve without overselling",
+          "paragraphs": [
+            "orders.create saves an order intent, then calls stock.reserve in Inventory. Inventory is the authority for stock. A conditional database transaction prevents stock from becoming negative. The order ID is the business command key in both apps.",
+            "An interrupted order remains inspectable and can be retried with the same input and key. A reservation already committed in Inventory is reused. Cancellation records intent and releases stock once; a cancellation that arrives first prevents a later reservation."
+          ]
+        },
+        {
+          "heading": "Permissions still apply",
+          "paragraphs": [
+            "An employee who cannot reserve stock cannot do so through Orders, a CLI call, an agent, or a retry of a previous order. Removing their workspace membership stops existing sessions. There is no database transaction spanning both apps."
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "launchpad",
+      "title": "Launchpad",
+      "description": "Build and deploy workspace-owned apps.",
+      "group": "Products",
+      "status": "available",
+      "sections": [
+        {
+          "heading": "Deploy once, update the same app",
+          "paragraphs": [
+            "Local development is account-free. Hosted deployment uses verified workspace membership. The maintainer’s CLI uploads a validated artifact, prepares an isolated candidate, checks its private gateway, and follows the durable job to completion."
+          ]
+        },
+        {
+          "heading": "Inspect progress",
+          "paragraphs": [
+            "Failures identify their phase and whether the provider result is uncertain. Repeat deploy to resume the saved job. A failed or uncertain response is not evidence that a provider mutation did not occur."
+          ],
+          "code": "atrax call deployments.get --input '{\"appId\":\"<id>\",\"deploymentId\":\"<id>\"}' --json"
+        }
+      ]
+    },
+    {
+      "slug": "tables",
+      "title": "Tables",
+      "description": "Persistent structured data for each app.",
+      "group": "Products",
+      "status": "available",
+      "sections": [
+        {
+          "heading": "Own the records",
+          "paragraphs": [
+            "Each stateful app owns its database. Other apps use its named actions. Local and hosted migrations retain checksums and refuse a changed or missing applied migration."
+          ]
+        },
+        {
+          "heading": "Migration and recovery",
+          "paragraphs": [
+            "Initial setup accepts numbered SQL or JSON migrations. Changes to a live database use numbered JSON migrations that create new tables or nonunique indexes. Existing columns, constraints, and records stay intact. Applied migration files are immutable; their names and checksums are checked against the actual database ledger.",
+            "Inspect deployments.plan before changing a live release. deployments.rollback changes code while retaining business data and compatible additive schema. Changing an existing data model requires a deliberate data migration; arbitrary SQL changes to live tables are not part of this launch."
+          ],
+          "code": "{\"version\":1,\"operations\":[{\"createTable\":{\"name\":\"notes\",\"columns\":[{\"name\":\"id\",\"type\":\"TEXT\",\"primaryKey\":true},{\"name\":\"body\",\"type\":\"TEXT\",\"notNull\":true}]}}]}"
+        },
+        {
+          "heading": "Snapshots and restore",
+          "paragraphs": [
+            "backups.create captures an immutable SQL snapshot. Cloudflare D1 pauses database queries during export; inspect backups.get until capture completes. An interrupted capture can continue through backups.resume.",
+            "data.restore.plan shows the snapshot, original database, and connected apps. data.restore.start requires confirmation of those details and restores into a new database. Verify that deployment before publication. The original database and later writes remain retained. Restoring one app does not rewind records owned by another app."
+          ],
+          "code": "atrax call backups.create --key monthly-snapshot --input '{\"appId\":\"APP_ID\",\"expectedReleaseId\":\"RELEASE_ID\"}' --json\natrax call data.restore.plan --input '{\"appId\":\"APP_ID\",\"backupId\":\"BACKUP_ID\"}' --json"
+        },
+        {
+          "heading": "Isolated previews",
+          "paragraphs": [
+            "previews.create runs a release against a separate database initialized from its migrations. Copying an existing backup requires explicit authorization. Preview actions require current maintainer access; previews receive no live app dependencies or Library access.",
+            "When finished, call previews.delete with confirmation: delete-preview. Access closes immediately and resource cleanup continues durably. Ordinary deployment candidates are also reclaimed after completion or cancellation. deployments.get reports cleanup progress; uncertain provider writes retain affected resources with an explanation rather than risk deleting a resource still in use."
+          ]
+        },
+        {
+          "heading": "Business idempotency",
+          "paragraphs": [
+            "Use a stable business command key and commit its receipt in the same transaction as its data change. The platform records invocation identity; it cannot deduplicate arbitrary application side effects for the app."
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "door",
+      "title": "Door",
+      "description": "Verified company access, app sharing, and revocable agent sessions.",
+      "group": "Products",
+      "status": "available",
+      "sections": [
+        {
+          "heading": "Company-only by default",
+          "paragraphs": [
+            "Every active workspace member can open a new app. A maintainer can narrow the audience to selected coworkers, assign maintainers, and control each action’s audience and explicit denials. Workspace owners and admins manage membership."
+          ]
+        },
+        {
+          "heading": "Private guests and public pages",
+          "paragraphs": [
+            "Workspace admins can invite a verified external email to an exact app and explicitly selected actions. A forwarded invitation is not proof of that email. Public publishing requires explicit confirmation from an admin. It publishes the web interface; app actions and Library remain protected."
+          ]
+        },
+        {
+          "heading": "Revocation",
+          "paragraphs": [
+            "App cookies refer to the central browser session. Membership, app access, action denials, and session revocation are checked for each operation and delegated app call. Removing a person does not transfer company-owned data to them."
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "library",
+      "title": "Library",
+      "description": "Company files and guidance that authorized people and agents can share.",
+      "group": "Products",
+      "status": "available",
+      "sections": [
+        {
+          "heading": "Contribute company knowledge",
+          "paragraphs": [
+            "Save policies, terminology, preferences, and decisions as entries. An agent can deliberately save “we do not use blue in our company” with library.entry.create. Current stock and orders belong in the apps that own those live records."
+          ]
+        },
+        {
+          "heading": "Correct with history",
+          "paragraphs": [
+            "Authorized members can correct an entry with its current revision ID and a reason. Concurrent edits produce a revision conflict without overwriting the other contribution. Previous versions retain author, session/agent label, timestamp, and source references."
+          ]
+        },
+        {
+          "heading": "Upload files",
+          "paragraphs": [
+            "Upload from Library or the CLI. Files are limited to 10 MiB. UTF-8 text, Markdown, CSV, and JSON are searchable as text. PDFs are stored and downloadable; this release does not extract their text. Replacing a file adds an immutable revision."
+          ]
+        },
+        {
+          "heading": "Permission-aware sources",
+          "paragraphs": [
+            "Company-wide is the default audience. Selected audiences restrict access. A derived entry also depends on its sources’ current permissions, including historical revisions. Search filters access before returning titles, snippets, or content. Automatic Drive/Notion synchronization and conversation capture are not included."
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "switchboard",
+      "title": "Switchboard",
+      "description": "Named app actions that preserve the employee’s permissions.",
+      "group": "Products",
+      "status": "available",
+      "sections": [
+        {
+          "heading": "Discover and call",
+          "paragraphs": [
+            "Actions have names, descriptions, effects, and input/output schemas. An app calls declared dependencies with a short-lived request capability. The target checks current permissions; the source app does not acquire a general-purpose credential."
+          ],
+          "code": "atrax call actions.list --input '{\"appId\":\"<id>\"}' --json\natrax call actions.call --key order-42 --input '{\"appId\":\"<orders-id>\",\"actionName\":\"orders.create\",\"input\":{\"orderId\":\"order-42\",\"sku\":\"<sku>\",\"quantity\":1}}' --json"
+        },
+        {
+          "heading": "Limits",
+          "paragraphs": [
+            "A request capability has bounded lifetime, depth, and call count and closes when the invocation ends. Preview environments do not receive bindings to live apps. Third-party OAuth connectors and a general company secrets vault are separate future work."
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "mcp",
+      "title": "Connect an agent",
+      "description": "Use your existing agent through the official MCP stdio protocol.",
+      "group": "Start",
+      "status": "available",
+      "sections": [
+        {
+          "heading": "Sign in once",
+          "paragraphs": [
+            "Use a separate named login for each agent connection. It acts as your verified person. You can revoke that session without removing another device’s session."
+          ],
+          "code": "atrax login --agent \"Operations agent\"\natrax workspace use <workspace-id>"
+        },
+        {
+          "heading": "Configure your client",
+          "paragraphs": [
+            "Start the installed CLI as a stdio MCP server. It uses the saved credential outside the app. Do not put a token into your prompt or commit one in the project."
+          ],
+          "code": "{\"mcpServers\":{\"atrax\":{\"command\":\"atrax\",\"args\":[\"mcp\",\"--workspace\",\"<workspace-id>\"]}}}"
+        },
+        {
+          "heading": "Use the shared tools",
+          "paragraphs": [
+            "Tools are generated from the platform operation registry. Dots become underscores: library.entry.create is atrax_library_entry_create. Read tools take their operation input directly. Write tools take {input, key}; reuse the key only for the same business intent.",
+            "Discover apps, inspect actions, contribute knowledge, and inspect deployment outcomes through these tools. Sign-in proofs and token-minting operations stay in the interactive login flow. This release brings your existing agent; it does not host agents."
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "loops",
+      "title": "Loops",
+      "description": "Hosted agents and scheduled automation are planned.",
+      "group": "Products",
+      "status": "planned",
+      "sections": [
+        {
+          "heading": "Deferred from this launch",
+          "paragraphs": [
+            "This launch supports request-driven app actions and calls from agents you already run. It does not host background agents, schedules, durable automation products, or automatic document synchronization."
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "security",
+      "title": "Security model",
+      "description": "Identity and permissions stay outside uploaded app code.",
+      "group": "Operate",
+      "status": "available",
+      "sections": [
+        {
+          "heading": "Trust boundaries",
+          "paragraphs": [
+            "The central platform owns workspace membership, sessions, app access, and action permissions. The trusted gateway authorizes access and invokes the private app runtime. Customer code receives its app resources and a narrow request capability."
+          ]
+        },
+        {
+          "heading": "Browser and agent sessions",
+          "paragraphs": [
+            "Email proofs are single-use and consumed only by an explicit confirmation. Browser cookies are Secure, HttpOnly, host-only, and SameSite=Lax. App sign-in checks a one-time code, exact callback host, and browser state. CLI sessions use a revocable bearer credential saved outside the app."
+          ]
+        },
+        {
+          "heading": "Data handling",
+          "paragraphs": [
+            "Library source restrictions apply to current and historical content. Files are served only after current authorization. Runtime errors do not expose provider response bodies or platform secrets. Application authors remain responsible for the business behavior of their action handlers."
+          ]
+        },
+        {
+          "heading": "Scope of assurance",
+          "paragraphs": [
+            "The repository contains real local Worker/D1/R2 tests for authentication, sharing, deployment coordination, app composition, Library, and MCP. This is not an independent security audit or a compliance certification."
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "status",
+      "title": "Feature status",
+      "description": "The first launch focuses on a complete company app workflow.",
+      "group": "Operate",
+      "status": "mixed",
+      "sections": [
+        {
+          "heading": "First launch",
+          "bullets": [
+            "Create and run apps locally without an account.",
+            "Verify an email, create/join a workspace, and deploy without a Cloudflare account.",
+            "Keep company-owned apps, stable URLs, persistent data, and current access policies.",
+            "Share with coworkers, appoint maintainers, and restrict named actions.",
+            "Connect Inventory and Orders with reliable business retries.",
+            "Contribute and correct Library guidance; upload files manually or through the CLI.",
+            "Use your existing agent through MCP with the same permissions."
+          ]
+        },
+        {
+          "heading": "Deferred",
+          "bullets": [
+            "Hosted agents and scheduled automation.",
+            "Automatic external-document synchronization.",
+            "Third-party OAuth connectors and general vault management.",
+            "Source hosting, pull requests, and other GitHub replacement features."
+          ]
+        }
+      ]
+    }
+  ],
+  "operationsUrl": "https://atrax.run/operations.json"
 }

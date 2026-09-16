@@ -2095,6 +2095,11 @@ h3 {
   grid-template-columns: 270px minmax(0, 1fr);
   gap: clamp(52px, 7vw, 96px);
   align-items: start;
+  min-width: 0;
+}
+
+.docs-layout > * {
+  min-width: 0;
 }
 
 .docs-sidebar {
@@ -2113,6 +2118,10 @@ h3 {
   font-size: 22px;
   font-weight: 700;
   letter-spacing: -0.02em;
+}
+
+.docs-directory-mobile {
+  display: none;
 }
 
 .docs-sidebar nav > div {
@@ -2179,6 +2188,8 @@ h3 {
 }
 
 .docs-article {
+  width: 100%;
+  min-width: 0;
   max-width: 780px;
   padding: 52px 0 96px;
 }
@@ -2252,6 +2263,8 @@ h3 {
 }
 
 .docs-article pre {
+  width: 100%;
+  max-width: 100%;
   margin: 28px 0 0;
   padding: 24px;
   overflow: auto;
@@ -2260,6 +2273,11 @@ h3 {
   color: var(--orange-light);
   border-radius: 12px;
   font: 12px/1.75 var(--font-mono);
+}
+
+.docs-article pre code {
+  display: block;
+  min-width: max-content;
 }
 
 .docs-article section > aside {
@@ -2586,6 +2604,58 @@ h3 {
     border-bottom: 1px solid var(--line-light);
   }
 
+  .docs-wordmark {
+    margin-bottom: 14px;
+  }
+
+  .docs-directory-desktop {
+    display: none;
+  }
+
+  .docs-directory-mobile {
+    display: block;
+  }
+
+  .docs-directory-mobile summary {
+    min-height: 44px;
+    padding: 9px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    border: 1px solid var(--line-light);
+    border-radius: 8px;
+    color: var(--ink);
+    cursor: pointer;
+    font-size: var(--fs-meta);
+    font-weight: 650;
+    list-style: none;
+  }
+
+  .docs-directory-mobile summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .docs-directory-mobile summary::after {
+    content: "+";
+    color: var(--orange-dark);
+    font-family: var(--font-mono);
+    font-size: 18px;
+    font-weight: 400;
+  }
+
+  .docs-directory-mobile[open] summary::after {
+    content: "−";
+  }
+
+  .docs-directory-mobile nav {
+    margin-top: 24px;
+  }
+
+  .docs-directory-mobile .docs-machine-links {
+    margin-top: 6px;
+  }
+
   .docs-sidebar nav {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
@@ -2593,7 +2663,7 @@ h3 {
   }
 
   .docs-article {
-    padding-top: 60px;
+    padding-top: 42px;
   }
 
   .footer-main {

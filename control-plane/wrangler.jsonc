@@ -1,15 +1,22 @@
 {
   "$schema": "../node_modules/wrangler/config-schema.json",
-  // Deployed name stays until api.atrax.run lands; renaming would orphan the secret.
+  // Existing production identity; migration is explicit, never a second app store.
   "name": "tarantula-instant",
-  "main": "src/index.js",
-  "compatibility_date": "2026-07-25",
+  "main": "../dist/control-plane/index.js",
+  "build": { "command": "node scripts/build-control-plane.mjs", "watch_dir": ["src", "../gateway/src", "../shared"] },
+  "no_bundle": true,
+  "compatibility_date": "2026-07-29",
+  "compatibility_flags": ["nodejs_compat"],
   "routes": [{ "pattern": "api.atrax.run", "custom_domain": true }],
   "vars": {
-    // Not a secret: the account that owns every instant app. The scoped
-    // platform token that acts on it is the secret CF_API_TOKEN, which a human
-    // sets with `wrangler secret put CF_API_TOKEN` before the first deploy.
-    "CP_ACCOUNT_ID": "95df823db0957b851ddb12b11b8e1ef7"
+    "CP_ACCOUNT_ID": "95df823db0957b851ddb12b11b8e1ef7",
+    "CP_ZONE_ID": "b84f629599dfb80a01c532ece3ce3263",
+    "CONTROL_PLANE_NAME": "tarantula-instant",
+    "APP_DOMAIN": "atrax.run",
+    "CONSOLE_ORIGIN": "https://atrax.run",
+    "AUTH_ORIGIN": "https://api.atrax.run",
+    "EMAIL_FROM": "sign-in@atrax.run",
+    "ARTIFACT_BUCKET": "atrax-artifacts"
   },
   "d1_databases": [
     {
@@ -20,11 +27,38 @@
       "migrations_dir": "migrations"
     }
   ],
-  "triggers": {
-    "crons": ["0 3 * * *"]
-  },
+  "r2_buckets": [
+    { "binding": "ARTIFACTS", "bucket_name": "atrax-artifacts" },
+    { "binding": "LIBRARY_FILES", "bucket_name": "atrax-library" }
+  ],
+  "send_email": [{ "name": "EMAIL", "allowed_sender_addresses": ["sign-in@atrax.run"] }],
+  "durable_objects": { "bindings": [{ "name": "DEPLOYMENTS", "class_name": "DeploymentCoordinator" }] },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["DeploymentCoordinator"] }],
   "observability": {
     "enabled": true,
     "head_sampling_rate": 1
+  },
+  "env": {
+    "staging": {
+      "name": "atrax-staging",
+      "routes": [{ "pattern": "api-staging.atrax.run", "custom_domain": true }],
+      "vars": {
+        "CP_ACCOUNT_ID": "95df823db0957b851ddb12b11b8e1ef7",
+        "CP_ZONE_ID": "b84f629599dfb80a01c532ece3ce3263",
+        "CONTROL_PLANE_NAME": "atrax-staging",
+        "APP_DOMAIN": "staging.atrax.run",
+        "CONSOLE_ORIGIN": "https://console-staging.atrax.run",
+        "AUTH_ORIGIN": "https://api-staging.atrax.run",
+        "EMAIL_FROM": "sign-in@atrax.run",
+        "ARTIFACT_BUCKET": "atrax-staging-artifacts"
+      },
+      "d1_databases": [{ "binding": "CP_DB", "database_name": "atrax-staging", "database_id": "323fbbf3-58f2-45fe-ae01-5a4a450e11ea", "migrations_dir": "migrations" }],
+      "r2_buckets": [
+        { "binding": "ARTIFACTS", "bucket_name": "atrax-staging-artifacts" },
+        { "binding": "LIBRARY_FILES", "bucket_name": "atrax-staging-library" }
+      ],
+      "send_email": [{ "name": "EMAIL", "allowed_sender_addresses": ["sign-in@atrax.run"] }],
+      "durable_objects": { "bindings": [{ "name": "DEPLOYMENTS", "class_name": "DeploymentCoordinator" }] }
+    }
   }
 }

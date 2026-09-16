@@ -1,0 +1,7 @@
+{
+  "version": 2,
+  "name": "__APP_NAME__",
+  "web": { "assets": "public", "fallback": "index.html" },
+  "actions": { "entry": "src/actions.js" },
+  "tables": { "migrations": "migrations" }
+}

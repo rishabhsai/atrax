@@ -1,57 +1,75 @@
 # Atrax
 
-A cloud for everyone, operated through an agent-native CLI. Atrax scaffolds a full-stack app, runs it locally with persistent data, and deploys it — a Worker, a SQL database with ordered migrations, static assets, and a real URL — from one command. No account needed to start.
+Atrax is a company workspace for apps, verified access, named business actions, Library knowledge with history, and existing agents connected through MCP.
 
 - Site and docs: [atrax.run](https://atrax.run)
-- Agent entrypoint: [atrax.run/agent](https://atrax.run/agent)
 - Source: [github.com/rishabhsai/atrax](https://github.com/rishabhsai/atrax)
 
-## Start
+## Install from source
 
 Requires Node.js `>=22.13.0`.
 
 ```bash
-npx atrax-cloud new my-app
-cd my-app
-npx atrax dev
-npx atrax deploy --instant
+git clone https://github.com/rishabhsai/atrax.git
+cd atrax
+git checkout feat/workspace-launch
+npm ci
+npm link
+node bin/atrax.mjs new team-chat --template chat
+cd team-chat
+node ../bin/atrax.mjs dev
 ```
 
-`deploy --instant` needs no Cloudflare account. The app lands on `https://<name>.atrax.run` and the deploy prints a claim token once — claim the app to keep it, or it disappears in 30 days:
+The workspace launch is on `feat/workspace-launch`. The npm package release is forthcoming; use the repository CLI above.
+
+## Deploy to a workspace
+
+Local development needs no account. A hosted deployment verifies an email and uses a workspace. The workspace owns the app and its business data.
 
 ```bash
-npx atrax claim <token>
+node ../bin/atrax.mjs deploy --json
 ```
 
-With an authenticated Cloudflare Wrangler session, `atrax deploy` provisions into your own account instead.
+The CLI returns structured output with the app and workspace identifiers and its URL. Keep `atrax.lock.json`: it identifies the app for future updates. A repeated deploy resumes its saved work where possible.
 
-## What you get
+## What is available
+
+- **Apps:** create, run, and deploy company-owned apps with static assets, declared actions, and persistent D1 migrations.
+- **Access:** workspace membership, selected audiences, maintainers, verified external guests, and revocable browser, CLI, and agent sessions.
+- **Actions:** typed app-to-app calls with current permission checks and stable business keys for writes.
+- **Library:** revisioned company guidance and immutable file versions. Text, Markdown, CSV, and JSON are searchable; PDFs are stored and downloadable. Files are limited to 10 MiB.
+- **MCP:** connect an existing agent through the official stdio protocol with a named session and the same workspace permissions.
+
+Hosted agents, scheduled automation, automatic document synchronization, and third-party connectors are deferred from this launch.
+
+## Use the CLI and MCP
 
 ```bash
-atrax inspect --json      # what is running, claimed state, expiry
-atrax tables export       # every user table as JSON — your data is never locked in
-atrax secret set NAME     # instant apps: set a Worker secret (value read from stdin)
-atrax share add a@b.com   # shared apps: invite a member by email
-atrax logs                # Cloudflare-account deploys
-atrax plan / atrax drift  # Cloudflare-account deploys: preview and detect drift
-atrax delete --yes        # tear everything down
+# Search company guidance that the current identity may read
+atrax library search "brand" --workspace <workspace-id> --json
+
+# Discover an app's current named actions
+atrax call actions.list --input '{"appId":"<app-id>"}' --json
+
+# Connect an existing agent
+atrax login --agent "Operations agent"
+atrax workspace use <workspace-id>
+atrax mcp --workspace <workspace-id>
 ```
 
-Every finite command speaks versioned JSON with `--json`, so coding agents can operate the whole platform. Point an agent at `curl -fsSL https://atrax.run/agent` for the docs, app contract, and safety rules.
+Operation schemas are published at `/operations.json`. HTTP, CLI, and MCP use the same operation registry. For a write, choose a stable key and reuse it only when retrying the same business intent.
 
-## Status
-
-Launchpad (deploys) and Tables (SQL with migrations) are v0 and available. Door (sign-in and sharing) ships in a v0 form on instant apps. Library, Switchboard, and Loops are planned; [atrax.run/docs/status](https://atrax.run/docs/status) says exactly where everything stands.
-
-## Working on Atrax itself
-
-This repository also holds the product site (Next.js, exports to `out/`) and the instant-hosting control plane (`control-plane/`).
+## Work on Atrax
 
 ```bash
 npm install
-npm run dev     # site
-npm test        # builds the site, then runs every test
+npm run dev                 # public site at localhost:3000
 npm run lint
+node --test tests/mcp.test.mjs
+node --test tests/library-files.test.mjs
+node --test tests/external-sharing.test.mjs
 ```
 
-The provider-neutral product contract is in [SPEC.md](./SPEC.md); the account and control-plane design is in [CONTROL_PLANE.md](./CONTROL_PLANE.md).
+`npm test` builds the static site and runs the full test suite. It is a broader check than the focused commands above.
+
+The app contract and current product scope live in [docs](https://atrax.run/docs). The local [AGENTS.md](./AGENTS.md) describes repository and launch-workflow rules.

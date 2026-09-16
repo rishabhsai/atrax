@@ -3,8 +3,8 @@
 // The repository is one workspace holding the marketing site, the control
 // plane, and the CLI. Publishing the root package would ship all of it and
 // drag Next.js in as a dependency of `npx atrax`. This script stages only
-// what the CLI needs: bin/, templates/, README, and a package.json whose one
-// runtime dependency is wrangler.
+// what the CLI needs. This includes the trusted platform modules used by local
+// development; the staged package deliberately excludes the Next.js site.
 
 import { cp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
@@ -16,9 +16,25 @@ const rootPackage = JSON.parse(await readFile(join(root, "package.json"), "utf8"
 
 await rm(out, { recursive: true, force: true });
 await mkdir(out, { recursive: true });
-await cp(join(root, "bin"), join(out, "bin"), { recursive: true });
-await cp(join(root, "templates"), join(out, "templates"), { recursive: true });
+for (const directory of ["bin", "cli", "shared", "runtime", "gateway", "templates"]) {
+  await cp(join(root, directory), join(out, directory), { recursive: true });
+}
+await cp(join(root, "control-plane", "src"), join(out, "control-plane", "src"), {
+  recursive: true,
+});
+await cp(
+  join(root, "control-plane", "migrations"),
+  join(out, "control-plane", "migrations"),
+  { recursive: true },
+);
 await cp(join(root, "README.md"), join(out, "README.md"));
+
+const runtimeDependencies = ["@cfworker/json-schema", "@modelcontextprotocol/server", "esbuild", "miniflare"];
+const dependencies = Object.fromEntries(runtimeDependencies.map((name) => {
+  const version = rootPackage.dependencies?.[name];
+  if (!version) throw new Error(`Root package is missing CLI dependency ${name}`);
+  return [name, version];
+}));
 
 const manifest = {
   // npm's similarity filter blocks bare "atrax" (vs "rax"); atrax-cloud is the
@@ -37,9 +53,7 @@ const manifest = {
   },
   homepage: "https://atrax.run",
   keywords: ["cloud", "deploy", "cloudflare", "agents", "cli", "small-software"],
-  dependencies: {
-    wrangler: rootPackage.devDependencies.wrangler,
-  },
+  dependencies,
 };
 
 await writeFile(

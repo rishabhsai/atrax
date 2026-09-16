@@ -1,0 +1,1980 @@
+{
+  "schemaVersion": 1,
+  "transport": {
+    "method": "POST",
+    "url": "https://api.atrax.run/v1/operations/{name}",
+    "idempotencyHeader": "Idempotency-Key"
+  },
+  "operations": {
+    "apps.create": {
+      "description": "Create a company-owned app in your workspace.",
+      "effect": "write",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "workspaceId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "slug": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "workspaceId",
+          "name",
+          "slug"
+        ],
+        "additionalProperties": false
+      },
+      "anonymous": false
+    },
+    "apps.list": {
+      "description": "List apps you can open in the workspace.",
+      "effect": "read",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "workspaceId": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "workspaceId"
+        ],
+        "additionalProperties": false
+      },
+      "anonymous": false
+    },
+    "apps.get": {
+      "description": "Inspect an app and your access.",
+      "effect": "read",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "appId": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "appId"
+        ],
+        "additionalProperties": false
+      },
+      "anonymous": false
+    },
+    "apps.login": {
+      "description": "Start a browser session for an app you can access.",
+      "effect": "write",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "appId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "state": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "hostname": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "appId",
+          "state"
+        ],
+        "additionalProperties": false
+      },
+      "anonymous": false
+    },
+    "library.list": {
+      "description": "List active knowledge and files you can access.",
+      "effect": "read",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "workspaceId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100
+          }
+        },
+        "required": [
+          "workspaceId"
+        ],
+        "additionalProperties": false
+      },
+      "anonymous": false
+    },
+    "library.get": {
+      "description": "Read the current or an exact cited revision with current source permissions.",
+      "effect": "read",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "workspaceId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "itemId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "revisionId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          }
+        },
+        "required": [
+          "workspaceId",
+          "itemId"
+        ],
+        "additionalProperties": false
+      },
+      "anonymous": false
+    },
+    "library.search": {
+      "description": "Search accessible active Library content.",
+      "effect": "read",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "workspaceId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "query": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100
+          }
+        },
+        "required": [
+          "workspaceId",
+          "query"
+        ],
+        "additionalProperties": false
+      },
+      "anonymous": false
+    },
+    "library.entry.create": {
+      "description": "Contribute knowledge with attributed source revisions.",
+      "effect": "write",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "workspaceId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "text": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 40000
+          },
+          "sourceRevisions": {
+            "type": "array",
+            "maxItems": 20,
+            "uniqueItems": true,
+            "items": {
+              "type": "object",
+              "properties": {
+                "itemId": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 200
+                },
+                "revisionId": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 200
+                }
+              },
+              "required": [
+                "itemId",
+                "revisionId"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "audience": {
+            "enum": [
+              "workspace",
+              "selected"
+            ]
+          },
+          "personIds": {
+            "type": "array",
+            "maxItems": 100,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            }
+          }
+        },
+        "required": [
+          "workspaceId",
+          "title",
+          "text"
+        ],
+        "additionalProperties": false
+      },
+      "anonymous": false
+    },
+    "library.entry.revise": {
+      "description": "Correct knowledge from a known revision without overwriting a newer correction.",
+      "effect": "write",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "workspaceId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "itemId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "baseRevisionId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "text": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 40000
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1000
+          },
+          "sourceRevisions": {
+            "type": "array",
+            "maxItems": 20,
+            "uniqueItems": true,
+            "items": {
+              "type": "object",
+              "properties": {
+                "itemId": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 200
+                },
+                "revisionId": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 200
+                }
+              },
+              "required": [
+                "itemId",
+                "revisionId"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "workspaceId",
+          "itemId",
+          "baseRevisionId",
+          "text",
+          "reason"
+        ],
+        "additionalProperties": false
+      },
+      "anonymous": false
+    },
+    "library.history": {
+      "description": "Read attributed revision history you can currently access.",
+      "effect": "read",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "workspaceId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "itemId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          }
+        },
+        "required": [
+          "workspaceId",
+          "itemId"
+        ],
+        "additionalProperties": false
+      },
+      "anonymous": false
+    },
+    "library.setAccess": {
+      "description": "Change a Library item audience; source permissions still apply.",
+      "effect": "write",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "workspaceId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "itemId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "audience": {
+            "enum": [
+              "workspace",
+              "selected"
+            ]
+          },
+          "personIds": {
+            "type": "array",
+            "maxItems": 100,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            }
+          }
+        },
+        "required": [
+          "workspaceId",
+          "itemId",
+          "audience"
+        ],
+        "additionalProperties": false
+      },
+      "anonymous": false
+    },
+    "library.archive": {
+      "description": "Remove an item from active browsing and search while retaining its history.",
+      "effect": "write",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "workspaceId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "itemId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          }
+        },
+        "required": [
+          "workspaceId",
+          "itemId"
+        ],
+        "additionalProperties": false
+      },
+      "anonymous": false
+    },
+    "releases.upload": {
+      "description": "Upload a built app artifact for validation.",
+      "effect": "write",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "appId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "artifact": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "appId",
+          "artifact"
+        ],
+        "additionalProperties": false
+      },
+      "anonymous": false,
+      "maxBodyBytes": 33619968
+    },
+    "releases.list": {
+      "description": "List immutable app releases.",
+      "effect": "read",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "appId": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "appId"
+        ],
+        "additionalProperties": false
+      },
+      "anonymous": false
+    },
+    "deployments.start": {
+      "description": "Prepare an isolated candidate for deployment.",
+      "effect": "write",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "appId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "releaseId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "expectedReleaseId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "actionAccess": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object",
+              "properties": {
+                "audience": {
+                  "enum": [
+                    "workspace",
+                    "selected"
+                  ]
+                },
+                "personIds": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "uniqueItems": true
+                },
+                "deniedPersonIds": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "uniqueItems": true
+                }
+              },
+              "required": [
+                "audience"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "appId",
+          "releaseId",
+          "expectedReleaseId"
+        ],
+        "additionalProperties": false
+      },
+      "anonymous": false
+    },
+    "deployments.get": {
+      "description": "Inspect deployment progress and recovery information.",
+      "effect": "read",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "appId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "deploymentId": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "appId",
+          "deploymentId"
+        ],
+        "additionalProperties": false
+      },
+      "anonymous": false
+    },
+    "deployments.verify": {
+      "description": "Verify a private candidate using your current session and promote it.",
+      "effect": "write",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "appId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "deploymentId": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "appId",
+          "deploymentId"
+        ],
+        "additionalProperties": false
+      },
+      "anonymous": false
+    },
+    "deployments.resume": {
+      "description": "Resume an interrupted deployment.",
+      "effect": "write",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "appId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "deploymentId": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "appId",
+          "deploymentId"
+        ],
+        "additionalProperties": false
+      },
+      "anonymous": false
+    },
+    "apps.access.get": {
+      "description": "Read an app’s workspace or selected-person access policy.",
+      "effect": "read",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "appId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          }
+        },
+        "required": [
+          "appId"
+        ],
+        "additionalProperties": false
+      },
+      "anonymous": false
+    },
+    "apps.access.set": {
+      "description": "Replace an app’s workspace or selected-person access policy.",
+      "effect": "write",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "appId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "audience": {
+            "enum": [
+              "workspace",
+              "selected"
+            ]
+          },
+          "personIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            },
+            "uniqueItems": true,
+            "maxItems": 500
+          },
+          "expectedRevision": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "required": [
+          "appId",
+          "audience",
+          "personIds",
+          "expectedRevision"
+        ],
+        "additionalProperties": false
+      },
+      "anonymous": false
+    },
+    "apps.maintainers.set": {
+      "description": "Replace an app’s maintainers with active workspace members.",
+      "effect": "write",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "appId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "personIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            },
+            "uniqueItems": true,
+            "maxItems": 500
+          },
+          "expectedRevision": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "required": [
+          "appId",
+          "personIds",
+          "expectedRevision"
+        ],
+        "additionalProperties": false
+      },
+      "anonymous": false
+    },
+    "actions.access.get": {
+      "description": "Read the selected audience and explicit denials for an app action.",
+      "effect": "read",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "appId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "actionName": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "pattern": "^[a-z][a-zA-Z0-9]*(?:[._][a-zA-Z][a-zA-Z0-9]*)+$"
+          }
+        },
+        "required": [
+          "appId",
+          "actionName"
+        ],
+        "additionalProperties": false
+      },
+      "anonymous": false
+    },
+    "actions.access.set": {
+      "description": "Replace the selected audience and explicit denials for an app action.",
+      "effect": "write",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "appId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "actionName": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "pattern": "^[a-z][a-zA-Z0-9]*(?:[._][a-zA-Z][a-zA-Z0-9]*)+$"
+          },
+          "audience": {
+            "enum": [
+              "workspace",
+              "selected"
+            ]
+          },
+          "personIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            },
+            "uniqueItems": true,
+            "maxItems": 500
+          },
+          "deniedPersonIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            },
+            "uniqueItems": true,
+            "maxItems": 500
+          },
+          "expectedRevision": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "required": [
+          "appId",
+          "actionName",
+          "audience",
+          "personIds",
+          "deniedPersonIds",
+          "expectedRevision"
+        ],
+        "additionalProperties": false
+      },
+      "anonymous": false
+    },
+    "library.files.capabilities": {
+      "description": "Read the supported Library file upload types and byte limit.",
+      "effect": "read",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "workspaceId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          }
+        },
+        "required": [
+          "workspaceId"
+        ],
+        "additionalProperties": false
+      },
+      "anonymous": false
+    },
+    "library.file.upload": {
+      "description": "Store an immutable Library file version with permission-aware metadata and text extraction when supported.",
+      "effect": "write",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "workspaceId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "filename": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255
+          },
+          "contentType": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 127
+          },
+          "contentBase64": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 13981016
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "audience": {
+            "enum": [
+              "workspace",
+              "selected"
+            ]
+          },
+          "personIds": {
+            "type": "array",
+            "maxItems": 100,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            }
+          },
+          "sourceRevisions": {
+            "type": "array",
+            "maxItems": 20,
+            "uniqueItems": true,
+            "items": {
+              "type": "object",
+              "properties": {
+                "itemId": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 200
+                },
+                "revisionId": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 200
+                }
+              },
+              "required": [
+                "itemId",
+                "revisionId"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "workspaceId",
+          "filename",
+          "contentType",
+          "contentBase64"
+        ],
+        "additionalProperties": false
+      },
+      "anonymous": false,
+      "maxBodyBytes": 14680064
+    },
+    "library.file.replace": {
+      "description": "Replace a file by adding an immutable revision without overwriting the current version.",
+      "effect": "write",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "workspaceId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "itemId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "baseRevisionId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "filename": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255
+          },
+          "contentType": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 127
+          },
+          "contentBase64": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 13981016
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1000
+          },
+          "sourceRevisions": {
+            "type": "array",
+            "maxItems": 20,
+            "uniqueItems": true,
+            "items": {
+              "type": "object",
+              "properties": {
+                "itemId": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 200
+                },
+                "revisionId": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 200
+                }
+              },
+              "required": [
+                "itemId",
+                "revisionId"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "workspaceId",
+          "itemId",
+          "baseRevisionId",
+          "filename",
+          "contentType",
+          "contentBase64",
+          "reason"
+        ],
+        "additionalProperties": false
+      },
+      "anonymous": false,
+      "maxBodyBytes": 14680064
+    },
+    "library.file.download": {
+      "description": "Read an exact or current file version when current Library and source permissions allow it.",
+      "effect": "read",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "workspaceId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "itemId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "revisionId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          }
+        },
+        "required": [
+          "workspaceId",
+          "itemId"
+        ],
+        "additionalProperties": false
+      },
+      "anonymous": false
+    },
+    "actions.list": {
+      "description": "Discover the app actions your current identity can use.",
+      "effect": "read",
+      "anonymous": false,
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "appId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          }
+        },
+        "required": [
+          "appId"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "actions.call": {
+      "description": "Call a named app action using your current permissions. Reuse the same key when retrying a write.",
+      "effect": "write",
+      "anonymous": false,
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "appId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "actionName": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "input": {}
+        },
+        "required": [
+          "appId",
+          "actionName",
+          "input"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "activity.list": {
+      "description": "Inspect attributed app and platform activity in your workspace.",
+      "effect": "read",
+      "anonymous": false,
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "workspaceId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          }
+        },
+        "required": [
+          "workspaceId"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "apps.guests.list": {
+      "description": "List exact-app guests, outstanding invitations, and current action names available for guest grants.",
+      "effect": "read",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "appId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          }
+        },
+        "required": [
+          "appId"
+        ],
+        "additionalProperties": false
+      },
+      "anonymous": false
+    },
+    "apps.guests.invite": {
+      "description": "Invite a verified email address to one app, with explicit action grants.",
+      "effect": "write",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "appId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "email": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 254
+          },
+          "actionNames": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100,
+              "pattern": "^[a-z][a-zA-Z0-9]*(?:[._][a-zA-Z][a-zA-Z0-9]*)+$"
+            },
+            "uniqueItems": true,
+            "maxItems": 100
+          }
+        },
+        "required": [
+          "appId",
+          "email",
+          "actionNames"
+        ],
+        "additionalProperties": false
+      },
+      "anonymous": false
+    },
+    "apps.guests.accept": {
+      "description": "Accept an exact-app guest invitation using its invited verified email address.",
+      "effect": "write",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "invitationId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          }
+        },
+        "required": [
+          "invitationId"
+        ],
+        "additionalProperties": false
+      },
+      "anonymous": false
+    },
+    "apps.guests.revoke": {
+      "description": "Revoke a guest’s access to one app and all of that guest’s action grants.",
+      "effect": "write",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "appId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "personId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          }
+        },
+        "required": [
+          "appId",
+          "personId"
+        ],
+        "additionalProperties": false
+      },
+      "anonymous": false
+    },
+    "apps.public.get": {
+      "description": "Read whether an app is publicly serving static assets. Business actions remain authenticated.",
+      "effect": "read",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "appId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          }
+        },
+        "required": [
+          "appId"
+        ],
+        "additionalProperties": false
+      },
+      "anonymous": false
+    },
+    "apps.public.publish": {
+      "description": "Make an app’s current and future static releases public after explicit confirmation. Business actions remain authenticated.",
+      "effect": "write",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "appId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "releaseId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "publicationRevision": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "confirmation": {
+            "enum": [
+              "publish"
+            ]
+          }
+        },
+        "required": [
+          "appId",
+          "releaseId",
+          "publicationRevision",
+          "confirmation"
+        ],
+        "additionalProperties": false
+      },
+      "anonymous": false
+    },
+    "apps.public.unpublish": {
+      "description": "Stop serving an app’s static assets publicly after explicit confirmation.",
+      "effect": "write",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "appId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "publicationRevision": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "confirmation": {
+            "enum": [
+              "unpublish"
+            ]
+          }
+        },
+        "required": [
+          "appId",
+          "publicationRevision",
+          "confirmation"
+        ],
+        "additionalProperties": false
+      },
+      "anonymous": false
+    },
+    "deployments.cancel.plan": {
+      "description": "Inspect an unpublished deployment, its observed gateway, and committed schema before cancellation.",
+      "effect": "read",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "appId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "deploymentId": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "appId",
+          "deploymentId"
+        ],
+        "additionalProperties": false
+      },
+      "anonymous": false
+    },
+    "deployments.cancel": {
+      "description": "Cancel an unpublished job while retaining data and every committed migration; fence late migration batches.",
+      "effect": "write",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "appId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "deploymentId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "planHash": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "appId",
+          "deploymentId",
+          "planHash"
+        ],
+        "additionalProperties": false
+      },
+      "anonymous": false
+    },
+    "deployments.plan": {
+      "description": "Inspect code, schema, and connected-app impact before deployment.",
+      "effect": "read",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "appId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "releaseId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "expectedReleaseId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "appId",
+          "releaseId",
+          "expectedReleaseId"
+        ],
+        "additionalProperties": false
+      },
+      "anonymous": false
+    },
+    "deployments.rollback": {
+      "description": "Roll back code while retaining business data and additive schema.",
+      "effect": "write",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "appId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "releaseId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "expectedReleaseId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "appId",
+          "releaseId",
+          "expectedReleaseId"
+        ],
+        "additionalProperties": false
+      },
+      "anonymous": false
+    },
+    "previews.create": {
+      "description": "Create an isolated preview; copying a business-data backup requires explicit authorization.",
+      "effect": "write",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "appId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "releaseId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "backupId": {
+                "type": "string",
+                "minLength": 1
+              },
+              "authorizeLiveDataCopy": {
+                "const": true
+              }
+            },
+            "required": [
+              "backupId",
+              "authorizeLiveDataCopy"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "appId",
+          "releaseId"
+        ],
+        "additionalProperties": false
+      },
+      "anonymous": false
+    },
+    "previews.list": {
+      "description": "List isolated previews.",
+      "effect": "read",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "appId": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "appId"
+        ],
+        "additionalProperties": false
+      },
+      "anonymous": false
+    },
+    "previews.delete": {
+      "description": "Close a completed isolated preview and remove its disposable resources; live data and backups are retained.",
+      "effect": "write",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "appId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "deploymentId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "confirmation": {
+            "const": "delete-preview"
+          }
+        },
+        "required": [
+          "appId",
+          "deploymentId",
+          "confirmation"
+        ],
+        "additionalProperties": false
+      },
+      "anonymous": false
+    },
+    "backups.create": {
+      "description": "Capture an immutable SQL snapshot; D1 pauses queries during export.",
+      "effect": "write",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "appId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "expectedReleaseId": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "appId",
+          "expectedReleaseId"
+        ],
+        "additionalProperties": false
+      },
+      "anonymous": false
+    },
+    "backups.get": {
+      "description": "Inspect snapshot capture progress.",
+      "effect": "read",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "appId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "backupId": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "appId",
+          "backupId"
+        ],
+        "additionalProperties": false
+      },
+      "anonymous": false
+    },
+    "backups.list": {
+      "description": "List retained database snapshots.",
+      "effect": "read",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "appId": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "appId"
+        ],
+        "additionalProperties": false
+      },
+      "anonymous": false
+    },
+    "backups.resume": {
+      "description": "Resume an interrupted snapshot capture.",
+      "effect": "write",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "appId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "backupId": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "appId",
+          "backupId"
+        ],
+        "additionalProperties": false
+      },
+      "anonymous": false
+    },
+    "data.restore.plan": {
+      "description": "Inspect a snapshot restore into a new database; the original is retained.",
+      "effect": "read",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "appId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "backupId": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "appId",
+          "backupId"
+        ],
+        "additionalProperties": false
+      },
+      "anonymous": false
+    },
+    "data.restore.start": {
+      "description": "Restore a snapshot into a new database and prepare its matching code for verification.",
+      "effect": "write",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "appId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "backupId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "expectedReleaseId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "confirmation": {
+            "type": "object",
+            "properties": {
+              "originalDatabaseId": {
+                "type": "string",
+                "minLength": 1
+              },
+              "snapshotCreatedAt": {
+                "type": "integer"
+              },
+              "connectedAppIds": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "uniqueItems": true
+              },
+              "retainOriginalDatabase": {
+                "const": true
+              }
+            },
+            "required": [
+              "originalDatabaseId",
+              "snapshotCreatedAt",
+              "connectedAppIds",
+              "retainOriginalDatabase"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "appId",
+          "backupId",
+          "expectedReleaseId",
+          "confirmation"
+        ],
+        "additionalProperties": false
+      },
+      "anonymous": false
+    },
+    "auth.email.start": {
+      "description": "Send a sign-in link to your email address.",
+      "effect": "write",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 254
+          },
+          "returnTo": {
+            "type": "string",
+            "minLength": 1
+          },
+          "purpose": {
+            "enum": [
+              "sign_in"
+            ]
+          }
+        },
+        "required": [
+          "email"
+        ],
+        "additionalProperties": false
+      },
+      "anonymous": true
+    },
+    "auth.email.verify": {
+      "description": "Verify a single-use email proof and start a browser session.",
+      "effect": "write",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "challengeId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "secret": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "challengeId",
+          "secret"
+        ],
+        "additionalProperties": false
+      },
+      "anonymous": true
+    },
+    "auth.device.start": {
+      "description": "Start sign-in for a CLI or existing agent.",
+      "effect": "write",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "clientName": {
+            "type": "string",
+            "minLength": 1
+          },
+          "agentLabel": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "clientName"
+        ],
+        "additionalProperties": false
+      },
+      "anonymous": true
+    },
+    "auth.device.get": {
+      "description": "Inspect the CLI or agent asking for access.",
+      "effect": "read",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "userCode": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "userCode"
+        ],
+        "additionalProperties": false
+      },
+      "anonymous": false
+    },
+    "auth.device.approve": {
+      "description": "Approve or deny access for a CLI or agent.",
+      "effect": "write",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "userCode": {
+            "type": "string",
+            "minLength": 1
+          },
+          "decision": {
+            "enum": [
+              "approve",
+              "deny"
+            ]
+          }
+        },
+        "required": [
+          "userCode"
+        ],
+        "additionalProperties": false
+      },
+      "anonymous": false
+    },
+    "auth.device.poll": {
+      "description": "Check whether device sign-in has been approved.",
+      "effect": "read",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "deviceCode": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "deviceCode"
+        ],
+        "additionalProperties": false
+      },
+      "anonymous": true
+    },
+    "auth.session.get": {
+      "description": "Get the current person, session, and workspaces.",
+      "effect": "read",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": [],
+        "additionalProperties": false
+      },
+      "anonymous": false
+    },
+    "auth.session.revoke": {
+      "description": "Revoke one of your sessions and its app sessions.",
+      "effect": "write",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "sessionId": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "sessionId"
+        ],
+        "additionalProperties": false
+      },
+      "anonymous": false
+    },
+    "auth.sessions.list": {
+      "description": "List your active browser, CLI, and agent sessions.",
+      "effect": "read",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": [],
+        "additionalProperties": false
+      },
+      "anonymous": false
+    },
+    "workspaces.create": {
+      "description": "Create a workspace you own.",
+      "effect": "write",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "slug": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "name",
+          "slug"
+        ],
+        "additionalProperties": false
+      },
+      "anonymous": false
+    },
+    "workspaces.list": {
+      "description": "List workspaces where you are an active member.",
+      "effect": "read",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": [],
+        "additionalProperties": false
+      },
+      "anonymous": false
+    },
+    "workspaces.get": {
+      "description": "Get a workspace and your capabilities.",
+      "effect": "read",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "workspaceId": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "workspaceId"
+        ],
+        "additionalProperties": false
+      },
+      "anonymous": false
+    },
+    "members.list": {
+      "description": "List workspace members and invitations.",
+      "effect": "read",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "workspaceId": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "workspaceId"
+        ],
+        "additionalProperties": false
+      },
+      "anonymous": false
+    },
+    "members.invite": {
+      "description": "Invite a verified email address into the workspace.",
+      "effect": "write",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "workspaceId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "email": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 254
+          },
+          "role": {
+            "enum": [
+              "admin",
+              "member"
+            ]
+          }
+        },
+        "required": [
+          "workspaceId",
+          "email",
+          "role"
+        ],
+        "additionalProperties": false
+      },
+      "anonymous": false
+    },
+    "members.accept": {
+      "description": "Accept an invitation addressed to your verified email.",
+      "effect": "write",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "invitationId": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "invitationId"
+        ],
+        "additionalProperties": false
+      },
+      "anonymous": false
+    },
+    "members.setRole": {
+      "description": "Change a workspace member role.",
+      "effect": "write",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "workspaceId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "personId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "role": {
+            "enum": [
+              "admin",
+              "member"
+            ]
+          }
+        },
+        "required": [
+          "workspaceId",
+          "personId",
+          "role"
+        ],
+        "additionalProperties": false
+      },
+      "anonymous": false
+    },
+    "members.remove": {
+      "description": "Remove a person’s workspace access.",
+      "effect": "write",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "workspaceId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "personId": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "workspaceId",
+          "personId"
+        ],
+        "additionalProperties": false
+      },
+      "anonymous": false
+    },
+    "workspace.transferOwnership": {
+      "description": "Transfer workspace ownership to another member.",
+      "effect": "write",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "workspaceId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "personId": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "workspaceId",
+          "personId"
+        ],
+        "additionalProperties": false
+      },
+      "anonymous": false
+    }
+  }
+}

@@ -1,16 +1,7 @@
 # Loops
 
-Status: planned
+Hosted agents and scheduled automation are planned.
 
-Loops will own declared webhooks, schedules, queues, background jobs, and operational agents with durable execution semantics. Ordinary Worker request handlers remain part of an app's web runtime until they opt into the Loop contract.
+## Deferred from this launch
 
-```ts
-loop({
-  on: schedule("0 8 * * 1"),
-  run: reviewRenewals,
-  tools: [accounts, outreach],
-  approve: ["outreach.send"]
-})
-```
-
-A Loop is triggered work. Model and tool use can make it agentic, but there is no separate Spark or agent-runtime product.
+This launch supports request-driven app actions and calls from agents you already run. It does not host background agents, schedules, durable automation products, or automatic document synchronization.

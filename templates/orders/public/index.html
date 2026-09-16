@@ -1,0 +1,7 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Orders</title><link rel="stylesheet" href="/style.css"><script type="module" src="/app.js"></script></head>
+<body><main><header><p>Company tools</p><h1>Orders</h1><p>Create an order and reserve stock from your team's Inventory app.</p></header>
+<form id="create"><label>Item<select id="sku" required><option value="paper-a4">A4 paper</option><option value="pens-black">Black pens</option></select></label><label>Quantity<input id="quantity" type="number" min="1" max="1000000" value="1" required></label><button type="submit" id="submit">Create order</button></form>
+<p id="error" role="alert"></p><p id="status" role="status"></p><button type="button" id="refresh">Refresh orders</button>
+<table><caption>Recent orders</caption><thead><tr><th scope="col">Order</th><th scope="col">Item</th><th scope="col">Quantity</th><th scope="col">Status</th><th scope="col">Actions</th></tr></thead><tbody id="orders"></tbody></table>
+<section aria-labelledby="detail-title"><h2 id="detail-title">Reservation details</h2><pre id="detail">Choose an order to read its current Inventory reservation.</pre></section></main></body></html>
