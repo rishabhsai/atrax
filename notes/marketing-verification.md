@@ -38,3 +38,15 @@ Known next work: dedicated sharing commands, invitation cancellation and accepte
 ## Ticket publication
 
 Issues #13–#18 were approved and published with `ready-for-agent`. Native blocker checks: #13, #14, #15 have none; #16 and #17 depend on #13 and #15; #18 depends on #13. The tickets remain open and are not represented as implemented.
+
+## Production publication
+
+- Source commit: `d8584c0` on `feat/workspace-launch`, pushed to GitHub.
+- Cloudflare Pages deployment: https://ff6213dd.tarantula-9l0.pages.dev
+- Production: https://atrax.run
+- Production browser smoke passed for Home, CLI/MCP, private sharing, and Library product deep links. Keyboard open/Escape-close and phone overflow checks passed with no page exceptions.
+- Account, workspace, quickstart, and operation schema paths returned HTTP 200 in the production browser.
+- Production background is 48,272 bytes and matches the local SHA-256: `7b8a988d15a6e2ba63fcdc706a733dca1b837afb936177292008cbfeaedbf456`.
+- A separate Python urllib probe was rejected with HTTP 403; verification above used the browser and its ordinary same-origin requests.
+- Agent documentation access also passed outside the browser: curl fetched `/llms.txt` with HTTP 200; Node fetch received HTTP 200 for both `/llms.txt` and `/operations.json`.
+- Final production browser console: zero errors and zero warnings.
