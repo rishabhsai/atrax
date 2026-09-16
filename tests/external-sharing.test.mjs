@@ -194,7 +194,8 @@ test('public web leaves selected app and action access unchanged', {timeout:45_0
   assert.equal(adminApp.body.result.release,undefined,'an external-sharing administrator outside the app does not receive release data');
   const management=await api.call('apps.guests.list',{appId},people.admin);
   assert.equal(management.response.status,200,JSON.stringify(management.body));
-  assert.deepEqual(management.body.result,{appId,guests:[],invitations:[],grantableActionNames:[hiddenActionName,actionName]},'external sharing receives only current grant names');
+  assert.deepEqual(management.body.result.grantableActionNames,[hiddenActionName,actionName],'external sharing receives only current grant names');
+  assert.deepEqual(management.body.result.audience,{publicWeb:false,workspace:{id:workspaceId,policy:'selected',people:[{personId:people.owner.id,email:people.owner.email,role:'owner'}]}});
   assert.doesNotMatch(JSON.stringify(management.body.result),/Inspect orders|Export all orders|inputSchema|outputSchema|artifact/i);
   failure(await api.call('apps.guests.invite',{appId,email:'retired-action@example.com',actionNames:[retiredActionName]},people.admin,'retired-action-grant'),404,'action_not_found');
   const managedInvite=await api.call('apps.guests.invite',{appId,email:'guest-through-admin@example.com',actionNames:[hiddenActionName]},people.admin,'selected-admin-guest-grant');

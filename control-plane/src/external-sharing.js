@@ -86,6 +86,14 @@ async function guestActionsArePublished(env,app,actionNames) {
   }
 }
 
+function publishedActionAdmission(actionNames) {
+  return {sql:`NOT EXISTS(SELECT 1 FROM json_each(?) requested WHERE NOT EXISTS(
+    SELECT 1 FROM releases release JOIN json_each(release.actions_json) action
+    JOIN action_policies policy ON policy.app_id=a.app_id AND policy.action_name=json_extract(action.value,'$.name')
+    WHERE release.release_id=a.active_release_id AND release.app_id=a.app_id
+      AND policy.action_name=requested.value))`,params:[JSON.stringify(actionNames)]};
+}
+
 async function deliverInvitation(env,invitationId) {
   const row=await env.CP_DB.prepare(`SELECT invitation_id,email,expires_at,delivered_at,a.name app_name
     FROM app_guest_invitations i JOIN apps a ON a.app_id=i.app_id
@@ -104,16 +112,37 @@ async function deliverInvitation(env,invitationId) {
 }
 
 async function listGuests(input,context) {
-  const app=await externalManager(context,input.appId);
-  const [guests,invitations,grantableNames]=await Promise.all([
-    context.env.CP_DB.prepare(`SELECT g.person_id,p.email,
+  await externalManager(context,input.appId);
+  const observedAt=Date.now(),db=context.env.CP_DB;
+  // D1 executes this read batch in one transaction, keeping the audience coherent.
+  const [apps,people,guests,invitations,grantable]=await db.batch([
+    db.prepare("SELECT workspace_id,audience,public_web FROM apps WHERE app_id=? AND status!='deleted'").bind(input.appId),
+    db.prepare(`SELECT p.person_id,p.email,m.role FROM apps a
+      JOIN workspace_members m ON m.workspace_id=a.workspace_id AND m.status='active'
+      JOIN people p ON p.person_id=m.person_id WHERE a.app_id=?
+      AND (a.audience='workspace' OR EXISTS(SELECT 1 FROM app_people selected WHERE selected.app_id=a.app_id AND selected.person_id=m.person_id))
+      ORDER BY p.email`).bind(input.appId),
+    db.prepare(`SELECT g.person_id,p.email,
       COALESCE((SELECT json_group_array(action_name) FROM (SELECT action_name FROM app_guest_actions WHERE app_id=g.app_id AND person_id=g.person_id ORDER BY action_name)),'[]') action_names_json
-      FROM app_guests g JOIN people p ON p.person_id=g.person_id WHERE g.app_id=? ORDER BY p.email`).bind(input.appId).all(),
-    context.env.CP_DB.prepare(`SELECT invitation_id,email,status,action_names_json,expires_at,created_at
-      FROM app_guest_invitations WHERE app_id=? ORDER BY created_at DESC`).bind(input.appId).all(),
-    grantableActionNames(context.env,app),
+      FROM app_guests g JOIN people p ON p.person_id=g.person_id
+      WHERE g.app_id=? AND (g.expires_at IS NULL OR g.expires_at>?) ORDER BY p.email`).bind(input.appId,observedAt),
+    db.prepare(`SELECT invitation_id,email,
+      CASE WHEN status='pending' AND expires_at<=? THEN 'expired' ELSE status END status,
+      action_names_json,expires_at,created_at
+      FROM app_guest_invitations WHERE app_id=? ORDER BY created_at DESC`).bind(observedAt,input.appId),
+    db.prepare(`SELECT DISTINCT policy.action_name FROM apps a
+      JOIN releases release ON release.release_id=a.active_release_id AND release.app_id=a.app_id
+      JOIN json_each(release.actions_json) action
+      JOIN action_policies policy ON policy.app_id=a.app_id AND policy.action_name=json_extract(action.value,'$.name')
+      WHERE a.app_id=? ORDER BY policy.action_name`).bind(input.appId),
   ]);
-  return {result:{appId:input.appId,guests:guests.results.map(guestView),invitations:invitations.results.map(invitationView),grantableActionNames:grantableNames}};
+  const app=apps.results[0];
+  if(!app) throw new OperationError('not_found',404,'App not found');
+  return {result:{appId:input.appId,observedAt,
+    audience:{publicWeb:app.public_web===1,workspace:{id:app.workspace_id,policy:app.audience,
+      people:people.results.map(row=>({personId:row.person_id,email:row.email,role:row.role}))}},
+    guests:guests.results.map(guestView),invitations:invitations.results.map(invitationView),
+    grantableActionNames:grantable.results.map(row=>row.action_name)}};
 }
 
 async function inviteGuest(input,context) {
@@ -125,10 +154,12 @@ async function inviteGuest(input,context) {
   if(member) throw new OperationError('invalid_guest',400,'Workspace members already have app access; guests must be outside the workspace.');
   const invitationId=crypto.randomUUID(),now=Date.now();
   const normalized={appId:input.appId,email,actionNames};
+  const published=publishedActionAdmission(actionNames);
   const result={invitation:{id:invitationId,email,status:'pending',actionNames,expiresAt:now+invitationLifetime}};
   const committed=await commit(context,{name:'apps.guests.invite',targetId:input.appId,appId:input.appId,input:normalized,result,
     admission:adminAdmission(context,input.appId,`NOT EXISTS(SELECT 1 FROM workspace_members member JOIN people person ON person.person_id=member.person_id
-      WHERE member.workspace_id=a.workspace_id AND member.status='active' AND person.email=?)`,[email]),
+      WHERE member.workspace_id=a.workspace_id AND member.status='active' AND person.email=?)
+      AND (${published.sql})`,[email,...published.params]),
     writes:(operationId)=>[
       context.env.CP_DB.prepare(`UPDATE app_guest_invitations SET status='revoked' WHERE app_id=? AND email=? AND status='pending' AND ${receiptGuard}`).bind(input.appId,email,operationId),
       context.env.CP_DB.prepare(`INSERT INTO app_guest_invitations(invitation_id,app_id,email,action_names_json,status,expires_at,created_by,created_at)

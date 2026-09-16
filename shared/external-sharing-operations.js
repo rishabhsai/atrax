@@ -6,7 +6,7 @@ const object=(properties,required=Object.keys(properties))=>({type:'object',prop
 const define=(description,effect,inputSchema)=>({description,effect,inputSchema,anonymous:false});
 
 export const externalSharingOperations={
-  'apps.guests.list':define('List exact-app guests, outstanding invitations, and current action names available for guest grants.','read',object({appId:id})),
+  'apps.guests.list':define('Observe the complete app audience, including public web, active workspace people, current guests, invitation states, and action names available for guest grants.','read',object({appId:id})),
   'apps.guests.invite':define('Invite a verified email address to one app, with explicit action grants.','write',object({appId:id,email,actionNames:{type:'array',items:actionName,uniqueItems:true,maxItems:100}})),
   'apps.guests.accept':define('Accept an exact-app guest invitation using its invited verified email address.','write',object({invitationId:id})),
   'apps.guests.revoke':define('Revoke a guest’s access to one app and all of that guest’s action grants.','write',object({appId:id,personId:id})),
