@@ -32,13 +32,24 @@ export async function operation(name,input = {},options = {}) {
   const credentials = options.anonymous ? null : await readCredentials();
   const origin = controlOrigin();
   if (credentials && credentials.origin !== origin) throw new Error('Saved login belongs to another Atrax API. Sign in to this API first.');
-  const response = await fetch(`${origin}/v1/operations/${encodeURIComponent(name)}`, {
-    method:'POST',
-    headers:{'Content-Type':'application/json','Idempotency-Key':options.key ?? randomUUID(),...(credentials ? {'Authorization':`Bearer ${credentials.accessToken}`} : {})},
-    body:JSON.stringify(input),signal:AbortSignal.timeout(options.timeoutMs ?? 30000),
-  });
+  const key = options.key ?? randomUUID();
+  const requestDetails = {operation:name,key};
+  let response;
   let envelope;
-  try {envelope = await response.json();} catch {throw new Error(`Atrax API returned HTTP ${response.status} without a JSON result`);}
-  if (!response.ok || envelope.status === 'failed') throw new ApiError(envelope.error ?? {code:'request_failed',message:`Request failed (${response.status})`},response.status);
+  try {
+    response = await fetch(`${origin}/v1/operations/${encodeURIComponent(name)}`, {
+      method:'POST',
+      headers:{'Content-Type':'application/json','Idempotency-Key':key,...(credentials ? {'Authorization':`Bearer ${credentials.accessToken}`} : {})},
+      body:JSON.stringify(input),signal:AbortSignal.timeout(options.timeoutMs ?? 30000),
+    });
+    envelope = await response.json();
+    if (!['succeeded','failed','pending'].includes(envelope?.status) || (envelope.status === 'succeeded' && !Object.hasOwn(envelope,'result'))) throw new Error('Incomplete operation response');
+  } catch {
+    throw new ApiError({code:'operation_outcome_unknown',message:`No complete response for ${name}; the operation may have completed. Retry the same input with --key ${key}. For deploy, run atrax deploy again to resume its saved attempt.`,details:requestDetails},response?.status);
+  }
+  if (!response.ok || envelope.status === 'failed') {
+    const error = envelope.error ?? {code:'request_failed',message:`Request failed (${response.status})`};
+    throw new ApiError({...error,details:{...error.details,...requestDetails}},response.status);
+  }
   return envelope.status === 'pending' ? envelope : envelope.result;
 }

@@ -42,7 +42,7 @@ async function selectWorkspace(options, credentials) {
   }
   const { workspaces } = await operation('workspaces.list');
   if (workspaces.length === 1) return workspaces[0].id;
-  if (!workspaces.length) throw failure('workspace_required', 'Create your workspace with atrax workspace create <name> --slug <slug>, then run atrax deploy again.');
+  if (!workspaces.length) throw failure('workspace_required', 'Create your workspace with atrax workspace create <name> --slug <slug> --key <stable-key>, then run atrax deploy again.');
   throw failure('workspace_required', 'Choose a workspace with atrax deploy --workspace <id> or atrax workspace use <id>.', { workspaces: workspaces.map(({ id, name }) => ({ id, name })) });
 }
 
