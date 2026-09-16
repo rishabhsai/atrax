@@ -12,6 +12,13 @@ The versioned `atrax-cloud` package includes its Atrax skill. `atrax setup` inst
 - Claude Code 2.1.272 discovered the skill and expanded `/atrax` into a local recording model endpoint.
 - Cursor's skill was installed at its documented personal path using the exact package artifact. Native model use was not tested.
 
+## Pending checks
+
+- Claude Code: a real signed-in model session creating and running an app with the installed skill.
+- Cursor: native skill discovery and a signed-in model session creating and running an app.
+
+These checks remain pending, not failed. The user explicitly approved continuing the release without them.
+
 ## Scope decision
 
 The user explicitly stopped further Claude/Cursor login-dependent checks and asked to proceed with the release. Model-driven creation in those two clients is not a release gate. This record does not claim those tests passed.
