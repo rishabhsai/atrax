@@ -6,9 +6,9 @@
 // what the CLI needs. This includes the trusted platform modules used by local
 // development; the staged package deliberately excludes the Next.js site.
 
-import { cp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import { cp, mkdir, readFile, realpath, rm, writeFile } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
-import { fileURLToPath, pathToFileURL } from "node:url";
+import { fileURLToPath } from "node:url";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const defaultOutput = join(root, "dist-npm");
@@ -67,7 +67,8 @@ export async function stageCli(output = defaultOutput) {
   return {directory: out, manifest};
 }
 
-if (import.meta.url === pathToFileURL(process.argv[1]).href) {
+const invoked = process.argv[1] ? await realpath(process.argv[1]).catch(() => null) : null;
+if (invoked && invoked === await realpath(fileURLToPath(import.meta.url))) {
   const {manifest} = await stageCli();
   process.stdout.write(`Staged ${manifest.name}@${manifest.version} in dist-npm/. Publish with: npm publish ./dist-npm --access=public\n`);
 }

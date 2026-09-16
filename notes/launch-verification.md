@@ -1,5 +1,7 @@
 # Launch verification
 
+This records the first workspace launch. For the subsequent npm release, guest lifecycle migration, and current backend versions, see [CLI release verification](cli-release-verification.md).
+
 Updated September 16, 2026. The workspace launch is deployed at https://atrax.run and published on `feat/workspace-launch`. Implementation commit: `1f687e4`; follow-up includes provider diagnostics and the final verification record. The twelve approved tickets are indexed in `notes/launch-tickets.md`.
 
 ## Verified locally

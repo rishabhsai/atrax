@@ -28,4 +28,12 @@ Production health, authenticated workspace discovery, and both existing apps' gu
 
 The reviewed tarball is published at [atrax-cloud 0.2.0](https://www.npmjs.com/package/atrax-cloud/v/0.2.0). A fresh public-registry installation outside the checkout reports version 0.2.0 and current sharing/setup help. The registry's SHA-512 integrity matches the tested tarball byte for byte.
 
+The freshly installed public CLI also completed authenticated workspace and guest-audience reads against the production API. It reported workspace-wide access with public web disabled.
+
 Registry SHA-1: `f72b78278ded91180995ca47d5efe17d03509224`.
+
+## Integrated checks
+
+The full production build passed. The first integrated suite passed 173 tests and found one packaging-script entry-point failure when macOS resolved `/var` through `/private/var`. The script now compares canonical file paths. No test assertions changed.
+
+After that fix, the complete setup lifecycle passed 11 checks, and package workflow, CLI, installed recipe discovery, direct symlink invocation, ESLint, and TypeScript checks passed. The fix changes only the repository's package assembly script, not published runtime files.
