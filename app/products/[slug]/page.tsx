@@ -72,7 +72,6 @@ export default async function ProductPage({ params }: PageProps) {
 
       <section className="product-boundary">
         <div className="shell">
-          <span>How it works</span>
           <p>{product.boundary}</p>
         </div>
       </section>
@@ -80,9 +79,6 @@ export default async function ProductPage({ params }: PageProps) {
       <section className="section shell product-capabilities">
         <div className="section-split">
           <Reveal className="split-copy">
-            <p className="microlabel">
-              01 · <b>{available ? "Available now" : "Planned"}</b>
-            </p>
             <h2>
               {available
                 ? `What you can do with ${product.name}.`
@@ -130,12 +126,9 @@ export default async function ProductPage({ params }: PageProps) {
       <section className="code-section">
         <div className="shell code-section-grid">
           <div className="split-copy">
-            <p className="microlabel">
-              02 · <b>{product.codeLabel}</b>
-            </p>
             <h2>
               {available
-                ? "Give your agent the tools to do it."
+                ? "Use this from the CLI or your agent."
                 : "Use an existing agent today."}
             </h2>
             <p>
@@ -143,8 +136,8 @@ export default async function ProductPage({ params }: PageProps) {
                 ? "Use the CLI for this workflow. Connected agents can discover workspace operations through MCP with the same permission checks."
                 : "Connect an existing agent through MCP for request-driven work."}
             </p>
-            <Link className="text-link" href="/docs/quickstart">
-              Install the CLI from source <span aria-hidden="true">→</span>
+            <Link className="text-link" href="/agents.md">
+              Give this to your agent <span aria-hidden="true">→</span>
             </Link>
           </div>
           <pre>
@@ -155,10 +148,7 @@ export default async function ProductPage({ params }: PageProps) {
 
       <section className="section shell related-products">
         <div className="section-intro">
-          <p className="microlabel">
-            03 · <b>Related products</b>
-          </p>
-          <h2>Keep building.</h2>
+          <h2>Related products</h2>
         </div>
         <div>
           {product.related.map((relatedSlug) => {
@@ -167,7 +157,6 @@ export default async function ProductPage({ params }: PageProps) {
               <Link href={`/products/${relatedSlug}`} key={relatedSlug}>
                 <ProductMark type={relatedSlug} />
                 <span>{related.name}</span>
-                <small>{related.eyebrow}</small>
                 <b aria-hidden="true">↗</b>
               </Link>
             );

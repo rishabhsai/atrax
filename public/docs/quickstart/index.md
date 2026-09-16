@@ -2,13 +2,20 @@
 
 Create an app, run it locally, and share it with your company.
 
+## Start with your agent
+
+Give this prompt to your existing coding agent. The public guide explains setup, local development, deployment, and the focused references for other tasks.
+
+```
+Read https://atrax.run/agents.md and use Atrax to build or resume my app. Start it locally and verify the requested behavior.
+```
+
 ## Install Atrax
 
 Use Node.js 22.13 or newer with npm. Install the published CLI, then choose your local agent for the bundled skill. Supported clients are claude-code, codex, and cursor. Start a fresh agent session after setup. Local development needs no account.
 
 ```
-npm install -g atrax-cloud@0.2.0
-atrax setup --client codex
+curl -fsSL https://atrax.run/agents.sh | sh -s -- --client codex
 atrax new team-chat --template chat
 cd team-chat
 atrax dev

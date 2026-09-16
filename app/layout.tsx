@@ -29,15 +29,15 @@ export const metadata: Metadata = {
   // host, so old links keep resolving; every absolute URL points here.
   metadataBase: new URL("https://atrax.run"),
   title: {
-    default: "Atrax | A cloud for internal software",
+    default: "Atrax | A cloud for everyone.",
     template: "%s | Atrax",
   },
   description:
-    "Build internal apps with your agent. Deploy, share with verified people, and keep company knowledge together.",
+    "Build with your agent. Atrax runs your apps, keeps their data, and connects your team.",
   openGraph: {
-    title: "Atrax | A cloud for internal software",
+    title: "Atrax | A cloud for everyone.",
     description:
-      "Company-owned apps, verified access, connected actions, and shared knowledge for your team and its agents.",
+      "Build with your agent. Atrax runs your apps, keeps their data, and connects your team.",
     type: "website",
     siteName: "Atrax",
     images: [
@@ -51,9 +51,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Atrax | A cloud for internal software",
+    title: "Atrax | A cloud for everyone.",
     description:
-      "Company-owned apps, verified access, connected actions, and shared knowledge for your team and its agents.",
+      "Build with your agent. Atrax runs your apps, keeps their data, and connects your team.",
     images: ["/og.png"],
   },
 };

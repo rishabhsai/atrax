@@ -32,7 +32,6 @@ export default function ProductsPage() {
     <main>
       <section className="page-hero page-hero-orange">
         <div className="shell page-hero-grid">
-          <p className="eyebrow">The Atrax cloud</p>
           <div>
             <h1>Everything around the app, in one place.</h1>
             <p>
@@ -41,8 +40,8 @@ export default function ProductsPage() {
               apps and agents.
             </p>
             <div className="button-row">
-              <Link className="button button-dark" href="/docs/quickstart">
-                Build your first app <span aria-hidden="true">→</span>
+              <Link className="button button-dark" href="/developers">
+                Use the CLI <span aria-hidden="true">→</span>
               </Link>
               <Link className="button button-outline-dark" href="/solutions">
                 See what to build
@@ -59,7 +58,6 @@ export default function ProductsPage() {
               <span className="product-number">{product.number}</span>
               <ProductMark type={slug} />
               <div className="product-index-title">
-                <p>{product.eyebrow}</p>
                 <h2>{product.name}</h2>
               </div>
               <p className="product-index-copy">{product.cardTitle}</p>
@@ -74,9 +72,6 @@ export default function ProductsPage() {
       <section className="section shell product-rules rule-top">
         <div className="section-split">
           <Reveal className="split-copy">
-            <p className="microlabel">
-              01 · <b>Built to work together</b>
-            </p>
             <h2>Start with an app. Connect the rest when you need it.</h2>
             <p>
               An internal tracker may only need hosting, data, and team access.
@@ -109,11 +104,10 @@ export default function ProductsPage() {
       <section className="final-cta">
         <div className="shell final-cta-grid">
           <div>
-            <p className="eyebrow">Start locally</p>
             <h2>Put your first idea to work.</h2>
           </div>
-          <Link className="button button-orange" href="/docs/quickstart">
-            Read the quickstart <span aria-hidden="true">→</span>
+          <Link className="button button-orange" href="/agents.md">
+            Give this to your agent <span aria-hidden="true">→</span>
           </Link>
         </div>
       </section>

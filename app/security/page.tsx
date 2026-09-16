@@ -4,7 +4,8 @@ import { Reveal } from "../components/Reveal";
 
 export const metadata = {
   title: "Security",
-  description: "Company-only apps, verified email guests, current permissions, and scoped access for agents.",
+  description:
+    "Company-only apps, verified email guests, current permissions, and scoped access for agents.",
 };
 
 const boundaries = [
@@ -22,7 +23,7 @@ const boundaries = [
   ],
   [
     "Company knowledge",
-    "Library checks access before returning search results or file contents. Entries derived from restricted sources retain those source restrictions.",
+    "Library checks access before returning search results or file contents. It stores company knowledge, not API keys, credentials, or secrets; shared credential management is planned separately.",
   ],
   [
     "Public publishing",
@@ -35,7 +36,6 @@ export default function SecurityPage() {
     <main>
       <section className="page-hero page-hero-dark">
         <div className="shell page-hero-grid">
-          <p className="eyebrow">Access and security</p>
           <div>
             <h1>Your company&apos;s apps start company-only.</h1>
             <p>
@@ -54,9 +54,6 @@ export default function SecurityPage() {
       <section className="section shell security-now">
         <div className="section-split">
           <Reveal className="split-copy">
-            <p className="microlabel">
-              01 · <b>Control who can do what</b>
-            </p>
             <h2>Sharing an app should be a deliberate choice.</h2>
             <p>
               Select a smaller coworker audience for a sensitive app. Invite a
@@ -91,10 +88,7 @@ export default function SecurityPage() {
                 {
                   label: "Not public",
                   state: "planned" as const,
-                  chips: [
-                    "app actions",
-                    "company Library",
-                  ],
+                  chips: ["app actions", "company Library"],
                 },
               ]}
             />
@@ -113,7 +107,6 @@ export default function SecurityPage() {
       <section className="final-cta">
         <div className="shell final-cta-grid">
           <div>
-            <p className="eyebrow">Under the hood</p>
             <h2>See where every check happens.</h2>
           </div>
           <Link className="button button-orange" href="/docs/security">

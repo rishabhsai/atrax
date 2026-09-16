@@ -2,6 +2,18 @@
 
 One CLI for app creation, deployment, company knowledge, and agent operations.
 
+## Setup and discovery
+
+Install through https://atrax.run/agents.sh or npm install -g atrax-cloud@0.2.0. Setup manages the matching skill for one selected local client. Recipes explain workflows; operation inspection returns the current input contract without loading the whole registry.
+
+```
+atrax setup --client codex
+atrax setup inspect --client codex --json
+atrax recipes list
+atrax recipes show deploy-share
+atrax operations inspect apps.guests.invite --json
+```
+
 ## App commands
 
 - atrax new <name> --template chat|static|inventory|orders

@@ -25,7 +25,7 @@ type TerminalLine = { kind: "cmd" | "note" | "out" | "gap"; text?: string };
 
 const deployLines: readonly TerminalLine[] = [
   { kind: "note", text: "# From a source checkout" },
-  { kind: "cmd", text: "node bin/atrax.mjs new team-chat --template chat" },
+  { kind: "cmd", text: "atrax new team-chat --template chat" },
   { kind: "cmd", text: "cd team-chat" },
   { kind: "cmd", text: "node ../bin/atrax.mjs deploy --json" },
   { kind: "gap" },

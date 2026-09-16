@@ -9,11 +9,18 @@ export const docs: Record<string, DocPage> = {
     "status": "available",
     "sections": [
       {
+        "heading": "Start with your agent",
+        "paragraphs": [
+          "Give this prompt to your existing coding agent. The public guide explains setup, local development, deployment, and the focused references for other tasks."
+        ],
+        "code": "Read https://atrax.run/agents.md and use Atrax to build or resume my app. Start it locally and verify the requested behavior."
+      },
+      {
         "heading": "Install Atrax",
         "paragraphs": [
           "Use Node.js 22.13 or newer with npm. Install the published CLI, then choose your local agent for the bundled skill. Supported clients are claude-code, codex, and cursor. Start a fresh agent session after setup. Local development needs no account."
         ],
-        "code": "npm install -g atrax-cloud@0.2.0\natrax setup --client codex\natrax new team-chat --template chat\ncd team-chat\natrax dev"
+        "code": "curl -fsSL https://atrax.run/agents.sh | sh -s -- --client codex\natrax new team-chat --template chat\ncd team-chat\natrax dev"
       },
       {
         "heading": "Deploy to your workspace",
@@ -55,6 +62,13 @@ export const docs: Record<string, DocPage> = {
     "group": "Start",
     "status": "available",
     "sections": [
+      {
+        "heading": "Setup and discovery",
+        "paragraphs": [
+          "Install through https://atrax.run/agents.sh or npm install -g atrax-cloud@0.2.0. Setup manages the matching skill for one selected local client. Recipes explain workflows; operation inspection returns the current input contract without loading the whole registry."
+        ],
+        "code": "atrax setup --client codex\natrax setup inspect --client codex --json\natrax recipes list\natrax recipes show deploy-share\natrax operations inspect apps.guests.invite --json"
+      },
       {
         "heading": "App commands",
         "bullets": [

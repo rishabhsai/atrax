@@ -37,7 +37,6 @@ export default async function SolutionPage({ params }: PageProps) {
     <main>
       <section className="page-hero page-hero-dark">
         <div className="shell page-hero-grid">
-          <p className="eyebrow">{solution.eyebrow}</p>
           <div>
             <h1>{solution.title}</h1>
             <p>{solution.summary}</p>
@@ -56,9 +55,6 @@ export default async function SolutionPage({ params }: PageProps) {
       <section className="section shell example-detail">
         <div className="section-split">
           <Reveal className="split-copy">
-            <p className="microlabel">
-              01 · <b>The workflow</b>
-            </p>
             <h2>{solution.example}</h2>
             <p>{solution.short}</p>
             <ol className="step-list">
@@ -95,9 +91,6 @@ export default async function SolutionPage({ params }: PageProps) {
 
       <section className="example-stack">
         <div className="shell">
-          <p className="microlabel">
-            02 · <b>What makes it work</b>
-          </p>
           <div>
             {solution.stack.map((slug) => (
               <Link href={`/products/${slug}`} key={slug}>
@@ -117,7 +110,6 @@ export default async function SolutionPage({ params }: PageProps) {
       <section className="final-cta">
         <div className="shell final-cta-grid">
           <div>
-            <p className="eyebrow">Put it to work</p>
             <h2>{solution.docsLabel}.</h2>
           </div>
           <Link className="button button-orange" href={solution.docs}>

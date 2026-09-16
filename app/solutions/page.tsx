@@ -17,28 +17,24 @@ export default function SolutionsPage() {
     <main>
       <section className="page-hero page-hero-orange">
         <div className="shell page-hero-grid">
-          <p className="eyebrow">What to build</p>
           <div>
             <h1>Start with work your company needs now.</h1>
             <p>
-              A request tracker for the team. A private prototype for a client.
-              An order desk that knows what is in stock. Build the software that
-              fits the work, then let your people and agents use it.
+              Build the tool that fits your work, then give it a stable home,
+              the right access, and data that stays with the company.
             </p>
             <div className="button-row">
-              <Link className="button button-dark" href="/docs/quickstart">
-                Build your first app <span aria-hidden="true">→</span>
+              <Link className="button button-dark" href="/developers">
+                Use the CLI <span aria-hidden="true">→</span>
               </Link>
             </div>
           </div>
         </div>
       </section>
       <section className="shell example-index">
-        {Object.values(solutions).map((solution, index) => (
+        {Object.values(solutions).map((solution) => (
           <Link href={`/solutions/${solution.slug}`} key={solution.slug}>
-            <span>0{index + 1}</span>
             <div>
-              <p>{solution.eyebrow}</p>
               <h2>{solution.name}</h2>
             </div>
             <p>{solution.short}</p>
@@ -49,9 +45,6 @@ export default function SolutionsPage() {
       <section className="section shell fit-check rule-top">
         <div className="section-split">
           <Reveal className="split-copy">
-            <p className="microlabel">
-              01 · <b>A practical starting point</b>
-            </p>
             <h2>Pick one task your team does every week.</h2>
             <p>
               Start with a process you understand. Have your agent build it
@@ -86,11 +79,10 @@ export default function SolutionsPage() {
       <section className="final-cta">
         <div className="shell final-cta-grid">
           <div>
-            <p className="eyebrow">Your next internal tool</p>
             <h2>Start with the job. Atrax handles the hosting.</h2>
           </div>
-          <Link className="button button-orange" href="/docs/quickstart">
-            Open the quickstart <span aria-hidden="true">→</span>
+          <Link className="button button-orange" href="/agents.md">
+            Give this to your agent <span aria-hidden="true">→</span>
           </Link>
         </div>
       </section>

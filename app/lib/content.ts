@@ -1,14 +1,14 @@
 export const products = {
   launchpad: {
     slug: "launchpad",
-    name: "Apps",
+    name: "Launchpad",
     number: "01",
     availability: "available",
     eyebrow: "Build and deploy",
-    cardTitle: "A home for your team's tools, with a stable URL and data that stays put.",
+    cardTitle: "A stable home for the tools your company uses every day.",
     title: "Build it locally. Put it to work.",
     summary:
-      "Turn an idea into an app your team can open. Develop locally, deploy through the CLI, and keep the same URL and business data when you ship the next update. No Cloudflare account required.",
+      "Build locally, deploy through the CLI, and keep the same URL and business data when you update. You do not need a Cloudflare account.",
     boundary:
       "Your workspace owns the app. Your team can keep using it when its creator moves on.",
     features: [
@@ -29,7 +29,7 @@ export const products = {
         "Run deploy again to resume saved work and inspect its progress.",
       ],
     ],
-    code: `# From a source checkout\nnode bin/atrax.mjs new team-chat --template chat\ncd team-chat\nnode ../bin/atrax.mjs dev\nnode ../bin/atrax.mjs deploy --json`,
+    code: `atrax new team-chat --template chat\ncd team-chat\natrax dev\n# Stop the local server when ready to deploy.\natrax deploy --json`,
     codeLabel: "Available workflow",
     spec: [
       { property: "Commands", value: "new, dev, build, deploy", code: true },
@@ -42,7 +42,7 @@ export const products = {
   },
   door: {
     slug: "door",
-    name: "Access",
+    name: "Door",
     number: "02",
     availability: "available",
     eyebrow: "Company access",
@@ -89,12 +89,13 @@ export const products = {
     number: "03",
     availability: "available",
     eyebrow: "Company knowledge",
-    cardTitle: "Save the guidance your team and agents should remember.",
+    cardTitle:
+      "Keep company guidance available for the people and agents who need it.",
     title: "Tell your agent once. Save it for the company.",
     summary:
       '"We don\'t use blue in our brand." An authorized agent can save that preference in Library. People and agents can find it again, see who added it, and correct it when the guidance changes.',
     boundary:
-      "Keep policies, documents, terminology, and decisions in Library. Ask the app that owns stock or orders for the latest business records.",
+      "Keep policies, documents, terminology, and decisions in Library. It does not store API keys, credentials, or secrets; shared credential management is planned separately.",
     features: [
       [
         "Remember company decisions",
@@ -125,14 +126,15 @@ export const products = {
   },
   switchboard: {
     slug: "switchboard",
-    name: "Actions",
+    name: "Switchboard",
     number: "04",
     availability: "available",
     eyebrow: "Named app operations",
-    cardTitle: "Let Orders ask Inventory to reserve stock, with the caller's permissions.",
+    cardTitle:
+      "Let one app ask another to do a named job with the caller's permissions.",
     title: "Apps that can work together.",
     summary:
-      "Give each app named actions, such as checking stock or reserving an item. Other apps and authorized agents can call them without copying records into a second database.",
+      "Give each app named actions. Other apps and authorized agents can call them without copying records into a second database. Inventory and Orders are one example.",
     boundary:
       "An action offers a specific job. The app keeps control of its records, and Atrax checks the caller's current permission before the job runs.",
     features: [
@@ -206,11 +208,12 @@ export const products = {
   },
   loops: {
     slug: "loops",
-    name: "Automation",
+    name: "Loops",
     number: "06",
     availability: "planned",
     eyebrow: "Planned",
-    cardTitle: "Hosted agents and scheduled automation are planned for a later release.",
+    cardTitle:
+      "Hosted agents and scheduled automation are planned for a later release.",
     title: "Automation is planned for a later release.",
     summary:
       "Today, connect an existing agent through MCP for request-driven company work. Hosted agents, schedules, durable automation, and automatic document synchronization are planned for later releases.",
@@ -251,13 +254,16 @@ export const solutions = {
     slug: "company-apps",
     name: "Company apps",
     eyebrow: "For your team",
-    short: "Give requests, handoffs, and everyday work a home your whole team can open.",
+    short:
+      "Give requests, handoffs, and everyday work a home your whole team can open.",
     title: "That spreadsheet deserves an app.",
     summary:
-      "Build the intake form, tracker, or dashboard that fits how your team works. Deploy it to your workspace and share its URL. Your coworkers sign in with the access they already have.",
+      "Build the tool that fits how your team works. Deploy it to your workspace and share its URL. Your coworkers sign in with the access they already have.",
     example: "Team intake",
-    prompt: "Build us a request tracker. The whole team should be able to use it.",
-    outcome: "One company app with its own database and a stable URL. The team keeps its requests when you update the interface.",
+    prompt:
+      "Build us a request tracker. The whole team should be able to use it.",
+    outcome:
+      "One company app with its own database and a stable URL. The team keeps its requests when you update the interface.",
     note: "This is a workflow to build with your agent. Atrax supplies hosting, data, and access; your agent writes the app.",
     docs: "/docs/quickstart",
     docsLabel: "Build your first app",
@@ -273,13 +279,15 @@ export const solutions = {
     slug: "private-sharing",
     name: "Private reviews",
     eyebrow: "For a named guest",
-    short: "Send a working app to an outside reviewer without adding them to your team.",
+    short:
+      "Send a working app to an outside reviewer without adding them to your team.",
     title: "Share the prototype with the person who needs it.",
     summary:
       "Let a client, supplier, or reviewer use a working app through their verified email. Give them access to that app and selected actions, then revoke the grant when the review is done.",
     example: "A client reviews a prototype",
     prompt: "Share this prototype with our client, using their email address.",
-    outcome: "The recipient proves control of the invited email before opening the app. Their grant covers this app, without making them a workspace member.",
+    outcome:
+      "The recipient proves control of the invited email before opening the app. Their grant covers this app, without making them a workspace member.",
     note: "Inviting a guest does not remove existing company access. To limit a review, also narrow the app audience and review other guest grants and public publishing. These are separate operations, and at least one workspace member must retain app access.",
     docs: "/docs/door",
     docsLabel: "Read the sharing guide",
@@ -297,13 +305,14 @@ export const solutions = {
     name: "Connected apps",
     eyebrow: "For a business workflow",
     short:
-      "Let the order desk reserve stock through the app that manages inventory.",
-    title: "One app takes the order. Another knows the stock.",
+      "Connect apps and agents through shared actions.",
+    title: "Let your apps work together.",
     summary:
-      "Give each app a clear job. Inventory owns stock. Orders asks it to reserve items through a named action, using the current employee's permissions.",
+      "Give each app a clear job. A second app or an authorized agent can ask it to do a named action using the current employee's permissions. Inventory and Orders are one example.",
     example: "Inventory and Orders",
     prompt: "When we create an order, reserve the items in our inventory app.",
-    outcome: "The supplied Inventory and Orders examples keep stock in one app. Retrying the same order reserves it once when their handlers use the same order key.",
+    outcome:
+      "The supplied Inventory and Orders examples keep stock in one app. Retrying the same order reserves it once when their handlers use the same order key.",
     note: "Actions describe and authorize the call. Your app's handler is responsible for making a repeated business operation safe.",
     docs: "/docs/switchboard",
     docsLabel: "Connect two apps",
@@ -319,14 +328,16 @@ export const solutions = {
     slug: "agent-workspace",
     name: "Company knowledge",
     eyebrow: "For your agent",
-    short: "Give the next task the policies, preferences, and decisions you already agreed on.",
+    short:
+      "Give your apps and agents shared company context.",
     title: "Stop re-explaining how your company works.",
     summary:
-      "Keep useful guidance in Library. An authorized agent can save a new preference, search existing documents, or read the latest stock through an app action when the next task needs it.",
+      "Keep policies, documents, preferences, and decisions in Library. An authorized agent can save and find that guidance, then use an app action when the next task needs live business data.",
     example: "Brand guidance that survives the chat",
     prompt: "Remember that we don't use blue in our company's designs.",
-    outcome: "Your agent adds a knowledge entry with attribution. A future agent can find that guidance through an authorized Library search and correct it when the policy changes.",
-    note: "Library stores company knowledge. Your agent must use its tools to save or retrieve it; Atrax does not automatically import conversations or run a hosted agent.",
+    outcome:
+      "Your agent adds a knowledge entry with attribution. A future agent can find that guidance through an authorized Library search and correct it when the policy changes.",
+    note: "Library stores company knowledge, not API keys, credentials, or secrets. Your agent must use its tools to save or retrieve it; Atrax does not automatically import conversations or run a hosted agent. Shared credential management is planned separately.",
     docs: "/docs/mcp",
     docsLabel: "Connect your agent",
     steps: [

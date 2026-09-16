@@ -12,8 +12,7 @@ export function SiteFooter() {
             </span>
             <span>atrax</span>
           </Link>
-          <p>A cloud for the software your company runs on.</p>
-          <code>node bin/atrax.mjs deploy --json</code>
+          <p>A cloud for everyone.</p>
         </div>
         <div className="footer-columns">
           <div>
@@ -30,7 +29,7 @@ export function SiteFooter() {
             <Link href="/docs/quickstart">Quickstart</Link>
             <Link href="/docs/cli">CLI reference</Link>
             <Link href="/docs/inventory-orders">Connected apps</Link>
-            <Link href="/developers">MCP</Link>
+            <a href="/agents.md">Agent guide</a>
           </div>
           <div>
             <p>Project</p>

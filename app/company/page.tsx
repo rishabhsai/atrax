@@ -2,7 +2,8 @@ import Link from "next/link";
 
 export const metadata = {
   title: "Company",
-  description: "A cloud for the software small businesses build for themselves.",
+  description:
+    "A cloud for the software small businesses build for themselves.",
 };
 
 export default function CompanyPage() {
@@ -10,12 +11,12 @@ export default function CompanyPage() {
     <main>
       <section className="page-hero page-hero-orange">
         <div className="shell page-hero-grid">
-          <p className="eyebrow">Atrax</p>
           <div>
             <h1>Your business has its own way of working.</h1>
             <p>
               Your software should fit it. Atrax is a cloud for small businesses
-              building their own internal tools with coding agents.
+              building and running their own internal tools with the agents they
+              already use.
             </p>
             <div className="button-row">
               <Link className="button button-dark" href="/solutions">
@@ -27,14 +28,13 @@ export default function CompanyPage() {
       </section>
       <section className="section shell company-thesis">
         <div className="section-intro">
-          <p className="eyebrow">Why Atrax</p>
           <h2>The prototype is only the beginning.</h2>
         </div>
         <div>
           <p>
-            An agent can build the tracker you need. Then someone needs a link.
-            A teammate needs access. The records need to survive the next
-            update. Another app needs to check the same stock.
+            An agent can build the tool you need. Then people need a link and
+            access. The records need to survive the next update. Another app or
+            agent may need to ask it to do work.
           </p>
           <p>
             Atrax handles that part. Your apps live in a company workspace, with
@@ -51,28 +51,23 @@ export default function CompanyPage() {
         <div className="shell">
           {[
             [
-              "01",
               "Useful software first",
               "Start with a real task your business needs. Build locally, try it, and deploy it for the people doing the work.",
             ],
             [
-              "02",
               "The company keeps the app",
               "Apps, URLs, and business records belong to the workspace. A teammate leaving should not take the company's tools with them.",
             ],
             [
-              "03",
               "Agents are first-class users",
               "Agents can operate through the CLI and MCP, acting for a verified person with that person's current permissions.",
             ],
             [
-              "04",
               "Knowledge belongs to the team",
               "Save policies, preferences, and decisions where authorized people and agents can find and correct them.",
             ],
-          ].map(([number, title, copy]) => (
-            <article key={number}>
-              <span>{number}</span>
+          ].map(([title, copy]) => (
+            <article key={title}>
               <h2>{title}</h2>
               <p>{copy}</p>
             </article>
@@ -82,18 +77,17 @@ export default function CompanyPage() {
       <section className="final-cta">
         <div className="shell final-cta-grid">
           <div>
-            <p className="eyebrow">Build something useful</p>
             <h2>A cloud for the tools your team needs.</h2>
           </div>
           <div className="button-row">
             <a
               className="button button-orange"
-              href="https://github.com/rishabhsai/atrax/tree/feat/workspace-launch"
+              href="https://github.com/rishabhsai/atrax"
             >
               View GitHub <span aria-hidden="true">↗</span>
             </a>
-            <Link className="button button-outline-light" href="/docs/quickstart">
-              Start building
+            <Link className="button button-outline-light" href="/developers">
+              Use the CLI
             </Link>
           </div>
         </div>

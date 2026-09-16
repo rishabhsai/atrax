@@ -25,10 +25,10 @@ rounded:
 
 **Quiet infrastructure.**
 
-The public site leads with practical small-business outcomes: build a company
-app, share a private review, connect app actions, and save company knowledge.
-Warm paper, orange signals, and concrete examples keep the platform approachable
-while preserving the clarity of an infrastructure product.
+The public site leads with “A cloud for everyone.” A short centered introduction
+and visible agent prompt make the first action clear. Detailed ink trees enter
+from the edges. Warm paper and orange controls preserve the approachable,
+practical clarity of the existing brand.
 
 ## Character
 
@@ -64,7 +64,7 @@ Mono for commands and technical labels. These are the existing site families.
 2. Product windows may use a soft ambient shadow.
 3. Controls use pills; workflow examples use 10–12px radii. Existing product windows may use larger radii.
 4. Borders remain one pixel and low contrast.
-5. Use flat paper and dark stages. The homepage has one decorative architectural image; do not repeat it on every page.
+5. Keep the homepage on warm paper. Its decorative ink trees frame the central content and never carry text.
 6. Motion explains arrival or depth and always respects reduced motion.
 
 ## Account console
@@ -75,13 +75,14 @@ App ownership, access, and operations share the control-plane contract.
 
 ## Marketing examples and artwork
 
-The homepage image is `public/images/company-cloud.webp`; its source and prompt
-are recorded in `notes/marketing-artwork.md`. Keep its alt text empty and preserve
-readable HTML copy outside the image. Phone layouts stack the image below copy.
+The homepage image is `public/images/hero-ink-trees.webp`. Keep its alt text empty
+and preserve all text and controls in HTML. Trees stay at the outer edges; on
+phones the crop becomes wider and ends behind the heading, before the controls.
 
 Product examples are labeled defaults, workflows, or examples, not fabricated
 screenshots. Sharing examples must state that guest access does not revoke the
-existing company audience. Source installation remains explicit until npm release.
+existing company audience. The public npm CLI is available. Onboarding uses the published `/agents.md` guide
+and `/agents.sh` installer, with an explicit Codex, Claude Code, or Cursor choice.
 
 ## Do
 
@@ -98,3 +99,7 @@ existing company audience. Source installation remains explicit until npm releas
 - Invent deployed projects, users, logos, or activity.
 - Hide planned work behind polished UI.
 - Let a dashboard become a second source of infrastructure truth.
+
+## Public agent handoff
+
+The agent prompt is the primary control, on a paper panel with a restrained orange border and orange copy button. Terminal setup sits alongside it on a quieter paper surface and stacks below it on phones. Both show their complete copy payload in selectable read-only fields. Announce copy success only after the clipboard resolves. Failed copies select the text and explain manual copying. No decorative eyebrows, fabricated activity, or long example narratives on the homepage.
