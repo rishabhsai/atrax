@@ -1,33 +1,10 @@
 import {fromJsonSchema, McpServer} from '@modelcontextprotocol/server';
 import {StdioServerTransport} from '@modelcontextprotocol/server/stdio';
 import {operations} from '../shared/operations.js';
+import {describeOperation,toolName,toolSchema} from '../shared/operation-discovery.js';
 import {operation as callOperation, readCredentials} from './client.mjs';
 
-const excludedOperations = new Set([
-  'apps.login',
-  'auth.email.start',
-  'auth.email.verify',
-  'auth.device.start',
-  'auth.device.get',
-  'auth.device.approve',
-  'auth.device.poll',
-]);
-
-const keySchema = {type:'string',minLength:1,maxLength:200};
-
-export function toolName(operationName) {
-  return `atrax_${operationName.replaceAll('.', '_')}`;
-}
-
-function toolSchema(definition) {
-  if (definition.effect !== 'write') return definition.inputSchema;
-  return {
-    type:'object',
-    properties:{input:definition.inputSchema,key:keySchema},
-    required:['input','key'],
-    additionalProperties:false,
-  };
-}
+export {toolName} from '../shared/operation-discovery.js';
 
 function errorResult(error) {
   const value = {
@@ -70,7 +47,7 @@ function createServer({workspaceId,invoke,credentials,errorStream}) {
     instructions:'Use the shared Atrax operation tools. Supply a stable, explicit key for every write and reuse it only when retrying the same request.',
   });
   for (const [operationName,definition] of Object.entries(operations)) {
-    if (excludedOperations.has(operationName)) continue;
+    if (!describeOperation(operationName).mcp.available) continue;
     server.registerTool(toolName(operationName), {
       title:operationName,
       description:definition.description,

@@ -16,3 +16,5 @@ JSON success results contain the saved workspace and membership or Library item 
 Without `--key`, the CLI generates a new key for each invocation. Repeating that command is a new request and cannot safely reconcile a lost response. The generic `atrax call` command currently has the same default; MCP requires an explicit key for writes.
 
 `atrax deploy` saves its artifact and step keys in `.atrax/` before remote changes. Rerun `atrax deploy` to resume an interrupted attempt, including after source edits. Preserve `.atrax/deploy.json`, `.atrax/deploy-artifact.json`, and `atrax.lock.json` so it can reconcile the original app and release.
+
+For complete CLI and MCP examples with their expected results, use `atrax recipes list` or read [Run Atrax workflows with an existing agent](agent-recipes.md). Inspect an operation's current schema with `atrax operations inspect <name> --json`.
