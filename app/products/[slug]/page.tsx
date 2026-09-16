@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ChipGrid } from "../../components/ChipGrid";
@@ -41,8 +42,11 @@ export default async function ProductPage({ params }: PageProps) {
   return (
     <main>
       <section className="product-hero">
+        <div className="product-art" aria-hidden="true">
+          <Image src={`/images/products/${product.slug}.webp`} alt="" fill sizes="100vw" preload />
+        </div>
         <div className="shell product-hero-grid">
-          <div>
+          <div className="product-intro">
             <div className="product-kicker">
               <ProductMark type={product.slug} />
               <span>
@@ -136,9 +140,9 @@ export default async function ProductPage({ params }: PageProps) {
                 ? "Use the CLI for this workflow. Connected agents can discover workspace operations through MCP with the same permission checks."
                 : "Connect an existing agent through MCP for request-driven work."}
             </p>
-            <Link className="text-link" href="/agents.md">
+            <a className="text-link" href="/agents.md">
               Give this to your agent <span aria-hidden="true">→</span>
-            </Link>
+            </a>
           </div>
           <pre>
             <code>{product.code}</code>

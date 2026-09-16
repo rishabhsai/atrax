@@ -106,9 +106,9 @@ export default function ProductsPage() {
           <div>
             <h2>Put your first idea to work.</h2>
           </div>
-          <Link className="button button-orange" href="/agents.md">
+          <a className="button button-orange" href="/agents.md">
             Give this to your agent <span aria-hidden="true">→</span>
-          </Link>
+          </a>
         </div>
       </section>
     </main>

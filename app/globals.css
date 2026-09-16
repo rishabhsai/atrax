@@ -2,6 +2,7 @@
 
 :root {
   color-scheme: light;
+  --site-header-height: 55px;
   --orange: oklch(0.69 0.2 42);
   --orange-dark: oklch(0.56 0.19 38);
   --orange-light: oklch(0.91 0.07 69);
@@ -127,7 +128,7 @@ select {
 }
 
 .nav-shell {
-  min-height: 54px;
+  min-height: calc(var(--site-header-height) - 1px);
   display: flex;
   align-items: center;
   gap: 32px;
@@ -1454,20 +1455,35 @@ h3 {
 }
 
 .product-hero {
-  padding-block: clamp(60px, 8vw, 104px);
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  padding-block: 64px;
   border-bottom: 1px solid var(--line-light);
   background: var(--paper-deep);
 }
 
+.product-art { position: absolute; inset: 0; z-index: -1; pointer-events: none; }
+.product-art img { object-fit: cover; object-position: center top; mix-blend-mode: multiply; opacity: 0.8; }
+
 .product-hero-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
-  gap: var(--gap-split);
+  display: flex;
+  flex-direction: column;
+  max-width: 800px;
+  gap: 48px;
   align-items: center;
+  text-align: center;
 }
+
+.product-intro { width: min(720px, 50vw); }
+.product-intro h1 { text-wrap: balance; }
+.product-hero-grid > .product-console { width: 100%; max-width: 720px; min-height: 280px; text-align: left; box-shadow: none; }
+.product-hero .button-row { justify-content: center; }
+.product-hero .product-example-title { margin-block: 20px; }
 
 .product-kicker {
   display: flex;
+  justify-content: center;
   flex-wrap: wrap;
   align-items: center;
   gap: 14px;
@@ -1490,7 +1506,8 @@ h3 {
 }
 
 .product-hero p {
-  max-width: 700px;
+  max-width: 640px;
+  margin-inline: auto;
   font-size: var(--fs-lead);
   line-height: 1.7;
 }
@@ -4289,32 +4306,50 @@ h3 {
 
 /* The public entry point keeps the agent handoff at the center. */
 .site-header, .site-footer { --focus-ring: var(--orange-dark); }
-.home-hero { position: relative; isolation: isolate; overflow: hidden; }
-.home-trees { position: absolute; inset: 0; z-index: -1; pointer-events: none; }
-.home-trees img { object-fit: cover; object-position: center top; mix-blend-mode: multiply; }
-.home-intro { padding-block: clamp(76px, 8vw, 116px) 64px; text-align: center; }
+/* Include the navigation in the first screen; grow naturally on short screens. */
+.home-hero { position: relative; isolation: isolate; overflow: hidden; display: grid; align-items: center; min-height: calc(100svh - var(--site-header-height)); }
+.home-trees { position: absolute; inset: 0 0 auto; aspect-ratio: 3 / 1; z-index: -1; pointer-events: none; mask-image: linear-gradient(to bottom, black 70%, transparent); }
+.home-trees img { object-fit: contain; object-position: center top; mix-blend-mode: multiply; }
+/* Ten small petals, animated by the compositor and confined to the edges. */
+.hero-petals { position: absolute; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }
+.hero-petal { --start: 3%; --drift: 36px; --duration: 21s; --delay: -4s; position: absolute; top: -24px; left: var(--start); height: calc(100% + 48px); width: 12px; animation: petal-fall var(--duration) linear var(--delay) infinite; }
+.hero-petal i { display: block; width: 10px; height: 15px; border-radius: 80% 15% 70% 35%; background: oklch(0.78 0.085 35 / 0.65); animation: petal-turn 7s ease-in-out var(--delay) infinite alternate; }
+.hero-petal:nth-child(2) { --start: 10%; --drift: -30px; --duration: 25s; --delay: -17s; }
+.hero-petal:nth-child(3) { --start: 16%; --drift: 18px; --duration: 29s; --delay: -8s; }
+.hero-petal:nth-child(4) { --start: 7%; --drift: 50px; --duration: 32s; --delay: -24s; }
+.hero-petal:nth-child(5) { --start: 20%; --drift: -42px; --duration: 24s; --delay: -20s; }
+.hero-petal:nth-child(6) { --start: 96%; --drift: -32px; --duration: 23s; --delay: -12s; }
+.hero-petal:nth-child(7) { --start: 88%; --drift: 30px; --duration: 28s; --delay: -3s; }
+.hero-petal:nth-child(8) { --start: 82%; --drift: -15px; --duration: 31s; --delay: -22s; }
+.hero-petal:nth-child(9) { --start: 93%; --drift: -48px; --duration: 26s; --delay: -18s; }
+.hero-petal:nth-child(10) { --start: 78%; --drift: 40px; --duration: 30s; --delay: -10s; }
+.hero-petal:nth-child(3n) i { width: 7px; height: 11px; background: oklch(0.7 0.055 70 / 0.5); }
+@keyframes petal-fall { 0% { transform: translate3d(0, -2%, 0); opacity: 0; } 8%, 85% { opacity: 1; } 100% { transform: translate3d(var(--drift), 100%, 0); opacity: 0; } }
+@keyframes petal-turn { from { transform: translateX(-8px) rotate(-35deg) rotateY(0); } to { transform: translateX(8px) rotate(100deg) rotateY(65deg); } }
+@media (prefers-reduced-motion: reduce) { .hero-petals { display: none; } .hero-petal, .hero-petal i { animation: none; } }
+.home-intro { padding-block: 72px; text-align: center; }
 .home-intro h1 { max-width: 900px; margin: 0 auto 24px; font-size: clamp(40px, 5.2vw, 70px); line-height: 1.08; letter-spacing: -0.055em; }
 .home-summary { max-width: 560px; margin: 0 auto; font-size: 19px; line-height: 1.65; text-wrap: pretty; }
-.agent-handoff { display: grid; grid-template-columns: 1.2fr 1fr; gap: 28px; max-width: 920px; margin: 40px auto 0; text-align: left; }
-.handoff-prompt, .handoff-terminal { min-width: 0; padding: 24px; border-radius: 12px; }
-.handoff-prompt { border: 1px solid color-mix(in oklch, var(--orange) 45%, var(--line-light)); background: var(--paper); }
-.handoff-terminal { background: var(--paper-deep); }
-.handoff-heading { display: flex; gap: 12px; justify-content: space-between; align-items: center; min-height: 24px; }
-.handoff-heading h2 { margin: 0; font: 600 16px/1.5 var(--font-sans); letter-spacing: -0.02em; }
-.handoff-heading a { flex-shrink: 0; color: var(--muted); font-size: 12px; text-underline-offset: 4px; }
-.handoff-heading a:hover { text-decoration: underline; }
-.handoff-copy textarea { display: block; width: 100%; resize: none; border: 0; border-radius: 4px; padding: 0; margin: 20px 0 18px; background: transparent; color: var(--ink); font: 15px/1.7 var(--font-sans); overflow-wrap: anywhere; }
-.handoff-copy-command textarea { font: 12px/1.8 var(--font-mono); margin-block: 16px; }
-.handoff-copy-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
-.handoff-copy-actions button { display: inline-flex; align-items: center; gap: 24px; min-height: 44px; padding: 10px 18px; border: 1px solid transparent; border-radius: 7px; background: var(--orange); color: var(--ink); font-size: 13px; font-weight: 600; cursor: pointer; }
-.handoff-copy-actions button:hover { background: color-mix(in oklch, var(--orange) 85%, var(--orange-light)); }
-.handoff-copy-actions button:disabled { cursor: wait; }
-.handoff-copy-command button { padding-inline: 12px; background: transparent; border-color: var(--line-light); }
-.handoff-copy-command button:hover { background: var(--paper); }
-.handoff-copy-actions p { max-width: 32ch; margin: 0; color: var(--muted); font-size: 12px; line-height: 1.5; }
-.handoff-client { display: flex; align-items: center; gap: 12px; margin-top: 12px; font-size: 12px; color: var(--muted); }
-.handoff-client select { min-height: 36px; min-width: 128px; border: 1px solid var(--line-light); border-radius: 6px; padding: 4px 8px; background: var(--paper); color: var(--ink); font-size: 12px; }
-.home-start-note { margin: 24px 0 0; color: var(--muted); font-size: 13px; }
+.agent-handoff { max-width: 760px; margin: 36px auto 0; }
+.agent-terminal { --focus-ring: var(--orange-light); overflow: hidden; border: 1px solid var(--line); border-radius: 10px; background: var(--ink); color: var(--paper); text-align: left; }
+.agent-terminal-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-inline: 16px; border-bottom: 1px solid var(--line); }
+.agent-clients { display: flex; gap: 16px; }
+.agent-clients button { position: relative; min-height: 46px; padding: 0; border: 0; background: transparent; color: var(--muted-on-dark); font: 12px/1.4 var(--font-sans); cursor: pointer; }
+.agent-clients button[aria-pressed="true"] { color: var(--paper); }
+.agent-clients button[aria-pressed="true"]::after { content: ""; position: absolute; height: 2px; inset: auto 0 -1px; background: var(--orange); }
+.agent-clients button:hover { color: var(--paper); }
+.agent-copy { display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-width: 76px; min-height: 44px; padding: 0; border: 0; background: transparent; color: var(--muted-on-dark); font: 12px/1.4 var(--font-sans); cursor: pointer; }
+.agent-copy:hover { color: var(--paper); }
+.agent-copy:disabled { cursor: wait; }
+.agent-terminal-command { display: flex; align-items: baseline; gap: 14px; padding: 24px; font: 12px/1.9 var(--font-mono); }
+.agent-terminal-command > span { color: var(--orange-light); user-select: none; }
+.agent-terminal-command pre { min-width: 0; margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; font: inherit; }
+.agent-terminal-command code { font: inherit; }
+.agent-copy-error { margin: 0; padding: 0 24px 20px; color: var(--orange-light); font-size: 12px; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+.agent-guide-note { margin: 18px 0 0; color: var(--muted); font-size: 13px; text-align: center; }
+.agent-guide-note a { display: inline-block; color: var(--ink); text-decoration: underline; text-underline-offset: 4px; }
+.home-start-note { margin: 12px 0 0; color: var(--muted); font-size: 13px; }
 .home-start-note a { display: inline-block; padding-block: 8px; margin-left: 8px; color: var(--ink); text-decoration: underline; text-underline-offset: 4px; }
 .home-capabilities { display: grid; grid-template-columns: 0.8fr 1.4fr; gap: 80px; padding-block: 64px 80px; border-top: 1px solid var(--line-light); }
 .home-capabilities h2 { margin: 0; font-size: clamp(28px, 3vw, 38px); letter-spacing: -0.04em; line-height: 1.2; }
@@ -4329,23 +4364,30 @@ h3 {
 .home-capability-list dt span { color: var(--orange-dark); }
 .home-capability-list dd { max-width: 62ch; margin: 0; color: var(--muted); font-size: 14px; line-height: 1.7; }
 @media (max-width: 1000px) {
-  .home-trees img { object-fit: cover; width: 150% !important; max-width: none; left: -25% !important; }
-  .agent-handoff { max-width: 800px; gap: 16px; }
-  .handoff-prompt, .handoff-terminal { padding: 20px; }
-  .handoff-heading { align-items: flex-start; flex-direction: column; gap: 6px; }
   .home-capabilities { gap: 40px; }
 }
 @media (max-width: 640px) {
-  .home-intro { padding-block: 64px 40px; }
+  .home-intro { padding-block: 56px; }
   .home-intro h1 { max-width: 340px; font-size: 44px; }
   .home-summary { font-size: 17px; max-width: 340px; }
-  .home-trees { bottom: auto; height: 290px; }
+  .home-trees { height: 290px; aspect-ratio: auto; mask-image: none; }
+  .hero-petal:nth-child(n+3):nth-child(-n+5), .hero-petal:nth-child(n+8) { display: none; }
+  .hero-petal { --drift: 8px; }
+  .hero-petal:nth-child(2) { --start: 3%; --drift: -8px; }
+  .hero-petal:nth-child(7) { --start: 96%; --drift: -8px; }
+  .product-art { height: 180px; mask-image: linear-gradient(black, transparent); }
+  .product-art img { opacity: 0.65; }
+  .product-hero-grid { text-align: left; gap: 36px; }
+  .product-intro { width: 100%; }
+  .product-kicker, .product-hero .button-row { justify-content: flex-start; }
   .home-trees img { width: 130% !important; left: -15% !important; object-fit: contain; object-position: center top; opacity: 0.7; }
-  .agent-handoff { grid-template-columns: 1fr; margin-top: 32px; gap: 12px; }
-  .handoff-heading { flex-direction: row; align-items: center; }
-  .handoff-heading h2 { font-size: 14px; }
-  .handoff-copy textarea { font-size: 14px; }
-  .handoff-copy-command textarea { font-size: 12px; }
+  .agent-handoff { margin-top: 28px; }
+  .agent-terminal-bar { padding-inline: 12px; gap: 8px; }
+  .agent-clients { gap: 12px; }
+  .agent-copy { min-width: 44px; }
+  .agent-copy > span:last-child { display: none; }
+  .agent-terminal-command { padding: 20px 16px; gap: 10px; }
+  .agent-guide-note { max-width: 280px; margin-inline: auto; }
   .home-start-note a { margin-left: 0; }
   .home-capabilities { grid-template-columns: 1fr; gap: 32px; padding-block: 40px 56px; }
   .home-capabilities h2 br { display: none; }

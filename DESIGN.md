@@ -26,8 +26,10 @@ rounded:
 **Quiet infrastructure.**
 
 The public site leads with “A cloud for everyone.” A short centered introduction
-and visible agent prompt make the first action clear. Detailed ink trees enter
-from the edges. Warm paper and orange controls preserve the approachable,
+and compact terminal installer make the first action clear. Detailed ink trees enter
+from the edges. Size the wide original to the viewport width, independently of
+the hero height, so laptop screens retain the branches. Fade its lower edge into
+the paper. Warm paper and orange controls preserve the approachable,
 practical clarity of the existing brand.
 
 ## Character
@@ -102,4 +104,17 @@ and `/agents.sh` installer, with an explicit Codex, Claude Code, or Cursor choic
 
 ## Public agent handoff
 
-The agent prompt is the primary control, on a paper panel with a restrained orange border and orange copy button. Terminal setup sits alongside it on a quieter paper surface and stacks below it on phones. Both show their complete copy payload in selectable read-only fields. Announce copy success only after the clipboard resolves. Failed copies select the text and explain manual copying. No decorative eyebrows, fabricated activity, or long example narratives on the homepage.
+The homepage hero fills the first viewport including the navigation, while allowing content to grow on short screens. One near-black terminal contains the full selectable installer command, compact client choices, and a copy control. Below it, a plain sentence directs agents to `/agents.md`. Keep the local-start note and quickstart link. Announce copy success only after the clipboard resolves. Failed copies select the command and explain manual copying. No prompt cards, decorative eyebrows, fabricated activity, or long example narratives on the homepage.
+
+## Botanical motion and product art
+
+A few small terracotta and muted ochre petals drift down the homepage edges. The
+center stays clear, the effect never intercepts input, and reduced-motion
+preferences hide it completely. Use only transform and opacity animation.
+
+Each product has its own edge-framing ink illustration, stored under
+`public/images/products/`: pine for Launchpad, ginkgo for Tables, wisteria for
+Door, oak and ferns for Library, climbing vines for Switchboard, bamboo for MCP,
+and unfurling ferns for Loops. Product introductions are centered above their
+example panel so the paper center stays clear behind copy. On phones the art
+frames the top and fades before the body text.

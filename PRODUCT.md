@@ -37,7 +37,7 @@ Do not look like a generic AI-generated SaaS landing page. Avoid decorative 3D c
 
 ## Design Principles
 
-1. Lead with the short promise and a visible plain-English prompt for the user’s agent. Keep the tested terminal installer alongside it.
+1. Lead with the short promise, one terminal installer, and a direct link for agents to read the guide.
 2. Keep one clear concept for each job. Loops owns declared durable webhooks, schedules, background jobs, and operational agents; ordinary Worker request handlers remain part of the app runtime.
 3. Write for a small company choosing whether it can ship this week.
 4. Make every public feature traceable to a real CLI command, runtime behavior, or documented roadmap status. Shared credentials, hosted agents, and automatic external-document synchronization remain planned.
@@ -49,4 +49,4 @@ Meet WCAG 2.2 AA contrast and keyboard requirements. Preserve meaning without co
 
 ## Approved public homepage
 
-The headline is “A cloud for everyone.” The explanation is “Build with your agent. Atrax runs your apps, keeps their data, and connects your team.” Keep a simple centered reading order, the selected ink trees at the edges, and one short section explaining apps, data and access, connected actions, and shared company context. Use general capability language, without decorative eyebrows or example-led storytelling. The primary action previews and copies the complete agent prompt leading to `/agents.md`; the quieter terminal action uses `/agents.sh` with an explicit client choice.
+The headline is “A cloud for everyone.” The explanation is “Build with your agent. Atrax runs your apps, keeps their data, and connects your team.” Keep a simple centered reading order, the selected ink trees at the edges, and one short section explaining apps, data and access, connected actions, and shared company context. Use general capability language, without decorative eyebrows or example-led storytelling. The hero fills the first viewport including navigation. One terminal-style block copies the `/agents.sh` installer, with a compact explicit client choice. Below it, a short sentence directs agents to `/agents.md`. Keep “Start locally, no account needed.” and the quickstart link.

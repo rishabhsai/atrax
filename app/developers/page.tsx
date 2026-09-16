@@ -44,9 +44,9 @@ export default function DevelopersPage() {
               workspace permissions.
             </p>
             <div className="hero-actions">
-              <Link className="button button-orange" href="/agents.md">
+              <a className="button button-orange" href="/agents.md">
                 Give this to your agent <span aria-hidden="true">→</span>
-              </Link>
+              </a>
               <Link className="text-link" href="/docs/mcp">
                 Connect MCP <span aria-hidden="true">↗</span>
               </Link>
@@ -67,9 +67,9 @@ export default function DevelopersPage() {
             </p>
             <p>
               Install the released CLI below, or give your agent the{" "}
-              <Link className="text-link" href="/agents.md">
+              <a className="text-link" href="/agents.md">
                 agent guide
-              </Link>
+              </a>
               .
             </p>
           </div>
@@ -207,9 +207,9 @@ export default function DevelopersPage() {
           <div>
             <h2>Give your agent the guide.</h2>
           </div>
-          <Link className="button button-orange" href="/agents.md">
+          <a className="button button-orange" href="/agents.md">
             Open agents.md <span aria-hidden="true">→</span>
-          </Link>
+          </a>
         </div>
       </section>
     </main>

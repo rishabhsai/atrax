@@ -38,12 +38,58 @@ export const products = {
       { property: "Output", value: "schemaVersion 1 envelopes", code: true },
       { property: "Status", value: "Available" },
     ],
-    related: ["door", "switchboard", "library"],
+    related: ["tables", "door", "switchboard"],
+  },
+  tables: {
+    slug: "tables",
+    name: "Tables",
+    number: "02",
+    availability: "available",
+    eyebrow: "SQL database included",
+    cardTitle:
+      "A SQL database comes with your app. No separate database service to set up.",
+    title: "A SQL database that ships with your app.",
+    summary:
+      "Build and deploy with a SQL database already included. Keep your records through app updates, without setting up a separate database service.",
+    boundary:
+      "Each app owns its records. Other apps use named actions instead of a raw database connection.",
+    features: [
+      [
+        "Start with the app",
+        "Stateful templates declare their tables and migrations in the same project as the interface and actions.",
+      ],
+      [
+        "Develop against local data",
+        "Run the app and its SQL data locally before you sign in. Local data survives a development-server restart.",
+      ],
+      [
+        "Change structure in order",
+        "Numbered migrations create the schema. Applied migration names and checksums stay recorded, so changed history is refused.",
+      ],
+      [
+        "Keep data with its app",
+        "Deployment provisions one D1 database for the app and applies its declared migrations. Ordinary app updates keep those records.",
+      ],
+    ],
+    code: `atrax new inventory --template inventory
+cd inventory
+atrax dev
+
+# Deploy when the app is ready.
+atrax deploy --json`,
+    codeLabel: "Available workflow",
+    spec: [
+      { property: "Database", value: "One app-owned D1 database" },
+      { property: "Local development", value: "Persistent local SQL data" },
+      { property: "Schema", value: "Numbered SQL migrations", code: true },
+      { property: "Status", value: "Available" },
+    ],
+    related: ["launchpad", "switchboard", "door"],
   },
   door: {
     slug: "door",
     name: "Door",
-    number: "02",
+    number: "03",
     availability: "available",
     eyebrow: "Company access",
     cardTitle: "Company-only by default. Named guests when you need them.",
@@ -86,7 +132,7 @@ export const products = {
   library: {
     slug: "library",
     name: "Library",
-    number: "03",
+    number: "04",
     availability: "available",
     eyebrow: "Company knowledge",
     cardTitle:
@@ -127,7 +173,7 @@ export const products = {
   switchboard: {
     slug: "switchboard",
     name: "Switchboard",
-    number: "04",
+    number: "05",
     availability: "available",
     eyebrow: "Named app operations",
     cardTitle:
@@ -168,7 +214,7 @@ export const products = {
   mcp: {
     slug: "mcp",
     name: "MCP",
-    number: "05",
+    number: "06",
     availability: "available",
     eyebrow: "Your existing agent",
     cardTitle:
@@ -209,7 +255,7 @@ export const products = {
   loops: {
     slug: "loops",
     name: "Loops",
-    number: "06",
+    number: "07",
     availability: "planned",
     eyebrow: "Planned",
     cardTitle:
@@ -242,6 +288,7 @@ export const products = {
 export type ProductSlug = keyof typeof products;
 export const productOrder: ProductSlug[] = [
   "launchpad",
+  "tables",
   "door",
   "library",
   "switchboard",

@@ -2,7 +2,6 @@
 
 import { useId, useRef, useState } from "react";
 
-const prompt = "Read https://atrax.run/agents.md and use Atrax to build or resume my app. Start it locally and verify the requested behavior.";
 const clients = [
   { value: "codex", label: "Codex" },
   { value: "claude-code", label: "Claude Code" },
@@ -11,10 +10,11 @@ const clients = [
 
 type CopyState = "ready" | "copying" | "copied" | "failed";
 
-function CopyText({ text, kind }: { text: string; kind: "prompt" | "command" }) {
+function Terminal({ client, onClientChange }: { client: string; onClientChange: (client: string) => void }) {
+  const text = `curl -fsSL https://atrax.run/agents.sh | sh -s -- --client ${client}`;
   const [state, setState] = useState<CopyState>("ready");
   const pending = useRef(false);
-  const field = useRef<HTMLTextAreaElement>(null);
+  const field = useRef<HTMLPreElement>(null);
   const statusId = useId();
 
   async function copy() {
@@ -26,54 +26,49 @@ function CopyText({ text, kind }: { text: string; kind: "prompt" | "command" }) 
       setState("copied");
     } catch {
       setState("failed");
-      field.current?.focus();
-      field.current?.select();
+      if (field.current) {
+        field.current.focus();
+        const range = document.createRange();
+        range.selectNodeContents(field.current);
+        window.getSelection()?.removeAllRanges();
+        window.getSelection()?.addRange(range);
+      }
     } finally {
       pending.current = false;
     }
   }
 
   return (
-    <div className={`handoff-copy handoff-copy-${kind}`}>
-      <textarea
-        ref={field}
-        aria-label={kind === "prompt" ? "Agent prompt" : "Terminal setup command"}
-        aria-describedby={statusId}
-        readOnly
-        spellCheck={false}
-        value={text}
-        rows={kind === "prompt" ? 4 : 3}
-        onFocus={(event) => event.currentTarget.select()}
-      />
-      <div className="handoff-copy-actions">
-        <button type="button" onClick={copy} disabled={state === "copying"}>
-          {state === "copied" ? "Copied" : state === "copying" ? "Copying…" : `Copy ${kind}`}
-          <span aria-hidden="true">{state === "copied" ? "✓" : "↗"}</span>
+    <div className="agent-terminal">
+      <div className="agent-terminal-bar">
+        <div className="agent-clients" role="group" aria-label="Your agent">
+          {clients.map(({ value, label }) => (
+            <button key={value} type="button" aria-pressed={client === value} disabled={state === "copying"} onClick={() => { setState("ready"); onClientChange(value); }}>{label}</button>
+          ))}
+        </div>
+        <button className="agent-copy" type="button" aria-label={state === "copied" ? "Command copied" : "Copy command"} onClick={copy} disabled={state === "copying"}>
+          {state === "copied" ? <span aria-hidden="true">✓</span> : <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="8" y="8" width="12" height="12" rx="2" /><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3" /></svg>}
+          <span>{state === "copied" ? "Copied" : state === "copying" ? "Copying…" : "Copy"}</span>
         </button>
-        <p id={statusId} role="status" aria-live="polite">
-          {state === "failed" ? "Couldn’t copy. Select the text above and copy it manually." : state === "copied" ? `${kind === "prompt" ? "Prompt" : "Command"} copied.` : ""}
-        </p>
       </div>
+      <div className="agent-terminal-command">
+        <span aria-hidden="true">$</span>
+        <pre ref={field} tabIndex={0} aria-label="Terminal setup command" aria-describedby={statusId}><code>{text}</code></pre>
+      </div>
+      <p className={state === "failed" ? "agent-copy-error" : "sr-only"} id={statusId} role="status" aria-live="polite">
+        {state === "failed" ? "Couldn’t copy. The command is selected so you can copy it manually." : state === "copied" ? "Command copied." : ""}
+      </p>
     </div>
   );
 }
 
 export function AgentCommand() {
   const [client, setClient] = useState(clients[0].value);
-  const clientId = useId();
-  const command = `curl -fsSL https://atrax.run/agents.sh | sh -s -- --client ${client}`;
 
   return (
     <div className="agent-handoff">
-      <div className="handoff-prompt">
-        <div className="handoff-heading"><h2>Give this to your agent</h2><a href="/agents.md">Read the guide <span aria-hidden="true">↗</span></a></div>
-        <CopyText text={prompt} kind="prompt" />
-      </div>
-      <div className="handoff-terminal">
-        <div className="handoff-heading"><h2>Or set up in your terminal</h2></div>
-        <div className="handoff-client"><label htmlFor={clientId}>Your agent</label><select id={clientId} value={client} onChange={(event) => setClient(event.target.value)}>{clients.map(({ value, label }) => <option key={value} value={value}>{label}</option>)}</select></div>
-        <CopyText key={client} text={command} kind="command" />
-      </div>
+      <Terminal client={client} onClientChange={setClient} />
+      <p className="agent-guide-note">If you’re an agent, read <a href="/agents.md">atrax.run/agents.md <span aria-hidden="true">↗</span></a></p>
     </div>
   );
 }

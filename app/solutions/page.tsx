@@ -81,9 +81,9 @@ export default function SolutionsPage() {
           <div>
             <h2>Start with the job. Atrax handles the hosting.</h2>
           </div>
-          <Link className="button button-orange" href="/agents.md">
+          <a className="button button-orange" href="/agents.md">
             Give this to your agent <span aria-hidden="true">→</span>
-          </Link>
+          </a>
         </div>
       </section>
     </main>

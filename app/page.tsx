@@ -15,6 +15,9 @@ export default function Home() {
         <div className="home-trees" aria-hidden="true">
           <Image src="/images/hero-ink-trees.webp" alt="" fill sizes="100vw" preload />
         </div>
+        <div className="hero-petals" aria-hidden="true">
+          {Array.from({ length: 10 }, (_, index) => <span key={index} className="hero-petal"><i /></span>)}
+        </div>
         <div className="shell home-intro">
           <h1 id="home-title">A cloud for everyone.</h1>
           <p className="home-summary">Build with your agent. Atrax runs your apps, keeps their data, and connects your team.</p>
@@ -30,7 +33,7 @@ export default function Home() {
         </div>
         <dl className="home-capability-list">
           <div><dt><Link href="/products/launchpad">Build and run apps <span aria-hidden="true">↗</span></Link></dt><dd>Turn an idea into a working app with your agent. Deploy it and give your team a link.</dd></div>
-          <div><dt><Link href="/docs/tables">Keep data and control access <span aria-hidden="true">↗</span></Link></dt><dd>Keep your data through updates. Make apps available to your team and choose who else can use them.</dd></div>
+          <div><dt><Link href="/products/tables">A database, already included <span aria-hidden="true">↗</span></Link></dt><dd>Your app comes with a SQL database that keeps its data through updates. No separate database service to set up.</dd></div>
           <div><dt><Link href="/products/switchboard">Connect your apps <span aria-hidden="true">↗</span></Link></dt><dd>Let apps and agents use the actions your apps expose, with permission checked every time.</dd></div>
           <div><dt><Link href="/products/library">Share company context <span aria-hidden="true">↗</span></Link></dt><dd>Save files, guidance, and decisions in a Library your team and its agents can use and update.</dd></div>
         </dl>
