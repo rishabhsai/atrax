@@ -400,3 +400,37 @@ test('candidate deletion rejects live names, identity drift, and changed ownersh
   await assert.rejects(cf.provider.deleteCandidateDomain({hostname:`check-${id}.example.com`,service:`check-web-${id}`}),{code:'provider_domain_conflict'});
   assert.equal(cf.calls.some(call=>call.method==='DELETE'),false);
 });
+
+test('provider diagnostics contain only method, pathname, HTTP status, and numeric error codes',async t=>{
+  const logs=[];t.mock.method(console,'error',(...args)=>logs.push(args));
+  const secret='private-provider-message-and-request';
+  const provider=new CloudflareProvider(ENV,{fetch:async()=>Response.json({success:false,errors:[{code:10000,message:ENV.CF_API_TOKEN},{code:10001,message:secret},{code:secret},{code:1.5},{code:-1},{code:{secret}}],messages:[secret],result:{secret}},{status:403})});
+  await assert.rejects(provider.ensureDatabase(secret),error=>error.code==='provider_rejected'&&error.message==='Cloudflare rejected the operation.');
+  await assert.rejects(provider.queryDatabase('database-id',[{sql:secret,params:[ENV.CF_API_TOKEN]}]),error=>error.code==='provider_rejected'&&!JSON.stringify(error).includes(secret));
+  const transport=new CloudflareProvider(ENV,{fetch:async()=>{throw new Error(`${ENV.CF_API_TOKEN} https://provider.invalid/?secret=${secret}`);}});
+  await assert.rejects(transport.inspectWorker('runtime'),{code:'provider_unavailable'});
+  const malformed=new CloudflareProvider(ENV,{fetch:async()=>new Response(`${secret} ${ENV.CF_API_TOKEN}`,{status:502})});
+  await assert.rejects(malformed.inspectWorker('runtime'),{code:'provider_response_invalid'});
+  assert.deepEqual(logs,[
+    ['atrax.provider.request_failed',{method:'GET',pathname:'/accounts/account/d1/database',status:403,codes:[10000,10001]}],
+    ['atrax.provider.request_failed',{method:'POST',pathname:'/accounts/account/d1/database/database-id/query',status:403,codes:[10000,10001]}],
+    ['atrax.provider.request_failed',{method:'GET',pathname:'/accounts/account/workers/scripts/runtime/settings',status:null,codes:[]}],
+    ['atrax.provider.request_failed',{method:'GET',pathname:'/accounts/account/workers/scripts/runtime/settings',status:502,codes:[]}],
+  ]);
+  assert.ok(!JSON.stringify(logs).includes(secret));assert.ok(!JSON.stringify(logs).includes(ENV.CF_API_TOKEN));assert.ok(!JSON.stringify(logs).includes('?'));
+});
+
+test('native empty HTTP200 DELETE succeeds while nonempty malformed deletion responses remain uncertain',async t=>{
+  const logs=[];t.mock.method(console,'error',(...args)=>logs.push(args));
+  const cf=cloudflare(),name=`check-run-${'d'.repeat(32)}`,input={name,source:SOURCE,releaseId:'release'};
+  await cf.provider.ensurePrivateRuntime(input);
+  cf.before=call=>{if(call.method==='DELETE') {cf.workers.delete(name);return new Response(null,{status:200});}};
+  await cf.provider.deleteCandidateWorker(input);
+  assert.equal(cf.workers.has(name),false);assert.deepEqual(logs,[],'A valid empty delete response must not report a protocol failure');
+  await cf.provider.ensurePrivateRuntime(input);
+  cf.before=call=>call.method==='DELETE'?new Response('malformed nonempty response',{status:200}):undefined;
+  await assert.rejects(cf.provider.deleteCandidateWorker(input),{code:'provider_response_invalid',uncertain:true});
+  assert.equal(cf.workers.has(name),true);
+  const emptyRead=new CloudflareProvider(ENV,{fetch:async()=>new Response(null,{status:200})});
+  await assert.rejects(emptyRead.inspectWorker('runtime'),{code:'provider_response_invalid'});
+});

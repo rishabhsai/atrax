@@ -117,6 +117,8 @@ export class CloudflareProvider {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), this.#timeoutMs);
     const mutation = method !== "GET";
+    let status = null;
+    let codes = [];
     const headers = { authorization: `Bearer ${this.#token}` };
     let payload;
     if (body instanceof FormData) payload = body;
@@ -126,14 +128,22 @@ export class CloudflareProvider {
     }
     try {
       const response = await this.#fetch(`${API}${path}`, { method, headers, body: payload, signal: controller.signal });
+      status = response.status;
       if (missing && response.status === 404) {
         await response.body?.cancel();
         return null;
       }
       if (method === "DELETE" && response.status === 204) return { success: true };
       let data;
-      try { data = await response.json(); }
+      try {
+        if (method === "DELETE" && response.ok) {
+          const content = await response.text();
+          if (content.length === 0) return { success: true };
+          data = JSON.parse(content);
+        } else data = await response.json();
+      }
       catch { throw protocolError(mutation); }
+      if (Array.isArray(data?.errors)) codes = data.errors.map(error => error?.code).filter(code => Number.isSafeInteger(code) && code >= 0).slice(0, 16);
       if (!response.ok || data?.success === false) {
         const retryable = response.status === 429 || response.status >= 500;
         throw new ProviderError("provider_rejected", "Cloudflare rejected the operation.", {
@@ -143,6 +153,9 @@ export class CloudflareProvider {
       if (data?.success !== true || (method !== "DELETE" && !("result" in data))) throw protocolError(mutation);
       return data;
     } catch (error) {
+      // Operator diagnostics deliberately exclude provider prose, bodies,
+      // credentials, query strings, and transport exception messages.
+      console.error("atrax.provider.request_failed", { method, pathname: path.split("?")[0], status, codes });
       if (error instanceof ProviderError) throw error;
       // Transport errors can include URLs, request bodies, or credentials. Do not expose them.
       throw new ProviderError(controller.signal.aborted ? "provider_timeout" : "provider_unavailable", "Cloudflare did not return a complete response.", { retryable: true, uncertain: mutation });

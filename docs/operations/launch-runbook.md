@@ -34,7 +34,7 @@ npx wrangler secret put CF_API_TOKEN --config control-plane/wrangler.jsonc --env
 
 Enter an actual authorized token when prompted. Do not extract tokens from local OAuth files, print credentials, put secret values in commands, or commit them. The repository contains account and zone IDs, not provider credentials.
 
-The provider needs permission to create, inspect, update, and delete Workers; control their public URL settings; attach and detach custom domains; inspect zone routes; and create, query, export, import, and delete D1 databases. Scope credentials to the configured account and `atrax.run` zone.
+The provider needs permission to create, inspect, update, and delete Workers; control their public URL settings; attach and detach custom domains; inspect zone routes; and create, query, export, import, and delete D1 databases. Scope credentials to the configured account and `atrax.run` zone. The first production smoke test identified a missing zone route permission; the existing provider token now includes Workers Routes Write scoped to `atrax.run`.
 
 | Capability | Cloudflare permission guidance |
 | --- | --- |
@@ -105,7 +105,7 @@ Wrangler applies each pending D1 migration in order. A failed migration rolls ba
 
 ## Verify the hosted release
 
-Check `/health` on the selected API. It should return the Atrax service response, but this endpoint does not exercise credentials or storage.
+Check `/health` on the selected API. It should return the Atrax service response, but this endpoint does not exercise credentials or storage. For provider failures, `wrangler tail --search atrax.provider.request_failed` shows method, path, status, and numeric error codes without provider prose, request bodies, query strings, or credentials.
 
 Use a separate CLI credential directory for staging:
 

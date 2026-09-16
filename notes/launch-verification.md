@@ -1,6 +1,6 @@
 # Launch verification
 
-Updated September 16, 2026. Work is on `feat/workspace-launch`. The twelve approved tickets are indexed in `notes/launch-tickets.md`.
+Updated September 16, 2026. The workspace launch is deployed at https://atrax.run and published on `feat/workspace-launch`. Implementation commit: `1f687e4`; follow-up includes provider diagnostics and the final verification record. The twelve approved tickets are indexed in `notes/launch-tickets.md`.
 
 ## Verified locally
 
@@ -11,14 +11,14 @@ Updated September 16, 2026. Work is on `feat/workspace-launch`. The twelve appro
 - Actual browser sessions exercised workspace creation, team invitations and removal, role changes, app/action access, conflicting edits, keyboard controls, a 390px navigation drawer, manual file upload/replacement/download, entry correction/history, guest acceptance/revocation, and public publish/unpublish.
 - Production Next.js static export and rendered-route checks passed. The public docs and operation reference are generated from maintained sources.
 
-The integrated static build and all 126 tests passed after review fixes for explicit maintainer authority, independent public-web publication, concurrent Library retry receipts and immutable file timestamps, terminal candidate cleanup, and inline first-workspace device onboarding. ESLint passed and npm audit reported zero vulnerabilities. Earlier broad runs exposed those Library races; focused regressions preserve exact result and metadata equality. Recovery fault injection now persists an external outage until an explicit resume, rather than depending on a one-shot failure surviving background progress.
+The integrated static build passed. The final suite passed all **128 tests**, with no failures, cancellations, or skips, after review fixes for explicit maintainer authority, independent public-web publication, concurrent Library retry receipts and immutable file timestamps, terminal candidate cleanup, and inline first-workspace device onboarding. ESLint passed and npm audit reported zero vulnerabilities. Earlier broad runs exposed those Library races; focused regressions preserve exact result and metadata equality. Recovery fault injection now persists an external outage until an explicit resume, rather than depending on a one-shot failure surviving background progress.
 
 ## Hosted evidence
 
 An isolated Cloudflare environment was provisioned and deployed:
 
 - API: `https://api-staging.atrax.run`
-- Console: `https://console-staging.atrax.run`, a proxied custom domain for the `workspace-launch` Pages branch. Production `atrax.run` still points at its existing deployment.
+- Console: `https://console-staging.atrax.run`, a proxied custom domain for the `workspace-launch` Pages branch. The staging console is isolated from production.
 - Separate staging control-plane D1, artifact R2, and Library R2 resources.
 - Hosted email reached the user-authorized Gmail inbox. Gmail reported SPF, DKIM, and DMARC passing. The proof successfully established a browser identity and approved an agent/CLI device session.
 - That verified identity created the `Launch verification` workspace through the shared API.
@@ -35,10 +35,27 @@ The temporary staging provider credential was removed after hosted cleanup verif
 
 ## Release status
 
-Production migrations through `0014` have applied. The API and Pages release are pending. Production release/file buckets were created and Email Sending was enabled for `atrax.run`.
+Production migrations through `0014` have applied, with no pending migrations. The API is live at https://api.atrax.run and the console/site at https://atrax.run. Pages deployment: `cc69655b.tarantula-9l0.pages.dev`. Final API version: `3f4cd51d-4a92-4af1-b395-b658855ea86a`. Production uses its own control-plane D1, artifact R2, Library R2, and persistent provider token.
+
+### Production smoke evidence
+
+- The first `atrax deploy --json` requested browser authorization. The real email arrived at the user-authorized inbox; confirmation returned to that request. The browser created workspace **Atrax** (`849929ad-0451-442a-8973-e300000bcac6`) inline, approved the CLI, and the same deployment command continued with the sole workspace.
+- The existing account token initially lacked zone Worker Routes permission. Sanitized operator diagnostics identified `GET /zones/.../workers/routes`, HTTP 403, code 10000. The existing token was updated with **Workers Routes Write scoped only to `atrax.run`**. Its value was neither retrieved nor replaced. The saved deployment resumed successfully.
+- Inventory: `14b5e0e9-767e-4c02-bbf1-3b1a6f514abf`, https://launch-inventory-14b5e0e9.atrax.run. First deployment `50c51007-d6e2-a87b-356e-0527d0fda91f` completed and reclaimed its candidate resources.
+- Orders: `93808eda-34e8-49f0-a1fe-118bebda036b`, https://launch-orders-93808eda.atrax.run. Deployment `8746014b-9f18-ed21-3754-fe0907dcd744` completed with its declared Inventory dependency.
+- Repeating `production-launch-order-1` returned the same confirmed two-unit order; available paper stock changed from 10 to 8 once. The actual browser displayed that single confirmed order.
+- Inventory update `6248adb4-98a0-5f01-644c-9600c08e415c` retained the URL, database `16bf6b15-74cb-4f63-8d49-c26c72eedd7b`, and 8-unit balance. Cleanup reached `complete`.
+- The signed-in browser opened both company-only apps through normal app sign-in. An unauthenticated Inventory request returned HTTP401.
+- Library file `e71e469a-4619-40c7-86ca-4f3a31b32f8e` uploaded and downloaded 132 identical bytes; SHA-256 `719357c8136d8bf8bd8e73109a6dad917eab896aeb4d62c683a0a32a056dd9ad`. Its text explicitly identifies it as a verification artifact, not company policy.
+- The official MCP client connected to the production CLI server, found that Library file, and read Inventory's 8-unit balance after the update.
+- The production docs include first-deploy workspace onboarding and source installation. The narrow docs layout has no page overflow at 390px, an expandable directory, and locally scrolling code blocks; desktop retains its full directory.
 
 The owner confirmed that the platform had no users and authorized deleting the unused `instant-e2e` prototype. Worker `i-468132b487` and database `54e33fc8-884f-4420-a9d9-f19b20ccf6d4` were deleted successfully. Migration `0014` removes the retired prototype record store. No compatibility or adoption path is required.
 
 A local export of the prototype restored into SQLite with integrity `ok`: one message, one rate-limit row, no Door members. Its SHA-256 is `4264d32f68653043bcdfce073c1bf32475cdb882d55e213750961d0d05e80641`. The export is in the ignored, private `.scratch/launch/legacy-archive/` directory. The owner subsequently authorized deletion; the export is only a local verification artifact.
 
-Final work covers the admin guest-action selection follow-through, final publication, and production cutover. GitHub tickets remain open until the integrated result and its evidence are delivered.
+## Final regression notes and limits
+
+A final fault-injection sweep exposed a test-transport race: the provider fixture returned a rejected multipart upload without consuming its body, leaving Miniflare waiting before reconciliation. The fixture now drains rejected bodies; the exact scenario passed 15 consecutive repeats and the full recovery suite. Assertions and timeouts were preserved. Native successful empty DELETE 200 responses are handled explicitly; malformed nonempty responses still fail. Safe provider diagnostics include only method, pathname, status, and numeric codes.
+
+Final integrated run: **128/128 passed** (63 seconds). Production build, rendered-route checks, scoped/full ESLint, and package assembly passed; npm audit reported zero vulnerabilities. The npm package release remains forthcoming; the published source installation is the supported launch path. Staging needs a maintained provider credential before further provisioning. Historical live runtimes, business-data forks, and backups are retained as documented in the operator runbook. Hosted agents, scheduling, automatic document synchronization, source hosting, and third-party connectors remain deferred.

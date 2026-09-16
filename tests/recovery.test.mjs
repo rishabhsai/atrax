@@ -59,15 +59,17 @@ async function platform(t) {
     await mf.setOptions({...options,workers});db=await mf.getD1Database('CP_DB','control-plane');
   }
   async function wait(id,status,{backup=false}={}) {
+    let lastJob;
     for(let i=0;i<600;i++) {
       const response=await okay(backup?'backups.get':'deployments.get',{appId:app.id,[backup?'backupId':'deploymentId']:id});
       const job=response[backup?'backup':'deployment'];
+      lastJob=job;
       if(job.status===status) return job;
       assert.notEqual(job.status,'failed',JSON.stringify(job));
       assert.notEqual(job.status,'succeeded',`Expected ${status}, but deployment completed: ${JSON.stringify(job)}`);
       await new Promise(resolve=>setTimeout(resolve,15));
     }
-    assert.fail(`Job did not reach ${status}`);
+    assert.fail(`Job did not reach ${status}: ${JSON.stringify({job:lastJob,providerCalls:provider.calls.slice(-12).map(({method,path})=>({method,path}))})}`);
   }
   async function publish(release,expectedReleaseId=null,extra={}) {
     const {deployment}=await okay('deployments.start',{appId:app.id,releaseId:release.id,expectedReleaseId,...extra});

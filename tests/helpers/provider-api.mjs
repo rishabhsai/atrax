@@ -45,7 +45,15 @@ export function providerApi() {
       assert.equal(url.origin,'https://api.cloudflare.com');
       const path=url.pathname.replace('/client/v4','');
       const call={method:request.method,path,query:url.searchParams};calls.push(call);
-      const intercepted=await this.before?.(call);if(intercepted) return intercepted;
+      let intercepted;
+      try {intercepted=await this.before?.(call);}
+      catch(error) {await request.arrayBuffer();throw error;}
+      if(intercepted) {
+        // Finish receiving a rejected upload. Leaving its multipart body
+        // unread can stall Miniflare's outbound bridge before the next request,
+        // which would test a transport deadlock instead of provider recovery.
+        await request.arrayBuffer();return intercepted;
+      }
       let response;
       if(path==='/accounts/account/workers/domains') {
         if(request.method==='GET') response=okay([...domains.values()].filter(value=>(!url.searchParams.has('hostname')||value.hostname===url.searchParams.get('hostname'))&&(!url.searchParams.has('service')||value.service===url.searchParams.get('service'))));
