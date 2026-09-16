@@ -18,7 +18,12 @@ The Atrax product for files and shared company knowledge that authorized people,
 
 **Company knowledge**:
 The business's shared policies, terminology, documents, preferences, and saved decisions. Agents can contribute knowledge through an authorized tool call; current business records remain in the apps that own them.
+_Also called_: Shared context
 _Avoid_: Conversation archive
+
+**Shared secret**:
+An API key, password, or other credential that a company manages for use by authorized apps and agents. Shared secrets are distinct from company knowledge.
+_Avoid_: Library entry
 
 **Knowledge entry**:
 A saved item of company knowledge, such as a brand preference or supplier policy, with attribution and revision history. Authorized members and their agents can correct it for future work.
