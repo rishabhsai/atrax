@@ -1,3 +1,7 @@
+# Start with Atrax
+
+Read https://atrax.run/agents.md to install the matching CLI skill and build or resume an app.
+
 # Quickstart
 
 Create an app, run it locally, and share it with your company.

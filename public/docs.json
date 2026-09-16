@@ -495,5 +495,6 @@
       ]
     }
   ],
-  "operationsUrl": "https://atrax.run/operations.json"
+  "operationsUrl": "https://atrax.run/operations.json",
+  "agentGuideUrl": "https://atrax.run/agents.md"
 }

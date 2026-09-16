@@ -2,6 +2,7 @@
 
 Cloud for your company’s apps. Company-only by default; existing agents use the same authorized operations.
 
+- [Start with Atrax](https://atrax.run/agents.md): Install the matching CLI skill and build or resume an app.
 - [Quickstart](https://atrax.run/docs/quickstart/index.md): Create an app, run it locally, and share it with your company.
 - [CLI reference](https://atrax.run/docs/cli/index.md): One CLI for app creation, deployment, company knowledge, and agent operations.
 - [App contract](https://atrax.run/docs/app-contract/index.md): One version 2 artifact runs locally and in the hosted environment.
