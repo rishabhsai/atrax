@@ -9,7 +9,7 @@ export const manifestSchema={
   $schema:'http://json-schema.org/draft-07/schema#',$id:'https://atrax.run/schema/v2.json',title:'Atrax app contract v2',
   ...closedObject({
     $schema:{type:'string'},version:{const:ARTIFACT_VERSION},name:{type:'string',pattern:'^[a-z][a-z0-9-]{1,47}$'},
-    web:closedObject({assets:pathSchema,fallback:pathSchema},['assets']),
+    web:closedObject({assets:{anyOf:[{const:'.'},pathSchema]},fallback:pathSchema},['assets']),
     actions:closedObject({entry:pathSchema}),tables:closedObject({migrations:pathSchema}),
     dependencies:{type:'object',propertyNames:{pattern:'^[a-z][a-z0-9-]{1,47}$'},additionalProperties:closedObject({appId:{type:'string',minLength:1}})},
   },['version','name']),anyOf:[{required:['web']},{required:['actions']}],
@@ -35,7 +35,7 @@ export function validateManifest(manifest) {
   if (!manifest.web && !manifest.actions) throw new Error('An app needs web assets or named actions');
   if (manifest.web) {
     keys(manifest.web, Object.keys(manifestSchema.properties.web.properties), 'web');
-    validateRelativePath(manifest.web.assets, 'web.assets');
+    if (manifest.web.assets !== '.') validateRelativePath(manifest.web.assets, 'web.assets');
     if (manifest.web.fallback) validateRelativePath(manifest.web.fallback, 'web.fallback');
   }
   if (manifest.actions) {

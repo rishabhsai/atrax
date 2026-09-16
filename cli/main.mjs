@@ -76,11 +76,8 @@ export async function main(args = process.argv.slice(2)) {
       }
       case 'new': result=await createApp(p[0],options);break;
       case 'init': {
-        validateName(p[0]);
-        const manifest={version:2,name:p[0],...(options.assets ? {web:{assets:options.assets,fallback:'index.html'}} : {}),...(options.actions ? {actions:{entry:options.actions}} : {}),...(options.migrations ? {tables:{migrations:options.migrations}} : {})};
-        if (!manifest.web && !manifest.actions) throw new Error('Choose --assets <directory> or --actions <entry>');
-        await writeFile('atrax.json',`${JSON.stringify(manifest,null,2)}\n`,{flag:'wx'});
-        result={manifest,next:'atrax build'};break;
+        const {initializeApp}=await import('./init.mjs');
+        result=await initializeApp(p,options);break;
       }
       case 'build': case 'doctor': {
         const artifact=await buildApp(); result={name:artifact.manifest.name,hash:artifact.hash,actions:artifact.actions,tables:!!artifact.manifest.tables,assets:Object.keys(artifact.assets).length};break;
