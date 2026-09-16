@@ -16,7 +16,7 @@ const rootPackage = JSON.parse(await readFile(join(root, "package.json"), "utf8"
 
 await rm(out, { recursive: true, force: true });
 await mkdir(out, { recursive: true });
-for (const directory of ["bin", "cli", "shared", "runtime", "gateway", "templates"]) {
+for (const directory of ["bin", "cli", "shared", "runtime", "gateway", "templates", "skills"]) {
   await cp(join(root, directory), join(out, directory), { recursive: true });
 }
 await cp(join(root, "control-plane", "src"), join(out, "control-plane", "src"), {

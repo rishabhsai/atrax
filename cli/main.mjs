@@ -7,7 +7,7 @@ import {validateName} from '../shared/app-contract.js';
 import {operation,controlOrigin,saveCredentials,readCredentials,clearCredentials} from './client.mjs';
 
 const packageRoot = resolve(dirname(fileURLToPath(import.meta.url)),'..');
-const help = `Atrax — cloud for your company's apps\n\n  atrax new <name> [--template chat|static|inventory|orders]  Create an app\n  atrax init <name> --assets <directory>   Connect an existing frontend\n  atrax build                             Validate one deployable artifact\n  atrax dev [--port 8787]                  Run locally; data survives restarts\n  atrax login [--agent <name>]             Connect your verified work account\n  atrax logout                            Revoke this CLI session\n  atrax workspace list                    List your workspaces\n  atrax workspace create <name> --slug <slug> --key <stable-key>\n  atrax workspace use <id>                 Select a workspace\n  atrax deploy [--dry-run] [--access file] Deploy to your workspace\n  atrax share <email> [--app <id>] [--actions name1,name2]\n  atrax link <app-id>                     Observe the current live release\n  atrax library upload <file> --workspace <id> --key <stable-key>\n  atrax library replace <item> <file> --workspace <id> --revision <current-revision> --reason <correction> --key <stable-key>\n  atrax library download <item> --workspace <id> --out <file>\n  atrax mcp [--workspace <id>]             Connect an existing agent over MCP\n  atrax call <operation> --input '<json>' [--key <stable-key>]\n\nUse --json for structured output. Local development needs no account.\nFor safely retryable writes, supply --key and reuse it with identical input.\nWithout --key, each invocation generates a new key. A changed request needs a new key.\nDeploy saves its artifact and step keys; rerun atrax deploy to resume that attempt.\n`;
+const help = `Atrax — cloud for your company's apps\n\n  atrax setup [install|inspect|update|remove] --client claude-code|codex|cursor\n  atrax new <name> [--template chat|static|inventory|orders]  Create an app\n  atrax init <name> --assets <directory>   Connect an existing frontend\n  atrax build                             Validate one deployable artifact\n  atrax dev [--port 8787]                  Run locally; data survives restarts\n  atrax login [--agent <name>]             Connect your verified work account\n  atrax logout                            Revoke this CLI session\n  atrax workspace list                    List your workspaces\n  atrax workspace create <name> --slug <slug> --key <stable-key>\n  atrax workspace use <id>                 Select a workspace\n  atrax deploy [--dry-run] [--access file] Deploy to your workspace\n  atrax share <email> [--app <id>] [--actions name1,name2]\n  atrax link <app-id>                     Observe the current live release\n  atrax library upload <file> --workspace <id> --key <stable-key>\n  atrax library replace <item> <file> --workspace <id> --revision <current-revision> --reason <correction> --key <stable-key>\n  atrax library download <item> --workspace <id> --out <file>\n  atrax mcp [--workspace <id>]             Connect an existing agent over MCP\n  atrax call <operation> --input '<json>' [--key <stable-key>]\n\nUse --json for structured output. Local development needs no account.\nFor safely retryable writes, supply --key and reuse it with identical input.\nWithout --key, each invocation generates a new key. A changed request needs a new key.\nDeploy saves its artifact and step keys; rerun atrax deploy to resume that attempt.\n`;
 function parse(args) {
   const options = {};
   const positional = [];
@@ -15,7 +15,8 @@ function parse(args) {
     if (!args[i].startsWith('--')) { positional.push(args[i]); continue; }
     const flag = args[i].slice(2);
     if (['json','dry-run','yes'].includes(flag)) {options[flag]=true; continue;}
-    if (!['template','assets','actions','migrations','port','agent','slug','input','key','workspace','title','type','revision','reason','out','access','app'].includes(flag)) throw new Error(`Unknown option: --${flag}`);
+    if (!['template','assets','actions','migrations','port','agent','slug','input','key','workspace','title','type','revision','reason','out','access','app','client'].includes(flag)) throw new Error(`Unknown option: --${flag}`);
+    if (flag === 'client' && options.client !== undefined) throw Object.assign(new Error('Choose exactly one --client.'),{code:'client_ambiguous'});
     if (!args[i+1] || args[i+1].startsWith('--')) throw new Error(`--${flag} needs a value`);
     options[flag]=args[++i];
   }
@@ -62,6 +63,11 @@ export async function main(args = process.argv.slice(2)) {
     const {options,positional:p} = parse(args.slice(1));
     let result;
     switch(command) {
+      case 'setup': {
+        const {setupCommand,formatSetup}=await import('./setup.mjs');
+        result=await setupCommand(p,options);
+        emit(result,formatSetup(result));return;
+      }
       case 'mcp': {
         const {serveMcp}=await import('./mcp.mjs');await serveMcp({workspaceId:options.workspace});return;
       }
