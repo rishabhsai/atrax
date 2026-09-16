@@ -19,3 +19,19 @@ A small client component moves only the decorative tree and petal layers in resp
 - The Pages preview parsed both redirects, but its local Worker did not begin serving responses. Browser checks therefore used the actual exported site through a static server. Redirect behavior is checked on the deployed Pages site below.
 
 Screenshots: `/tmp/atrax-cursor-hero.png`, `/tmp/atrax-cursor-products-desktop.png`, `/tmp/atrax-home-catalog-mobile.png`, and `/tmp/atrax-home-catalog-320.png`.
+
+## Production verification
+
+The first upload exposed an export-directory problem: files in the shared Desktop checkout were externally renamed after local verification, including `index.html` becoming `index 2.html`. That deployment returned missing pages. The mechanism behind the renaming was not established.
+
+The recovery export was built from committed source `a7c713a` in an isolated operating-system temporary directory using `npm run build -- --webpack`. Its 340 files were hashed before upload and matched the same SHA256 manifest afterward. The release workflow now requires this isolated export and live verification.
+
+Recovered deployment: <https://490e3719.tarantula-9l0.pages.dev>.
+
+- The live homepage and all seven product detail routes return HTTP 200.
+- Both `/products` and `/products/` return HTTP 301 with destination `/#products`.
+- A browser on `atrax.run` confirmed cursor-driven movement, seven homepage product links, and navigation that places the catalog 83px below the viewport top.
+- A 390px touch browser confirmed that Products closes the mobile menu, reaches the section, and has no horizontal overflow. Reduced motion removes the decorative transform.
+- No JavaScript page errors occurred during the live browser checks.
+
+Live screenshot: `/tmp/atrax-live-home-catalog.png`.

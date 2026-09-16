@@ -18,6 +18,8 @@ Keep real state owners explicit. Concurrency and retries must be correct for app
 
 The marketing site stays on Cloudflare Pages. Use the agreed console design and inspect the rendered result in a browser, including narrow layouts and keyboard interactions. Test production-like deep links; a working client-side click alone does not prove routing.
 
+Build release exports from committed source in an isolated temporary directory, outside the working Desktop checkout. A September 16 export was externally renamed after verification (for example, `index.html` became `index 2.html`), so do not publish from the shared `out/` directory. Verify expected routes and referenced files in the isolated export, hash the files before upload, and check the live Pages deployment before reporting success.
+
 ## Skill selection
 
 - Planning and vocabulary: to-tickets, domain-modeling, codebase-design, pstack architect/how.
