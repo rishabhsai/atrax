@@ -10,13 +10,13 @@ async function readExportedPage(pathname = "/") {
 
 const publicRoutes = [
   "/",
-  "/products",
-  "/products/launchpad",
-  "/products/door",
+  "/products/apps",
+  "/products/database",
+  "/products/access",
   "/products/library",
-  "/products/switchboard",
+  "/products/actions",
   "/products/mcp",
-  "/products/loops",
+  "/products/automation",
   "/solutions",
   "/solutions/company-apps",
   "/solutions/private-sharing",
@@ -52,18 +52,25 @@ test("exports the company-app routes and leaves deferred work explicit", async (
   }
 
   const home = new Map(rendered).get("/");
-  assert.match(home, /company-owned apps/i);
-  assert.match(home, /named actions/i);
-  assert.match(home, /Company Library/i);
-  assert.match(home, /existing agent/i);
-  assert.match(home, /Hosted agents, scheduled automation/i);
+  for (const label of ["Apps", "Database", "Access", "Library", "Actions"])
+    assert.ok(home.includes(`>${label}<`), `homepage exposes ${label}`);
+  assert.match(home, /id="products"/);
+  assert.match(home, /For agents/);
+  assert.match(home, /Planned/);
+  assert.match(home, /href="\/workspaces\/?"/);
+  assert.doesNotMatch(home, /Launchpad|Switchboard|>Door<|>Loops<|>Tables</);
+  await assert.rejects(access(new URL("../out/products/index.html", import.meta.url)), {code: "ENOENT"});
+  for (const retired of ["launchpad", "tables", "door", "switchboard", "loops"])
+    await assert.rejects(access(new URL(`../out/products/${retired}/index.html`, import.meta.url)), {code: "ENOENT"});
+  await access(new URL("../out/workspaces/index.html", import.meta.url));
+  await assert.rejects(access(new URL("../out/account/index.html", import.meta.url)), {code: "ENOENT"});
 
   const security = new Map(rendered).get("/security");
   assert.match(security, /current workspace membership, app audiences, and action permissions/i);
   assert.match(security, /does not make its actions or company Library public/i);
 
   const pricing = new Map(rendered).get("/pricing");
-  assert.match(pricing, /Install the CLI from source/i);
+  assert.match(pricing, /Build and run an app locally with the released CLI/i);
   assert.match(pricing, /Hosted pricing and usage allowances will be published/i);
   assert.doesNotMatch(pricing, /\$0/);
 
@@ -88,15 +95,25 @@ test("exports documentation and operation schemas for the shared interfaces", as
   );
   for (const slug of [
     "quickstart",
-    "door",
+    "apps",
+    "database",
+    "access",
     "library",
-    "switchboard",
+    "actions",
+    "automation",
     "mcp",
     "security",
     "status",
   ]) {
     assert.ok(documentSlugs.has(slug), `docs include ${slug}`);
     await access(new URL(`../out/docs/${slug}/index.md`, import.meta.url));
+  }
+
+  assert.equal(docs.documents.find(document => document.slug === "mcp").group, "For agents");
+  assert.equal(docs.documents.find(document => document.slug === "automation").group, "Planned");
+  for (const retired of ["launchpad", "tables", "door", "switchboard", "loops"]) {
+    assert.ok(!documentSlugs.has(retired));
+    await assert.rejects(access(new URL(`../out/docs/${retired}/index.md`, import.meta.url)), {code: "ENOENT"});
   }
 
   const status = docs.documents.find((document) => document.slug === "status");
@@ -110,8 +127,10 @@ test("exports documentation and operation schemas for the shared interfaces", as
     await readFile(new URL("../out/operations.json", import.meta.url), "utf8"),
   );
   assert.equal(operations.schemaVersion, 1);
+  assert.ok(!operations.operations["workspace.transferOwnership"]);
   assert.equal(operations.transport.method, "POST");
   for (const name of [
+    "workspaces.transferOwnership",
     "apps.create",
     "actions.list",
     "actions.call",

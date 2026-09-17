@@ -216,7 +216,7 @@ function TeamContent({ session, workspace }: { session: Session; workspace: Work
     const { action, member } = confirmation;
     setBusyPerson(member.personId); setNotice(null);
     try {
-      await operation(action === "remove" ? "members.remove" : "workspace.transferOwnership", { workspaceId: workspace.id, personId: member.personId }, () => undefined, { key: key() });
+      await operation(action === "remove" ? "members.remove" : "workspaces.transferOwnership", { workspaceId: workspace.id, personId: member.personId }, () => undefined, { key: key() });
       if (action === "remove") {
         setState({ ...state, members: state.members.filter((item) => item.personId !== member.personId) });
         setNotice({ kind: "success", message: `${member.email} was removed from the workspace.` });
@@ -232,7 +232,7 @@ function TeamContent({ session, workspace }: { session: Session; workspace: Work
 
   return (
     <ConsoleFrame session={session} workspace={workspace} active="team">
-      <nav className={consoleStyles.breadcrumb} aria-label="Breadcrumb"><Link href={workspaceUrl(workspace.id)}>Home</Link><span aria-hidden="true">/</span><span>Team</span></nav>
+      <nav className={consoleStyles.breadcrumb} aria-label="Breadcrumb"><Link href={workspaceUrl(workspace.id)}>Apps</Link><span aria-hidden="true">/</span><span>Team</span></nav>
       <header className={consoleStyles.pageHeader}><div><h1>Team</h1><p>People who can work in {workspace.name}.</p></div></header>
       {state.kind === "loading" && <><div className={consoleStyles.skeleton} aria-hidden="true" /><p role="status">Loading team…</p></>}
       {state.kind === "error" && <section className={styles.teamSection}><h2>{state.forbidden ? "Team access unavailable" : "Couldn't load the team"}</h2><ErrorNotice message={state.message} />{!state.forbidden && <button className={consoleStyles.secondary} type="button" onClick={() => { setState({ kind: "loading" }); setAttempt((value) => value + 1); }}>Try again</button>}</section>}
@@ -256,11 +256,11 @@ export function TeamConsole() {
   const params = useSearchParams();
   const workspaceId = params.get("workspace");
   const { state, retry } = useSession();
-  const returnTo = workspaceId ? `/workspace/team/?workspace=${encodeURIComponent(workspaceId)}` : "/account/";
+  const returnTo = workspaceId ? `/workspace/team/?workspace=${encodeURIComponent(workspaceId)}` : "/workspaces/";
   if (state.kind === "loading") return <LoadingPanel />;
-  if (state.kind === "error") return <AuthFrame><h1>{isSignInRequired(state.error) ? "Sign in to manage your team" : "Couldn't open your account"}</h1>{isSignInRequired(state.error) ? <><p className={consoleStyles.muted}>Use your email to return to your workspace.</p><Link className={consoleStyles.primary} href={`/sign-in/?returnTo=${encodeURIComponent(returnTo)}`}>Continue with email</Link></> : <><ErrorNotice message={errorMessage(state.error)} /><button className={consoleStyles.secondary} onClick={retry}>Try again</button></>}</AuthFrame>;
-  if (!workspaceId) return <AuthFrame><h1>Choose a workspace</h1><p className={consoleStyles.muted}>Open Team from a workspace to manage its members.</p><Link className={consoleStyles.primary} href="/account/">Your workspaces</Link></AuthFrame>;
+  if (state.kind === "error") return <AuthFrame><h1>{isSignInRequired(state.error) ? "Sign in to manage your team" : "Couldn't load your workspaces"}</h1>{isSignInRequired(state.error) ? <><p className={consoleStyles.muted}>Use your email to return to your workspace.</p><Link className={consoleStyles.primary} href={`/sign-in/?returnTo=${encodeURIComponent(returnTo)}`}>Continue with email</Link></> : <><ErrorNotice message={errorMessage(state.error)} /><button className={consoleStyles.secondary} onClick={retry}>Try again</button></>}</AuthFrame>;
+  if (!workspaceId) return <AuthFrame><h1>Choose a workspace</h1><p className={consoleStyles.muted}>Open Team from a workspace to manage its members.</p><Link className={consoleStyles.primary} href="/workspaces/">Your workspaces</Link></AuthFrame>;
   const workspace = state.session.workspaces.find((item) => item.id === workspaceId);
-  if (!workspace) return <ConsoleFrame session={state.session}><h1>Workspace unavailable</h1><p className={consoleStyles.muted}>This workspace isn&apos;t available to your account.</p><Link className={consoleStyles.primary} href="/account/">Choose a workspace</Link></ConsoleFrame>;
+  if (!workspace) return <ConsoleFrame session={state.session}><h1>Workspace unavailable</h1><p className={consoleStyles.muted}>This workspace isn&apos;t available to you.</p><Link className={consoleStyles.primary} href="/workspaces/">Choose a workspace</Link></ConsoleFrame>;
   return <TeamContent key={workspace.id} session={state.session} workspace={workspace} />;
 }

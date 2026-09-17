@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { productOrder, products } from "../lib/content";
+import { availableProductOrder, products } from "../lib/content";
 
 export function SiteFooter() {
   return (
@@ -17,7 +17,7 @@ export function SiteFooter() {
         <div className="footer-columns">
           <div>
             <p>Products</p>
-            {productOrder.map((slug) => (
+            {availableProductOrder.map((slug) => (
               <Link href={`/products/${slug}`} key={slug}>
                 {products[slug].name}
                 <small>{products[slug].availability}</small>
@@ -25,17 +25,19 @@ export function SiteFooter() {
             ))}
           </div>
           <div>
-            <p>Build</p>
+            <p>For agents</p>
+            <Link href="/products/mcp">MCP</Link>
             <Link href="/docs/quickstart">Quickstart</Link>
             <Link href="/docs/cli">CLI reference</Link>
             <Link href="/docs/inventory-orders">Connected apps</Link>
             <a href="/agents.md">Agent guide</a>
           </div>
           <div>
-            <p>Project</p>
-            <Link href="/company">Company</Link>
+            <p>Atrax</p>
+            <Link href="/company">About Atrax</Link>
             <Link href="/pricing">Pricing</Link>
             <Link href="/security">Security</Link>
+            <Link href="/products/automation">Automation <small>planned</small></Link>
             <a href="https://github.com/rishabhsai/atrax">GitHub ↗</a>
           </div>
         </div>

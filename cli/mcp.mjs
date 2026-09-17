@@ -1,5 +1,6 @@
 import {fromJsonSchema, McpServer} from '@modelcontextprotocol/server';
 import {StdioServerTransport} from '@modelcontextprotocol/server/stdio';
+import {readFile} from 'node:fs/promises';
 import {operations} from '../shared/operations.js';
 import {describeOperation,toolName,toolSchema} from '../shared/operation-discovery.js';
 import {operation as callOperation, readCredentials} from './client.mjs';
@@ -42,8 +43,9 @@ async function enforceWorkspaceScope(operationName,input,workspaceId,invoke) {
   if (operationName === 'apps.get') return;
 }
 
-function createServer({workspaceId,invoke,credentials,errorStream}) {
-  const server = new McpServer({name:'atrax',version:'0.1.2'}, {
+async function createServer({workspaceId,invoke,credentials,errorStream}) {
+  const {version} = JSON.parse(await readFile(new URL('../package.json',import.meta.url),'utf8'));
+  const server = new McpServer({name:'atrax',version}, {
     instructions:'Use the shared Atrax operation tools. Supply a stable, explicit key for every write and reuse it only when retrying the same request.',
   });
   for (const [operationName,definition] of Object.entries(operations)) {
@@ -83,7 +85,7 @@ export async function serveMcp(options = {}) {
   const errorStream = options.error ?? process.stderr;
   const credentials = options.credentials === undefined ? await (options.readCredentials ?? readCredentials)() : options.credentials;
   const invoke = options.operation ?? callOperation;
-  const server = createServer({workspaceId:options.workspaceId,invoke,credentials,errorStream});
+  const server = await createServer({workspaceId:options.workspaceId,invoke,credentials,errorStream});
   const transport = new StdioServerTransport(input,output);
   transport.onerror = (error) => errorStream.write(`Atrax MCP transport error: ${error.message}\n`);
   await server.connect(transport);

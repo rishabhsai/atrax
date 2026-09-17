@@ -216,7 +216,7 @@ async function setMemberRole(input, context) {
   const workspaceId = inputString(input.workspaceId, "workspaceId");
   const personId = inputString(input.personId, "personId");
   const role = input.role;
-  if (!["admin", "member"].includes(role)) throw new OperationError("invalid_input", 400, "Use admin or member. Transfer ownership through workspace.transferOwnership.");
+  if (!["admin", "member"].includes(role)) throw new OperationError("invalid_input", 400, "Use admin or member. Transfer ownership through workspaces.transferOwnership.");
   await requireWorkspaceMembership(env, actor, workspaceId, ["owner", "admin"]);
   const target = await env.CP_DB.prepare("SELECT role FROM workspace_members WHERE workspace_id = ? AND person_id = ? AND status = 'active'").bind(workspaceId, personId).first();
   if (!target) throw new OperationError("not_found", 404, "This active member was not found.");
@@ -239,7 +239,7 @@ async function transferOwnership(input, context) {
   const admission = membershipAdmission(workspaceId, actor.person.id, ["owner"]);
   admission.sql += " AND EXISTS (SELECT 1 FROM workspace_members WHERE workspace_id = ? AND person_id = ? AND status = 'active')";
   admission.params.push(workspaceId, personId);
-  return { result: await commit(context, "workspace.transferOwnership", { workspaceId, personId }, workspaceId, { workspaceId, ownerPersonId: personId }, admission, (operationId) => [
+  return { result: await commit(context, "workspaces.transferOwnership", { workspaceId, personId }, workspaceId, { workspaceId, ownerPersonId: personId }, admission, (operationId) => [
     env.CP_DB.prepare(`UPDATE workspace_members SET role = CASE WHEN person_id = ? THEN 'owner' ELSE 'admin' END
       WHERE workspace_id = ? AND person_id IN (?, ?) AND ${writeGuard}`)
       .bind(personId, workspaceId, actor.person.id, personId, operationId),
@@ -255,6 +255,6 @@ export async function handleWorkspaceOperation(name, input, context) {
   if (name === "members.accept") return acceptInvitation(input, context);
   if (name === "members.remove") return removeMember(input, context);
   if (name === "members.setRole") return setMemberRole(input, context);
-  if (name === "workspace.transferOwnership") return transferOwnership(input, context);
+  if (name === "workspaces.transferOwnership") return transferOwnership(input, context);
   return null;
 }

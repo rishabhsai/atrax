@@ -45,7 +45,7 @@ upload a release, Atrax rejects clear server requirements such as a package star
 command for Node, server-language source, uncompiled JSX or TypeScript, or a
 browser script that imports a Node/server module. The error explains how to
 export a static frontend or move backend behavior into Atrax named actions and
-Tables.
+Database.
 
 Atrax does not host arbitrary Node servers, framework server rendering, local
 filesystem writes, or another dynamic runtime from a static asset folder. Keep

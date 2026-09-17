@@ -39,7 +39,7 @@ Read the returned URL. Do not guess a hostname. Keep atrax.lock.json: it identif
 
 ## Invite your team
 
-Open Home, then Team to invite a coworker by email. They verify that address and join the workspace. Workspace-wide apps become available immediately.
+Open your workspace, then Team to invite a coworker by email. They verify that address and join the workspace. Workspace-wide apps become available immediately.
 
 Use the app’s sharing controls to select people, appoint another maintainer, or restrict an action. Removing a teammate revokes their existing app and agent access.
 
@@ -70,7 +70,7 @@ One CLI for app creation, deployment, company knowledge, and agent operations.
 
 ## Setup and discovery
 
-Install through https://atrax.run/agents.sh or npm install -g atrax-cloud@0.2.0. Setup manages the matching skill for one selected local client. Recipes explain workflows; operation inspection returns the current input contract without loading the whole registry.
+Install through https://atrax.run/agents.sh or npm install -g atrax-cloud@0.2.1. Setup manages the matching skill for one selected local client. Recipes explain workflows; operation inspection returns the current input contract without loading the whole registry.
 
 ```
 atrax setup --client codex
@@ -249,7 +249,7 @@ An interrupted order remains inspectable and can be retried with the same input 
 
 An employee who cannot reserve stock cannot do so through Orders, a CLI call, an agent, or a retry of a previous order. Removing their workspace membership stops existing sessions. There is no database transaction spanning both apps.
 
-# Launchpad
+# Apps
 
 Build and deploy workspace-owned apps.
 
@@ -265,7 +265,7 @@ Failures identify their phase and whether the provider result is uncertain. Repe
 atrax call deployments.get --input '{"appId":"<id>","deploymentId":"<id>"}' --json
 ```
 
-# Tables
+# Database
 
 Persistent structured data for each app.
 
@@ -304,7 +304,7 @@ When finished, call previews.delete with confirmation: delete-preview. Access cl
 
 Use a stable business command key and commit its receipt in the same transaction as its data change. The platform records invocation identity; it cannot deduplicate arbitrary application side effects for the app.
 
-# Door
+# Access
 
 Verified company access, app sharing, and revocable agent sessions.
 
@@ -340,7 +340,7 @@ Upload from Library or the CLI. Files are limited to 10 MiB. UTF-8 text, Markdow
 
 Company-wide is the default audience. Selected audiences restrict access. A derived entry also depends on its sources’ current permissions, including historical revisions. Search filters access before returning titles, snippets, or content. Automatic Drive/Notion synchronization and conversation capture are not included.
 
-# Switchboard
+# Actions
 
 Named app actions that preserve the employee’s permissions.
 
@@ -357,7 +357,7 @@ atrax call actions.call --key order-42 --input '{"appId":"<orders-id>","actionNa
 
 A request capability has bounded lifetime, depth, and call count and closes when the invocation ends. Preview environments do not receive bindings to live apps. Third-party OAuth connectors and a general company secrets vault are separate future work.
 
-# Connect an agent
+# MCP
 
 Use your existing agent through the official MCP stdio protocol.
 
@@ -384,7 +384,7 @@ Tools are generated from the platform operation registry. Dots become underscore
 
 Discover apps, inspect actions, contribute knowledge, and inspect deployment outcomes through these tools. Sign-in proofs and token-minting operations stay in the interactive login flow. This release brings your existing agent; it does not host agents.
 
-# Loops
+# Automation
 
 Hosted agents and scheduled automation are planned.
 

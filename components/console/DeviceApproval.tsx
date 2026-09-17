@@ -75,8 +75,8 @@ function DeviceRequest({
             ? "Return to your terminal to continue."
             : "This request has been denied. The CLI has not received access."}
         </p>
-        <Link className={styles.secondary} href="/account/">
-          Open your account
+        <Link className={styles.secondary} href="/workspaces/">
+          Open your workspaces
         </Link>
       </>
     );

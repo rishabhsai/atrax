@@ -37,6 +37,6 @@ export const operations = {
   'members.accept':define('Accept an invitation addressed to your verified email.','write',object({invitationId:string})),
   'members.setRole':define('Change a workspace member role.','write',object({workspaceId:string,personId:string,role:{enum:['admin','member']}})),
   'members.remove':define('Remove a person’s workspace access.','write',object({workspaceId:string,personId:string})),
-  'workspace.transferOwnership':define('Transfer workspace ownership to another member.','write',object({workspaceId:string,personId:string})),
+  'workspaces.transferOwnership':define('Transfer workspace ownership to another member.','write',object({workspaceId:string,personId:string})),
 };
 export {object as objectSchema,string as stringSchema,define as defineOperation};

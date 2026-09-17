@@ -55,5 +55,5 @@ export function GuestInvitation() {
     }
   }
 
-  return <AuthFrame><h1>Accept app invitation</h1><p className={styles.copy}>You are signed in as <strong>{state.session.person.email}</strong>. Accepting gives you access to one app only. It does not add you to the company workspace or Library.</p>{failure && <ErrorNotice message={failure} />}<div className={consoleStyles.actions}><button className={consoleStyles.primary} disabled={pending} onClick={accept}>{pending ? "Adding access…" : "Accept invitation"}</button><Link className={consoleStyles.secondary} href={`/sign-in/?returnTo=${encodeURIComponent(returnTo)}`}>Use another email</Link><Link href="/account/">Cancel</Link></div></AuthFrame>;
+  return <AuthFrame><h1>Accept app invitation</h1><p className={styles.copy}>You are signed in as <strong>{state.session.person.email}</strong>. Accepting gives you access to one app only. It does not add you to the company workspace or Library.</p>{failure && <ErrorNotice message={failure} />}<div className={consoleStyles.actions}><button className={consoleStyles.primary} disabled={pending} onClick={accept}>{pending ? "Adding access…" : "Accept invitation"}</button><Link className={consoleStyles.secondary} href={`/sign-in/?returnTo=${encodeURIComponent(returnTo)}`}>Use another email</Link><Link href="/workspaces/">Cancel</Link></div></AuthFrame>;
 }

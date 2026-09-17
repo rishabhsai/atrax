@@ -62,12 +62,12 @@ async function authorize(env, input, requiresInvocation) {
   if (!result || result.ok !== true) {
     const denied = result?.error;
     if (!denied || typeof denied.code !== 'string' || !Number.isInteger(denied.status) || typeof denied.message !== 'string') {
-      throw new GatewayError('door_contract_error', 502, 'Door returned an invalid denial');
+      throw new GatewayError('door_contract_error', 502, 'Access returned an invalid denial');
     }
     throw new GatewayError(denied.code, denied.status, denied.message, denied.details);
   }
   if(result.authorization?.public===true) {
-    if(input.publicAsset!==true||input.actionName!==null||requiresInvocation||result.authorization.workspaceId!==env.WORKSPACE_ID) throw new GatewayError('door_contract_error',502,'Door returned an invalid public asset grant');
+    if(input.publicAsset!==true||input.actionName!==null||requiresInvocation||result.authorization.workspaceId!==env.WORKSPACE_ID) throw new GatewayError('door_contract_error',502,'Access returned an invalid public asset grant');
     return result.authorization;
   }
   let authorization;
@@ -83,12 +83,12 @@ async function authorize(env, input, requiresInvocation) {
     if (requiresInvocation) {
       await finish(env, authorization.invocationId, 'failed', 'door_contract_error');
     }
-    throw new GatewayError('door_contract_error', 502, 'Door authorized the wrong workspace');
+    throw new GatewayError('door_contract_error', 502, 'Access authorized the wrong workspace');
   }
   const expectedIdempotencyKey = input.idempotencyKey ?? null;
   if (requiresInvocation && (authorization.idempotencyKey ?? null) !== expectedIdempotencyKey) {
     await finish(env, authorization.invocationId, 'failed', 'door_contract_error');
-    throw new GatewayError('door_contract_error', 502, 'Door returned the wrong idempotency key');
+    throw new GatewayError('door_contract_error', 502, 'Access returned the wrong idempotency key');
   }
   return authorization;
 }
@@ -113,7 +113,7 @@ async function runAction(env, configuration, descriptor, input, authorization, e
   let errorCode;
   try {
     if (expectedSourceAppId !== null && authorization.sourceAppId !== expectedSourceAppId) {
-      throw new GatewayError('door_contract_error', 502, 'Door authorized the wrong source app');
+      throw new GatewayError('door_contract_error', 502, 'Access authorized the wrong source app');
     }
     const result = unwrapRpc(await env.RUNTIME.invoke(
       descriptor.name,
@@ -171,7 +171,7 @@ async function handleHealth(request, env) {
 async function handleDiscovery(request, env, configuration) {
   const authorization = await authorizeHttp(request, env, null, null);
   if (!Array.isArray(authorization.allowedActions)) {
-    throw new GatewayError('door_contract_error', 502, 'Door did not return allowedActions for discovery');
+    throw new GatewayError('door_contract_error', 502, 'Access did not return allowedActions for discovery');
   }
   const allowed = new Set(authorization.allowedActions);
   return Response.json({

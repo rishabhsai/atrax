@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 export const metadata = {
-  title: "Company",
+  title: "About Atrax",
   description:
     "A cloud for the software small businesses build for themselves.",
 };
@@ -37,7 +37,7 @@ export default function CompanyPage() {
             agent may need to ask it to do work.
           </p>
           <p>
-            Atrax handles that part. Your apps live in a company workspace, with
+            Atrax handles that part. Your apps live in a workspace, with
             data, access, and named actions that other apps and agents can use.
             Shared guidance lives in Library, ready for the next task.
           </p>

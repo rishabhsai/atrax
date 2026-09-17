@@ -1,5 +1,7 @@
 # Atrax: an agent-operated cloud for internal software
 
+Historical research snapshot. Current names, routes, and behavior are documented in `CONTEXT.md`, `SPEC.md`, and `notes/console-design.md`; source references below describe the earlier checkout.
+
 ## Recommendation
 
 Atrax should host the complete software a small business runs: its interface, data, access rules, and operations. Employees open apps directly or find them in their workspace Home. Owners manage the business's apps and team. Agents can create and operate those apps, and can use the operations the apps expose with permission.

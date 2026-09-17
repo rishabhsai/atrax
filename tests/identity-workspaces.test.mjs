@@ -180,11 +180,12 @@ test("only the owner can transfer ownership and the workspace always retains an 
   await api.call("members.accept", { invitationId: invitation.body.invitation.id }, teammateCookie);
   const promoted = await api.call("members.setRole", { workspaceId, personId: teammate.body.person.id, role: "admin" }, ownerCookie);
   assert.equal(promoted.status, 200, JSON.stringify(promoted.body));
-  assert.equal((await api.call("workspace.transferOwnership", { workspaceId, personId: owner.body.person.id }, teammateCookie)).status, 403);
+  assert.equal((await api.call("workspaces.transferOwnership", { workspaceId, personId: owner.body.person.id }, teammateCookie)).status, 403);
   assert.equal((await api.call("members.setRole", { workspaceId, personId: owner.body.person.id, role: "member" }, teammateCookie)).body.error.code, "last_owner");
   assert.equal((await api.call("members.remove", { workspaceId, personId: owner.body.person.id }, ownerCookie)).body.error.code, "last_owner");
   const transferInput = { workspaceId, personId: teammate.body.person.id };
-  const transfer = await api.call("workspace.transferOwnership", transferInput, ownerCookie, { "idempotency-key": "transfer-owner" });
+  assert.equal((await api.call("workspace.transferOwnership", transferInput, ownerCookie)).body.error.code, "not_found");
+  const transfer = await api.call("workspaces.transferOwnership", transferInput, ownerCookie, { "idempotency-key": "transfer-owner" });
   assert.equal(transfer.status, 200, JSON.stringify(transfer.body));
   const members = (await api.call("members.list", { workspaceId }, teammateCookie)).body.members;
   assert.deepEqual(members.filter((member) => member.role === "owner").map((member) => member.personId), [teammate.body.person.id]);

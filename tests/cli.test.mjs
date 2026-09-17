@@ -69,6 +69,8 @@ test('public entrypoint reports the v2 command surface and package version', asy
   for (const command of ['new', 'init', 'build', 'dev', 'login', 'workspace', 'deploy', 'call']) {
     assert.match(help.stdout, new RegExp(`atrax ${command}`));
   }
+  assert.match(help.stdout, /Connect your Atrax account/);
+  assert.doesNotMatch(help.stdout, /verified work account/);
   const version = await run(['--version'], repository);
   assert.equal(version.code, 0, version.stderr);
   assert.equal(version.stdout, JSON.parse(await readFile(join(repository, 'package.json'))).version);

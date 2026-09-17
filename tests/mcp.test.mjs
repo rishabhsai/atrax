@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
-import {mkdir,mkdtemp,rm,writeFile} from 'node:fs/promises';
+import {mkdir,mkdtemp,readFile,rm,writeFile} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join,resolve} from 'node:path';
 import test from 'node:test';
@@ -73,15 +73,34 @@ function toolResult(result) {
 test('MCP stdio tools use the registry, persist Library files in R2, and require explicit write keys', {timeout:45_000}, async (t) => {
   const api = await platform(t);
   const client = await api.mcp('owner');
+  assert.equal(client.getServerVersion().version,JSON.parse(await readFile(join(root,'package.json'),'utf8')).version);
   const tools = await client.listTools();
   const names = new Set(tools.tools.map((tool) => tool.name));
   assert.ok(names.has('atrax_library_file_upload'));
   assert.ok(names.has('atrax_library_file_download'));
   assert.ok(names.has('atrax_actions_list'));
   assert.ok(names.has('atrax_actions_call'));
+  assert.ok(names.has('atrax_workspaces_transferOwnership'));
+  assert.equal(names.has('atrax_workspace_transferOwnership'),false);
   assert.equal(names.has('atrax_auth_device_start'),false);
   assert.equal(names.has('atrax_auth_email_verify'),false);
   assert.equal(names.has('atrax_apps_login'),false);
+  const retiredOperation = await api.call('workspace.transferOwnership',{workspaceId:'company',personId:'member'});
+  assert.equal(retiredOperation.status,404);
+  assert.equal(retiredOperation.body.error.code,'not_found');
+
+  const member = await api.mcp('member');
+  const unauthorizedTransfer = await member.callTool({name:'atrax_workspaces_transferOwnership',arguments:{
+    input:{workspaceId:'company',personId:'owner'},key:'member-transfer-v1',
+  }});
+  assert.equal(toolResult(unauthorizedTransfer).code,'forbidden');
+  const transfer = await client.callTool({name:'atrax_workspaces_transferOwnership',arguments:{
+    input:{workspaceId:'company',personId:'member'},key:'owner-transfer-v1',
+  }});
+  assert.equal(transfer.isError,undefined);
+  assert.equal(transfer.structuredContent.ownerPersonId,'member');
+  const roles = await api.db.prepare("SELECT person_id, role FROM workspace_members WHERE workspace_id='company' ORDER BY person_id").all();
+  assert.deepEqual(roles.results,[{person_id:'member',role:'owner'},{person_id:'owner',role:'admin'}]);
 
   const bytes = Buffer.from('All shipments need a signed receipt.');
   const missingKey = await client.callTool({name:'atrax_library_file_upload',arguments:{input:{workspaceId:'company',filename:'shipping.txt',contentType:'text/plain',contentBase64:bytes.toString('base64')}}});

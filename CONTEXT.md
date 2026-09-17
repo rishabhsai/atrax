@@ -2,74 +2,120 @@
 
 Atrax is a cloud for internal software at small businesses. People and coding agents use it to create, run, deploy, and share the apps a business needs.
 
-## Language
+## Identity and ownership
 
-**App**:
-The software a customer builds and operates through Atrax, including its data and access rules. A hosted app belongs to its workspace and survives its creator leaving.
-
-**Launchpad**:
-The Atrax product for deploying and hosting apps.
-
-**Tables**:
-The Atrax product for an app's SQL data and ordered migrations.
-
-**Library**:
-The Atrax product for files and shared company knowledge that authorized people, apps, and agents can read and contribute to.
-
-**Company knowledge**:
-The business's shared policies, terminology, documents, preferences, and saved decisions. Agents can contribute knowledge through an authorized tool call; current business records remain in the apps that own them.
-_Also called_: Shared context
-_Avoid_: Conversation archive
-
-**Shared secret**:
-An API key, password, or other credential that a company manages for use by authorized apps and agents. Shared secrets are distinct from company knowledge.
-_Avoid_: Library entry
-
-**Knowledge entry**:
-A saved item of company knowledge, such as a brand preference or supplier policy, with attribution and revision history. Authorized members and their agents can correct it for future work.
-
-**Door**:
-The Atrax product for sign-in and access to customer apps. Atrax account identity is a separate concept.
+**Account**:
+A person's Atrax identity, which can belong to multiple workspaces and have browser, CLI, and agent sessions.
+_Avoid_: Workspace, company account
 
 **Workspace**:
-A business's shared home for its apps and team. Team membership is managed centrally, and new apps are available to the whole workspace by default.
+A business's shared scope for apps, Library, and team membership. Hosted apps belong to a workspace, and new apps are available to its members by default.
+_Avoid_: Account, project, Launchpad
+
+**Team**:
+The people who belong to a workspace, and the place where members and invitations are managed.
 
 **Member**:
-A person who belongs to a workspace and can create apps and use workspace-wide apps. An explicitly restricted app can limit access to selected people.
+A person who belongs to a workspace. Membership grants access to workspace-wide apps; an explicitly restricted app can select a smaller audience.
 
 **Owner**:
-The person with overall responsibility for a workspace. Apps belong to the workspace, rather than to their individual creators.
+The person with overall responsibility for a workspace. Apps belong to the workspace rather than to their creators.
 _Avoid_: App owner
 
 **Admin**:
 A workspace member who manages the team and controls external sharing and public publishing.
 
 **Maintainer**:
-A workspace member who can change and deploy an app, configure its action audience, and invite other maintainers. An app's creator is its first maintainer.
+A workspace member who can change and deploy an app, manage its access, and assign other maintainers. An app's creator is its first maintainer.
+
+**Guest**:
+A person outside the workspace team who is explicitly granted access to specific apps.
+
+## Apps and data
+
+**App**:
+The software a customer builds and operates through Atrax, including its data and access rules. A hosted app keeps its identity when updated and survives its creator leaving.
+
+**Apps**:
+Atrax's app hosting capability and the workspace directory where people find their permitted apps.
+_Avoid_: Launchpad, Home
+
+**Project**:
+The local source files used to build an app. A project is not another hosted ownership container.
+
+**Database**:
+An app's persistent SQL records and schema. Other apps use its actions to work with those records.
+_Avoid_: Tables as a product name, shared company database
 
 **Release**:
-A version of an app's deployed code and assets. Deploying a release preserves the app's identity, URL, and business data.
+An immutable built version of an app's code and assets.
 
-**Action**:
-A named operation an app offers to people, agents, or other apps, such as checking stock or reserving it. Calling an action requires permission for that operation.
+**Deployment**:
+An attempt to prepare and run a release. An app keeps its identity, live URL, and business data through ordinary deployments.
 
-**Action access**:
-The people allowed to call an app's exposed actions, including through their agents. The default is everyone in the workspace; a maintainer can select an audience and restrict particular actions for particular people.
+## Access and actions
 
-**Activity**:
-The record of changes and operations in a workspace, including the person and agent responsible.
+**Access**:
+Atrax's sign-in, authorization, and sharing capability.
+_Avoid_: Door as a product name
 
 **App access**:
-Permission to use an app, granted to the workspace by default or explicitly to selected people. Removing someone from the workspace revokes their access to all its apps.
+Permission to use an app, granted to the workspace by default or explicitly to selected people. Removing a member revokes their workspace-derived access.
+
+**Action**:
+A named operation an app offers to authorized people, agents, or other apps, such as checking stock or reserving it. Actions is the name of this capability.
+_Avoid_: Switchboard, tool when referring to an app action
+
+**Action access**:
+Permission to call an app's exposed actions. Maintainers can select an audience and restrict particular actions for particular people.
+
+**Company-only access**:
+An app is available to everyone in its workspace and to nobody outside it. This is the default for a new workspace app.
+
+**Sharing**:
+Granting or adjusting access to an app or its actions. A guest grant adds access without removing the existing workspace audience.
 
 **App sign-in**:
 A person proves control of their email to use an app they are allowed to access, including on a new device or after a session ends.
 
-**Home**:
-The workspace page where a member finds the apps they can use. Each app also has a direct URL.
+**Public web**:
+An app's static web pages can be loaded without signing in. Its actions and company knowledge retain their own access rules.
+_Avoid_: Public app when only web assets are public
 
-**Company-only access**:
-An app is available to everyone in its workspace and to nobody outside it. This is the default access policy for a new workspace app.
+**Activity**:
+The record of changes and operations in a workspace, including the person and agent responsible.
 
-**Guest**:
-A named person outside the workspace team who is explicitly granted access to specific apps.
+## Company knowledge and credentials
+
+**Library**:
+The workspace collection of files and company knowledge that authorized people, apps, and agents can read and contribute to.
+
+**Company knowledge**:
+The business's policies, terminology, documents, preferences, and saved decisions. Current business records remain in the apps that own them.
+_Also called_: Shared context
+_Avoid_: Conversation archive
+
+**Knowledge entry**:
+A saved item of company knowledge with attribution and revision history. Authorized contributors can correct it for future work.
+
+**Secrets**:
+The planned capability for company credentials such as API keys and passwords, distinct from Library.
+_Avoid_: Library entry, company knowledge
+
+**Shared secret**:
+A credential a company manages for use by authorized apps and agents.
+
+## Agent interfaces and future execution
+
+**Platform operation**:
+A named Atrax request for managing or using workspace resources. An operation may create an app, change membership, or invoke an app action.
+
+**MCP tool**:
+A platform operation exposed to an existing agent through Atrax's MCP connection. App actions are discovered and invoked through the corresponding platform operations.
+
+**Agent session**:
+A named, revocable connection acting with a person's current permissions. It is not a hosted agent.
+
+**Automation**:
+The planned capability for scheduled and background execution, separate from ordinary request-driven app actions.
+_Avoid_: Loops

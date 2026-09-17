@@ -45,6 +45,8 @@ test('installed CLI discovers the complete registry offline and renders the same
   const listed = (await run(['operations', 'list'])).operations;
   assert.deepEqual(listed, listOperations());
   assert.deepEqual(listed.map(item => item.name), Object.keys(operations).sort());
+  assert.ok(listed.some(item => item.name === 'workspaces.transferOwnership'));
+  assert.equal(listed.some(item => item.name === 'workspace.transferOwnership'), false);
   for (const operation of listed) {
     const registered = operations[operation.name];
     assert.deepEqual(operation.inputSchema, registered.inputSchema);

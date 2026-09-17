@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ChipGrid } from "../components/ChipGrid";
 import { Reveal } from "../components/Reveal";
-import { products, solutions } from "../lib/content";
+import { availableProductOrder, products, solutions } from "../lib/content";
 
 export const metadata = {
   title: "Use cases",
@@ -10,9 +10,7 @@ export const metadata = {
 };
 
 export default function SolutionsPage() {
-  const available = Object.values(products)
-    .filter((product) => product.availability === "available")
-    .map((product) => product.name);
+  const available = availableProductOrder.map((slug) => products[slug].name);
   return (
     <main>
       <section className="page-hero page-hero-orange">

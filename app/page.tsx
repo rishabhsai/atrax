@@ -2,7 +2,7 @@ import Link from "next/link";
 import { AgentCommand } from "./components/AgentCommand";
 import { HeroAtmosphere } from "./components/HeroAtmosphere";
 import { ProductMark } from "./components/Visuals";
-import { productOrder, products } from "./lib/content";
+import { availableProductOrder, products } from "./lib/content";
 
 export const metadata = {
   title: { absolute: "Atrax | A cloud for everyone." },
@@ -29,7 +29,7 @@ export default function Home() {
           <p>Hosting, a SQL database, access, and shared context. Start with what you need, then connect the rest.</p>
         </div>
         <div className="product-index">
-          {productOrder.map((slug) => {
+          {availableProductOrder.map((slug) => {
             const product = products[slug];
             return (
               <Link href={`/products/${slug}`} key={slug}>
@@ -41,6 +41,18 @@ export default function Home() {
               </Link>
             );
           })}
+        </div>
+        <div className="home-product-notes">
+          <section>
+            <h3>For agents</h3>
+            <Link href="/products/mcp">MCP <span aria-hidden="true">↗</span></Link>
+            <p>Connect the agent you already use to the same workspace operations and permissions.</p>
+          </section>
+          <section>
+            <h3>Planned</h3>
+            <Link href="/products/automation">Automation <span aria-hidden="true">↗</span></Link>
+            <p>Scheduled work and hosted agents come later. Secrets for shared API keys and credentials are also planned.</p>
+          </section>
         </div>
       </section>
       <section className="final-cta">

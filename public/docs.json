@@ -35,7 +35,7 @@
         {
           "heading": "Invite your team",
           "paragraphs": [
-            "Open Home, then Team to invite a coworker by email. They verify that address and join the workspace. Workspace-wide apps become available immediately.",
+            "Open your workspace, then Team to invite a coworker by email. They verify that address and join the workspace. Workspace-wide apps become available immediately.",
             "Use the app’s sharing controls to select people, appoint another maintainer, or restrict an action. Removing a teammate revokes their existing app and agent access."
           ]
         },
@@ -66,7 +66,7 @@
         {
           "heading": "Setup and discovery",
           "paragraphs": [
-            "Install through https://atrax.run/agents.sh or npm install -g atrax-cloud@0.2.0. Setup manages the matching skill for one selected local client. Recipes explain workflows; operation inspection returns the current input contract without loading the whole registry."
+            "Install through https://atrax.run/agents.sh or npm install -g atrax-cloud@0.2.1. Setup manages the matching skill for one selected local client. Recipes explain workflows; operation inspection returns the current input contract without loading the whole registry."
           ],
           "code": "atrax setup --client codex\natrax setup inspect --client codex --json\natrax recipes list\natrax recipes show deploy-share\natrax operations inspect apps.guests.invite --json"
         },
@@ -253,8 +253,8 @@
       ]
     },
     {
-      "slug": "launchpad",
-      "title": "Launchpad",
+      "slug": "apps",
+      "title": "Apps",
       "description": "Build and deploy workspace-owned apps.",
       "group": "Products",
       "status": "available",
@@ -275,8 +275,8 @@
       ]
     },
     {
-      "slug": "tables",
-      "title": "Tables",
+      "slug": "database",
+      "title": "Database",
       "description": "Persistent structured data for each app.",
       "group": "Products",
       "status": "available",
@@ -319,8 +319,8 @@
       ]
     },
     {
-      "slug": "door",
-      "title": "Door",
+      "slug": "access",
+      "title": "Access",
       "description": "Verified company access, app sharing, and revocable agent sessions.",
       "group": "Products",
       "status": "available",
@@ -379,8 +379,8 @@
       ]
     },
     {
-      "slug": "switchboard",
-      "title": "Switchboard",
+      "slug": "actions",
+      "title": "Actions",
       "description": "Named app actions that preserve the employee’s permissions.",
       "group": "Products",
       "status": "available",
@@ -402,9 +402,9 @@
     },
     {
       "slug": "mcp",
-      "title": "Connect an agent",
+      "title": "MCP",
       "description": "Use your existing agent through the official MCP stdio protocol.",
-      "group": "Start",
+      "group": "For agents",
       "status": "available",
       "sections": [
         {
@@ -431,10 +431,10 @@
       ]
     },
     {
-      "slug": "loops",
-      "title": "Loops",
+      "slug": "automation",
+      "title": "Automation",
       "description": "Hosted agents and scheduled automation are planned.",
-      "group": "Products",
+      "group": "Planned",
       "status": "planned",
       "sections": [
         {

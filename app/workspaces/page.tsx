@@ -3,11 +3,11 @@ import { WorkspaceConsole } from "@/components/console/WorkspaceConsole";
 import { LoadingPanel } from "@/components/console/ConsoleFrame";
 
 export const metadata = {
-  title: "Account",
-  description: "Sign in and open your Atrax workspace.",
+  title: "Workspaces",
+  description: "Choose a workspace in Atrax.",
 };
 
-export default function AccountPage() {
+export default function WorkspacesPage() {
   return (
     <Suspense fallback={<LoadingPanel />}>
       <WorkspaceConsole />

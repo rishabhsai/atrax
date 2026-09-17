@@ -1,4 +1,4 @@
-# Loops
+# Automation
 
 Hosted agents and scheduled automation are planned.
 

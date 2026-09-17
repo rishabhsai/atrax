@@ -1,11 +1,11 @@
 export const products = {
-  launchpad: {
-    slug: "launchpad",
-    name: "Launchpad",
+  apps: {
+    slug: "apps",
+    name: "Apps",
     number: "01",
     availability: "available",
     eyebrow: "Build and deploy",
-    cardTitle: "A stable home for the tools your company uses every day.",
+    cardTitle: "Build and deploy apps for your team.",
     title: "Build it locally. Put it to work.",
     summary:
       "Build locally, deploy through the CLI, and keep the same URL and business data when you update. You do not need a Cloudflare account.",
@@ -18,7 +18,7 @@ export const products = {
       ],
       [
         "Give the team a link",
-        "Deploy to your workspace. Company members can open the app after signing in.",
+        "Deploy to your workspace. Workspace members can open the app after signing in.",
       ],
       [
         "Keep your records",
@@ -38,11 +38,11 @@ export const products = {
       { property: "Output", value: "schemaVersion 1 envelopes", code: true },
       { property: "Status", value: "Available" },
     ],
-    related: ["tables", "door", "switchboard"],
+    related: ["database", "access", "actions"],
   },
-  tables: {
-    slug: "tables",
-    name: "Tables",
+  database: {
+    slug: "database",
+    name: "Database",
     number: "02",
     availability: "available",
     eyebrow: "SQL database included",
@@ -84,20 +84,20 @@ atrax deploy --json`,
       { property: "Schema", value: "Numbered SQL migrations", code: true },
       { property: "Status", value: "Available" },
     ],
-    related: ["launchpad", "switchboard", "door"],
+    related: ["apps", "actions", "access"],
   },
-  door: {
-    slug: "door",
-    name: "Door",
+  access: {
+    slug: "access",
+    name: "Access",
     number: "03",
     availability: "available",
-    eyebrow: "Company access",
+    eyebrow: "Workspace access",
     cardTitle: "Company-only by default. Named guests when you need them.",
     title: "A link is useful. Knowing who can open it is better.",
     summary:
       "New apps start with access for your workspace. Restrict an app to selected coworkers, or let an admin invite an outside reviewer to that app by email.",
     boundary:
-      "Guests receive access to a specific app, without joining your company workspace. Guest invitations do not change existing coworker access.",
+      "Guests receive access to a specific app, without joining your workspace. Guest invitations do not change existing coworker access.",
     features: [
       [
         "Company-only from the start",
@@ -119,7 +119,7 @@ atrax deploy --json`,
     code: `atrax workspace create "Acme" --slug acme\natrax deploy --workspace <workspace-id> --json\n\n# Manage app audiences in the workspace console.`,
     codeLabel: "Available workflow",
     spec: [
-      { property: "Default", value: "Company-only workspace audience" },
+      { property: "Default", value: "Everyone in the workspace" },
       { property: "Guests", value: "Verified email; exact app and actions" },
       {
         property: "Public publish",
@@ -127,7 +127,7 @@ atrax deploy --json`,
       },
       { property: "Status", value: "Available" },
     ],
-    related: ["launchpad", "switchboard", "mcp"],
+    related: ["apps", "actions", "mcp"],
   },
   library: {
     slug: "library",
@@ -168,16 +168,15 @@ atrax deploy --json`,
       { property: "Text search", value: "Text, Markdown, CSV, JSON" },
       { property: "Status", value: "Available" },
     ],
-    related: ["door", "mcp", "launchpad"],
+    related: ["access", "mcp", "apps"],
   },
-  switchboard: {
-    slug: "switchboard",
-    name: "Switchboard",
+  actions: {
+    slug: "actions",
+    name: "Actions",
     number: "05",
     availability: "available",
     eyebrow: "Named app operations",
-    cardTitle:
-      "Let one app ask another to do a named job with the caller's permissions.",
+    cardTitle: "Let your apps and agents call actions across your workspace.",
     title: "Apps that can work together.",
     summary:
       "Give each app named actions. Other apps and authorized agents can call them without copying records into a second database. Inventory and Orders are one example.",
@@ -209,7 +208,7 @@ atrax deploy --json`,
       { property: "Authorization", value: "Current employee permission" },
       { property: "Status", value: "Available" },
     ],
-    related: ["launchpad", "door", "mcp"],
+    related: ["apps", "access", "mcp"],
   },
   mcp: {
     slug: "mcp",
@@ -250,11 +249,11 @@ atrax deploy --json`,
       { property: "Tools", value: "Operation registry schemas" },
       { property: "Status", value: "Available" },
     ],
-    related: ["door", "library", "switchboard"],
+    related: ["access", "library", "actions"],
   },
-  loops: {
-    slug: "loops",
-    name: "Loops",
+  automation: {
+    slug: "automation",
+    name: "Automation",
     number: "07",
     availability: "planned",
     eyebrow: "Planned",
@@ -262,7 +261,7 @@ atrax deploy --json`,
       "Hosted agents and scheduled automation are planned for a later release.",
     title: "Automation is planned for a later release.",
     summary:
-      "Today, connect an existing agent through MCP for request-driven company work. Hosted agents, schedules, durable automation, and automatic document synchronization are planned for later releases.",
+      "Today, connect an existing agent through MCP for request-driven workspace work. Hosted agents, schedules, durable automation, and automatic document synchronization are planned for later releases.",
     boundary:
       "Automation will own scheduled and durable execution. It will build on the existing company, action, and Library permissions instead of creating a second authorization path.",
     features: [
@@ -274,27 +273,31 @@ atrax deploy --json`,
         "Automatic document synchronization is planned for a later release.",
       ],
     ],
-    code: `Use an existing agent through MCP for\nrequest-driven company work today.`,
+    code: `Use an existing agent through MCP for\nrequest-driven workspace work today.`,
     codeLabel: "Use today",
     spec: [
       { property: "Today", value: "Request-driven app actions and MCP" },
       { property: "Planned", value: "Hosted agents and schedules" },
       { property: "Status", value: "Planned" },
     ],
-    related: ["mcp", "library", "switchboard"],
+    related: ["mcp", "library", "actions"],
   },
 } as const;
 
 export type ProductSlug = keyof typeof products;
 export const productOrder: ProductSlug[] = [
-  "launchpad",
-  "tables",
-  "door",
+  "apps",
+  "database",
+  "access",
   "library",
-  "switchboard",
+  "actions",
   "mcp",
-  "loops",
+  "automation",
 ];
+
+export const availableProductOrder = productOrder.filter(
+  (slug) => products[slug].availability === "available" && slug !== "mcp",
+);
 
 export const solutions = {
   "company-apps": {
@@ -320,7 +323,7 @@ export const solutions = {
       "Send the app URL to your team. New apps allow workspace members by default.",
       "Update the app as the process changes, keeping its URL and business records.",
     ],
-    stack: ["launchpad", "door"],
+    stack: ["apps", "access"],
   },
   "private-sharing": {
     slug: "private-sharing",
@@ -336,7 +339,7 @@ export const solutions = {
     outcome:
       "The recipient proves control of the invited email before opening the app. Their grant covers this app, without making them a workspace member.",
     note: "Inviting a guest does not remove existing company access. To limit a review, also narrow the app audience and review other guest grants and public publishing. These are separate operations, and at least one workspace member must retain app access.",
-    docs: "/docs/door",
+    docs: "/docs/access",
     docsLabel: "Read the sharing guide",
     steps: [
       "Deploy the prototype to your company workspace.",
@@ -345,7 +348,7 @@ export const solutions = {
       "The recipient follows the invitation, verifies their email, and opens the app.",
       "Revoke their guest grant when the review is finished.",
     ],
-    stack: ["launchpad", "door"],
+    stack: ["apps", "access"],
   },
   "connected-apps": {
     slug: "connected-apps",
@@ -361,7 +364,7 @@ export const solutions = {
     outcome:
       "The supplied Inventory and Orders examples keep stock in one app. Retrying the same order reserves it once when their handlers use the same order key.",
     note: "Actions describe and authorize the call. Your app's handler is responsible for making a repeated business operation safe.",
-    docs: "/docs/switchboard",
+    docs: "/docs/actions",
     docsLabel: "Connect two apps",
     steps: [
       "Deploy Inventory with an action that reserves stock.",
@@ -369,7 +372,7 @@ export const solutions = {
       "Call it with the person's permissions and a stable order key.",
       "Let Inventory handle the reservation and return the result to Orders.",
     ],
-    stack: ["launchpad", "switchboard", "door"],
+    stack: ["apps", "actions", "access"],
   },
   "agent-workspace": {
     slug: "agent-workspace",
@@ -393,7 +396,7 @@ export const solutions = {
       "Ask your agent to save the decision in Library.",
       "Search that guidance when building the next app or update.",
     ],
-    stack: ["mcp", "library", "door", "switchboard"],
+    stack: ["mcp", "library", "access", "actions"],
   },
 } as const;
 

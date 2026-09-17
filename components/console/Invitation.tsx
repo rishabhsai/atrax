@@ -29,8 +29,8 @@ export function Invitation() {
         <p className={styles.muted}>
           Open the invitation link from your email to continue.
         </p>
-        <Link className={styles.secondary} href="/account/">
-          Open your account
+        <Link className={styles.secondary} href="/workspaces/">
+          Open your workspaces
         </Link>
       </AuthFrame>
     );

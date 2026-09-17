@@ -69,7 +69,7 @@ export function CreateWorkspace({
           />
         </div>
         <div className={styles.field}>
-          <label htmlFor={slugId}>Workspace address</label>
+          <label htmlFor={slugId}>Workspace handle</label>
           <input
             id={slugId}
             required

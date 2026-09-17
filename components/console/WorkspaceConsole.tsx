@@ -205,12 +205,12 @@ function AppDirectory({ workspaceId }: { workspaceId: string }) {
   );
 }
 
-export function WorkspaceConsole({ home = false }: { home?: boolean }) {
+export function WorkspaceConsole({ showApps = false }: { showApps?: boolean }) {
   const { state, retry } = useSession();
   const params = useSearchParams();
   const requestedWorkspace = params.get("workspace");
   const returnTo =
-    home && requestedWorkspace ? workspaceUrl(requestedWorkspace) : "/account/";
+    showApps && requestedWorkspace ? workspaceUrl(requestedWorkspace) : "/workspaces/";
   if (state.kind === "loading") return <LoadingPanel />;
   if (state.kind === "error")
     return (
@@ -218,7 +218,7 @@ export function WorkspaceConsole({ home = false }: { home?: boolean }) {
         <h1>
           {isSignInRequired(state.error)
             ? "Sign in to your workspace"
-            : "Couldn't open your account"}
+            : "Couldn't load your workspaces"}
         </h1>
         {isSignInRequired(state.error) ? (
           <>
@@ -245,7 +245,7 @@ export function WorkspaceConsole({ home = false }: { home?: boolean }) {
       </AuthFrame>
     );
   const session = state.session;
-  if (!home || !requestedWorkspace)
+  if (!showApps || !requestedWorkspace)
     return <WorkspaceSelection session={session} />;
   const workspace = session.workspaces.find(
     (item) => item.id === requestedWorkspace,
@@ -255,9 +255,9 @@ export function WorkspaceConsole({ home = false }: { home?: boolean }) {
       <ConsoleFrame session={session}>
         <h1>Workspace unavailable</h1>
         <p className={styles.muted}>
-          This workspace isn&apos;t available to your account.
+          This workspace isn&apos;t available to you.
         </p>
-        <Link className={styles.primary} href="/account/">
+        <Link className={styles.primary} href="/workspaces/">
           Choose a workspace
         </Link>
       </ConsoleFrame>
@@ -266,7 +266,7 @@ export function WorkspaceConsole({ home = false }: { home?: boolean }) {
     <ConsoleFrame session={session} workspace={workspace}>
       <header className={styles.pageHeader}>
         <div>
-          <h1>Home</h1>
+          <h1>Apps</h1>
           <p>{workspace.name}</p>
         </div>
         <Link className={styles.secondary} href="/docs/quickstart/">

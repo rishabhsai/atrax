@@ -7,6 +7,12 @@ description: Build, run, deploy, and operate internal apps on Atrax. Use for Atr
 
 Atrax hosts a business's apps, data, access rules, and company knowledge. Work in the user's existing coding environment and follow the project's instructions. Use the installed `atrax` CLI; `atrax help` describes this release's commands.
 
+## Names and scope
+
+A workspace owns apps, Library, and team membership. An app owns its database and exposes actions. Library contains company knowledge and files; current business records come from the app that owns them. Secrets and Automation are planned capabilities.
+
+A platform operation such as `apps.create` manages Atrax resources. An app action such as `stock.reserve` performs business work. MCP tools expose platform operations; discover app actions with `actions.list` and invoke them with `actions.call`.
+
 ## Build and run locally
 
 For a new app, choose a name and run `atrax new <name>`. The default chat app includes persistent data and named actions. Select `--template static`, `inventory`, or `orders` when that better fits the request. Read the generated app's `AGENTS.md`, then work inside its directory.

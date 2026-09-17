@@ -1438,6 +1438,34 @@ h3 {
   line-height: 1.65;
 }
 
+.home-product-notes {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 32px;
+  margin-top: 40px;
+}
+
+.home-product-notes h3 {
+  margin: 0 0 14px;
+  font-size: 20px;
+}
+
+.home-product-notes a {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.home-product-notes a:hover {
+  color: var(--orange-dark);
+}
+
+.home-product-notes p {
+  margin: 7px 0 0;
+  color: var(--muted);
+  font-size: var(--fs-meta);
+  line-height: 1.55;
+}
+
 .product-hero {
   position: relative;
   isolation: isolate;
@@ -2436,6 +2464,7 @@ h3 {
   .product-index-copy { grid-column: 2 / -1; grid-row: 2; display: block; }
   .product-index > a > .status { grid-column: 3; grid-row: 1; }
   .product-index-arrow { display: none; }
+  .home-product-notes { grid-template-columns: 1fr; }
 
   .product-mark {
     width: 42px;

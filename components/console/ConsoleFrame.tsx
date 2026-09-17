@@ -5,7 +5,7 @@ import { useEffect, useRef, type ReactNode } from "react";
 import type { Session, Workspace } from "./api";
 import styles from "./console.module.css";
 
-type ActiveDestination = "home" | "library" | "team";
+type ActiveDestination = "apps" | "library" | "team";
 
 function WorkspaceLinks({
   session,
@@ -24,7 +24,7 @@ function WorkspaceLinks({
         {workspace?.name || "Your workspaces"}
       </div>
       {workspace && session.workspaces.length > 1 && (
-        <Link className={styles.smallLink} href="/account/" onClick={onNavigate}>
+        <Link className={styles.smallLink} href="/workspaces/" onClick={onNavigate}>
           Switch workspace
         </Link>
       )}
@@ -33,13 +33,13 @@ function WorkspaceLinks({
           href={
             workspace
               ? `/workspace/?workspace=${encodeURIComponent(workspace.id)}`
-              : "/account/"
+              : "/workspaces/"
           }
-          aria-current={active === "home" ? "page" : undefined}
-          className={active === "home" ? styles.navActive : undefined}
+          aria-current={active === "apps" ? "page" : undefined}
+          className={active === "apps" ? styles.navActive : undefined}
           onClick={onNavigate}
         >
-          {workspace ? "Home" : "Workspaces"}
+          {workspace ? "Apps" : "Workspaces"}
         </Link>
         {workspace && (
           <Link
@@ -90,7 +90,7 @@ export function ConsoleFrame({
   session,
   workspace,
   children,
-  active = "home",
+  active = "apps",
 }: {
   active?: ActiveDestination;
   session: Session;
@@ -125,7 +125,7 @@ export function ConsoleFrame({
         Skip to content
       </a>
       <header className={styles.mobileBar}>
-        <Link href="/account/" className={styles.brand}>
+        <Link href="/workspaces/" className={styles.brand}>
           <span aria-hidden="true">A</span> atrax
         </Link>
         <button ref={menuButtonRef} className={styles.menuButton} type="button" onClick={openMenu}>
@@ -133,7 +133,7 @@ export function ConsoleFrame({
         </button>
       </header>
       <aside className={styles.sidebar}>
-        <Link href="/account/" className={styles.brand}>
+        <Link href="/workspaces/" className={styles.brand}>
           <span aria-hidden="true">A</span> atrax
         </Link>
         <WorkspaceLinks session={session} workspace={workspace} active={active} />
@@ -145,7 +145,7 @@ export function ConsoleFrame({
         onClose={() => menuButtonRef.current?.focus()}
       >
         <div className={styles.drawerHeader}>
-          <Link href="/account/" className={styles.brand} onClick={closeMenu}>
+          <Link href="/workspaces/" className={styles.brand} onClick={closeMenu}>
             <span aria-hidden="true">A</span> atrax
           </Link>
           <button ref={closeButtonRef} className={styles.menuButton} type="button" onClick={closeMenu}>

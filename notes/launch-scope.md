@@ -1,12 +1,14 @@
 # First launch
 
+Terminology updated September 16, 2026 to match `CONTEXT.md`. The scope below records approved behavior; the final historical section describes the system before implementation.
+
 ## Agreed scope
 
 A new user can create an app without signing in, run it locally, sign in at the first hosted deployment, deploy into a workspace without a Cloudflare account, preserve its data, and share it with a teammate.
 
 Hosted apps belong to the workspace from their first deployment. This supersedes the earlier anonymous-deploy-and-claim onboarding proposal. There is no separate claim step in the new launch flow.
 
-Launch includes a workspace Home with an app directory, basic team/access management, connected apps demonstrated by Inventory + Orders, and Library read/contribution tools for shared company knowledge. Switchboard supplies the app-action capability needed for that workflow. Hosted agents, scheduled automations, and the Loops product are deferred. The broader infrastructure dashboard and paid onboarding remain deferred.
+Launch includes a workspace Apps with an app directory, basic team/access management, connected apps demonstrated by Inventory + Orders, and Library read/contribution tools for shared company knowledge. Actions supplies the app-action capability needed for that workflow. Hosted agents, scheduled automations, and the Automation capability are deferred. The broader infrastructure dashboard and paid onboarding remain deferred.
 
 Atrax is intended as a simple cloud platform for these apps. GitHub remains responsible for source hosting, code history, and code collaboration. Atrax owns deployment, runtime, persistent data, access, shared knowledge, and agent operations. Launch does not include a GitHub replacement or a hosted agent development environment.
 
@@ -18,7 +20,7 @@ The first launch lets a small business bring an app and an existing agent, deplo
 | --- | --- |
 | Build and run | Create an app or adapt an existing HTML/React interface to the supported backend contract; local development needs no sign-in and keeps its data. |
 | Deploy | Sign in at first hosted deployment, create or join a workspace, and receive a working app URL through one setup flow. |
-| Work together | Apps belong to the workspace and are company-only by default. Members open them through Home or direct URLs. Maintainers manage code and action exposure; admins manage the team and external sharing. |
+| Work together | Apps belong to the workspace and are company-only by default. Members open them through Apps or direct URLs. Maintainers manage code and action exposure; admins manage the team and external sharing. |
 | Use an agent | Bring an existing agent. It can discover, call, and inspect the same supported platform and business operations as a person, with that person's permissions. |
 | Connect apps | Inventory + Orders demonstrates an order reserving stock through an exposed action, with caller permissions preserved and retries unable to reserve stock twice. |
 | Share knowledge | People upload files manually; agents upload through the CLI and add knowledge entries through tools. Authorized members and agents can retrieve and correct company knowledge, with attribution and history. |
@@ -51,7 +53,7 @@ The core product decisions in this brief are agreed. Before implementation, the 
 - Removing a teammate revokes access, including an existing session and future sign-in.
 - A business manages membership centrally; each app defaults to workspace-wide access and can have an explicit access policy.
 - Removing a member from the workspace revokes their access to all its apps.
-- Members can find permitted apps from Home or open the same apps directly by URL.
+- Members can find permitted apps from Apps or open the same apps directly by URL.
 - The workspace interface supports team membership and per-app access management under the agreed permissions.
 - Every launch operation exposed in the interface has a documented agent equivalent and an inspectable result.
 - An employee's agent can perform ordinary work within that employee's permissions without approval for every operation. Each operation still checks access.
@@ -108,7 +110,7 @@ The precise retrieval and file-processing contracts are implementation work. New
 
 Atrax is a cloud for internal software at small businesses. The core experience is building and operating the tools a business needs, then giving the right people reliable access.
 
-The launch may expand where that makes the complete business workflow better. Ambition is welcome. Home and basic team/access management supersede the earlier blanket dashboard deferral. Inventory + Orders brings app actions and connections into scope, and shared company knowledge brings Library read and contribution tools into scope. Hosted agents and background automations remain later work.
+The launch may expand where that makes the complete business workflow better. Ambition is welcome. Apps and basic team/access management supersede the earlier blanket dashboard deferral. Inventory + Orders brings app actions and connections into scope, and shared company knowledge brings Library read and contribution tools into scope. Hosted agents and background automations remain later work.
 
 Agents must be able to operate Atrax and discover and use app capabilities with permission. MCP is a desired access method; “everything” means complete supported operations, with permission checked per operation. The concrete action contract remains to be designed.
 
@@ -131,7 +133,7 @@ Hosted agents, schedules, independently authorized unattended service calls, and
 
 Implementation starts after the consolidated product understanding is confirmed. No implementation, deployment, or live verification has been performed during this interview.
 
-## Observed current behavior
+## Historical observations before implementation
 
 Door consumes an invitation link and issues a 30-day session. There is no returning sign-in flow. The control plane rejects a new invitation for a joined member and instructs the owner to remove and reinvite them.
 

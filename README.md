@@ -1,6 +1,6 @@
 # Atrax
 
-Atrax is a company workspace for apps, verified access, named business actions, Library knowledge with history, and existing agents connected through MCP.
+Atrax is a cloud for internal software at small businesses. A workspace holds your team's apps, Library, and membership. People use the apps; existing agents build and operate them through the CLI or MCP.
 
 - Site and docs: [atrax.run](https://atrax.run)
 - Source: [github.com/rishabhsai/atrax](https://github.com/rishabhsai/atrax)
@@ -10,7 +10,7 @@ Atrax is a company workspace for apps, verified access, named business actions, 
 Requires Node.js `>=22.13.0` and npm.
 
 ```bash
-npm install -g atrax-cloud@0.2.0
+npm install -g atrax-cloud@0.2.1
 atrax setup --client codex
 atrax new team-chat --template chat
 cd team-chat
@@ -34,6 +34,7 @@ The CLI returns structured output with the app and workspace identifiers and its
 ## What is available
 
 - **Apps:** create, run, and deploy company-owned apps with static assets, declared actions, and persistent D1 migrations.
+- **Database:** app-owned SQL records and ordered migrations, with persistent local development.
 - **Access:** workspace membership, selected audiences, maintainers, verified external guests, and revocable browser, CLI, and agent sessions.
 - **Actions:** typed app-to-app calls with current permission checks and stable business keys for writes.
 - **Library:** revisioned company guidance and immutable file versions. Text, Markdown, CSV, and JSON are searchable; PDFs are stored and downloadable. Files are limited to 10 MiB.

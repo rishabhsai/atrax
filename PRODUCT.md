@@ -14,18 +14,11 @@ Small businesses building internal tools and operational software with coding ag
 
 ## Product Purpose
 
-Atrax is a cloud for internal software at small businesses, operated through an agent-native CLI and a
-quiet account console. A coding agent can create, run, inspect, and deploy a
-small full-stack app through one compact contract. The account shows projects,
-releases, resources, health, connections, and activity without becoming a
-second source of truth. The platform includes hosting, data, access, files and
-company knowledge, connected tools, and durable background work.
+Atrax is a cloud for internal software at small businesses. Existing coding agents create, run, and deploy apps through the CLI. People find apps, company knowledge, and team controls in their workspace console. Apps, Database, Access, Library, and Actions are the public capability names; their meanings live in [CONTEXT.md](./CONTEXT.md).
 
-For the first launch, users bring their own agents. Atrax hosts apps and exposes
-their operations and shared company knowledge. Hosted agents and background
-automations follow later. GitHub retains source hosting and code collaboration;
-Atrax owns the deployment and operation of the running software. The current
-agreed scope is recorded in [notes/launch-scope.md](./notes/launch-scope.md).
+An account identifies a person. A workspace owns its apps, Library, and membership. CLI and MCP are interfaces to the same authorized operations. GitHub retains source hosting and code collaboration.
+
+Secrets and Automation remain planned. Hosted agents, scheduled work, and automatic document synchronization are deferred. The approved behavior is recorded in [notes/launch-scope.md](./notes/launch-scope.md).
 
 ## Brand Personality
 
@@ -38,7 +31,7 @@ Do not look like a generic AI-generated SaaS landing page. Avoid decorative 3D c
 ## Design Principles
 
 1. Lead with the short promise, one terminal installer, and a direct link for agents to read the guide.
-2. Keep one clear concept for each job. Loops owns declared durable webhooks, schedules, background jobs, and operational agents; ordinary Worker request handlers remain part of the app runtime.
+2. Keep one clear concept for each job. Automation is the planned capability for scheduled and background execution. Ordinary request-driven actions belong to apps.
 3. Write for a small company choosing whether it can ship this week.
 4. Make every public feature traceable to a real CLI command, runtime behavior, or documented roadmap status. Shared credentials, hosted agents, and automatic external-document synchronization remain planned.
 5. Let coding agents complete the same workflow a person can complete in the interface.
@@ -49,4 +42,4 @@ Meet WCAG 2.2 AA contrast and keyboard requirements. Preserve meaning without co
 
 ## Approved public homepage
 
-The headline is “A cloud for everyone.” The explanation is “Build with your agent. Atrax runs your apps, keeps their data, and connects your team.” Keep a simple centered reading order, the selected ink trees at the edges, and the complete product overview directly below the hero at `/#products`. Each product links to its own detail page; there is no separate product index. Use general capability language, without decorative eyebrows or example-led storytelling. The hero fills the first viewport including navigation. One terminal-style block copies the `/agents.sh` installer, with a compact explicit client choice. Below it, a short sentence directs agents to `/agents.md`. Keep “Start locally, no account needed.” and the quickstart link.
+The headline is “A cloud for everyone.” The explanation is “Build with your agent. Atrax runs your apps, keeps their data, and connects your team.” Keep a simple centered reading order, the selected ink trees at the edges, and the five current capability links directly below the hero at `/#products`. MCP appears under For agents and Automation under Planned. Each capability links to its own detail page; there is no separate product index. Use general capability language, without decorative eyebrows or example-led storytelling. The hero fills the first viewport including navigation. One terminal-style block copies the `/agents.sh` installer, with compact Codex, Claude Code, Cursor, and Prompt options. Below it, a short sentence directs agents to `/agents.md`. Keep “Start locally, no account needed.” and the quickstart link.

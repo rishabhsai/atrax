@@ -1,5 +1,7 @@
 # Atrax platform map
 
+Historical research snapshot. Current names, routes, and behavior are documented in `CONTEXT.md`, `SPEC.md`, and `notes/console-design.md`; source references below describe the earlier checkout.
+
 Source inspection on September 14, 2026. This map covers the product model, website and console, agent documentation, CLI, hosting control plane, app template, packaging, and existing tests. It is not a live deployment audit. No tests or production operations were run for this exploration.
 
 The agreed requirements live in [launch-scope.md](./launch-scope.md), vocabulary in [CONTEXT.md](../CONTEXT.md), and competitor findings in [lakebed-agent-first-research.md](./lakebed-agent-first-research.md). The recommendations below remain proposals where the interview has not settled them.

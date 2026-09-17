@@ -1,5 +1,7 @@
 # Launch architecture proposal
 
+Historical proposal. Current terminology and supported behavior live in `CONTEXT.md`, `SPEC.md`, and `notes/launch-scope.md`.
+
 September 15, 2026. This is an implementation proposal against the agreed [launch scope](./launch-scope.md), not a claim of shipped or tested behavior. Only this document changed during the architecture investigation. No provider resources, packages, or runtime files changed, and no tests ran.
 
 ## Recommendation

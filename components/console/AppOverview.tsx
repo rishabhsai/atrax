@@ -67,7 +67,7 @@ function AppContent({ appId, session }: { appId: string; session: Session }) {
           >
             Try again
           </button>
-          <Link href="/account/">Your workspaces</Link>
+          <Link href="/workspaces/">Your workspaces</Link>
         </div>
       </ConsoleFrame>
     );
@@ -78,7 +78,7 @@ function AppContent({ appId, session }: { appId: string; session: Session }) {
   return (
     <ConsoleFrame session={session} workspace={workspace}>
       <nav className={styles.breadcrumb} aria-label="Breadcrumb">
-        <Link href={workspaceUrl(app.workspaceId)}>Home</Link>
+        <Link href={workspaceUrl(app.workspaceId)}>Apps</Link>
         <span aria-hidden="true">/</span>
         <span>{app.name}</span>
       </nav>
@@ -222,7 +222,7 @@ export function AppOverview() {
         <p className={styles.muted}>
           Open an app from your workspace to see its details.
         </p>
-        <Link className={styles.primary} href="/account/">
+        <Link className={styles.primary} href="/workspaces/">
           Your workspaces
         </Link>
       </AuthFrame>

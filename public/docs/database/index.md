@@ -1,4 +1,4 @@
-# Tables
+# Database
 
 Persistent structured data for each app.
 

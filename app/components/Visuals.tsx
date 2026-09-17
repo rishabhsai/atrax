@@ -6,13 +6,13 @@ type ProductMarkProps = { type: ProductSlug };
 
 export function ProductMark({ type }: ProductMarkProps) {
   const symbols: Record<ProductSlug, string> = {
-    launchpad: "↗",
-    tables: "▦",
-    door: "○",
+    apps: "↗",
+    database: "▦",
+    access: "○",
     library: "□",
-    switchboard: "⌁",
+    actions: "⌁",
     mcp: "✦",
-    loops: "∞",
+    automation: "∞",
   };
 
   return (
@@ -92,13 +92,13 @@ export function DeployTerminal({
 export function ProductConsole({ type }: ProductMarkProps) {
   const product = products[type];
   const examples: Record<ProductSlug, { label: string; title: string; rows: readonly (readonly [string, string])[] }> = {
-    launchpad: { label: "A company app", title: "Build. Deploy. Keep using it.", rows: [["01 · Your machine", "Run the interface and data locally"], ["02 · Your workspace", "Deploy under verified company ownership"], ["03 · Your next update", "Keep the app URL and database"]] },
-    tables: { label: "App data", title: "Your app. Its own database.", rows: [["Local development", "Run the app and its SQL data together"], ["Deploy", "A database is created for your app"], ["Updates", "Keep your records when the code changes"]] },
-    door: { label: "New app defaults", title: "Company-only from day one.", rows: [["Workspace members", "Can open the app"], ["Outside guests", "Need an explicit invitation"], ["Public web", "Off until an admin publishes"]] },
+    apps: { label: "A company app", title: "Build. Deploy. Keep using it.", rows: [["01 · Your machine", "Run the interface and data locally"], ["02 · Your workspace", "Deploy under verified company ownership"], ["03 · Your next update", "Keep the app URL and database"]] },
+    database: { label: "App data", title: "Your app. Its own database.", rows: [["Local development", "Run the app and its SQL data together"], ["Deploy", "A database is created for your app"], ["Updates", "Keep your records when the code changes"]] },
+    access: { label: "New app defaults", title: "Company-only from day one.", rows: [["Workspace members", "Can open the app"], ["Outside guests", "Need an explicit invitation"], ["Public web", "Off until an admin publishes"]] },
     library: { label: "Company knowledge example", title: "“We don’t use blue in our brand.”", rows: [["Contribute", "A person or authorized agent saves it"], ["Find", "Search under current permissions"], ["Correct", "Add a revision and a reason"]] },
-    switchboard: { label: "Connected app example", title: "An order reserves its stock.", rows: [["Orders", "orders.create"], ["Inventory", "inventory.stock.reserve"], ["Authorization", "The caller’s current permissions"]] },
+    actions: { label: "Connected app example", title: "An order reserves its stock.", rows: [["Orders", "orders.create"], ["Inventory", "inventory.stock.reserve"], ["Authorization", "The caller’s current permissions"]] },
     mcp: { label: "Workspace tools", title: "Bring the agent you already use.", rows: [["Discover actions", "atrax_actions_list"], ["Search knowledge", "atrax_library_search"], ["Save a decision", "atrax_library_entry_create"]] },
-    loops: { label: "Planned for later", title: "Work that can run on a schedule.", rows: [["Hosted agents", "Planned"], ["Scheduled automation", "Planned"], ["Today", "Connect an existing agent through MCP"]] },
+    automation: { label: "Planned for later", title: "Work that can run on a schedule.", rows: [["Hosted agents", "Planned"], ["Scheduled automation", "Planned"], ["Today", "Connect an existing agent through MCP"]] },
   };
   const example = examples[type];
   return (

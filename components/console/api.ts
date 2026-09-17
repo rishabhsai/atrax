@@ -539,15 +539,16 @@ export function audienceLabel(audience: string): string {
 
 export function safeReturnTo(value: string | null): string {
   if (!value?.startsWith("/") || value.startsWith("//") || value.includes("\\"))
-    return "/account/";
+    return "/workspaces/";
   const destination = new URL(value, "https://atrax.run");
   if (
     destination.origin !== "https://atrax.run" ||
     ![
-      "/account",
+      "/workspaces",
       "/workspace",
       "/workspace/app",
       "/workspace/library",
+      "/workspace/team",
       "/auth/device",
       "/auth/invite",
       "/auth/guest-invite",
@@ -557,6 +558,6 @@ export function safeReturnTo(value: string | null): string {
         destination.pathname === path || destination.pathname === `${path}/`,
     )
   )
-    return "/account/";
+    return "/workspaces/";
   return `${destination.pathname}${destination.search}`;
 }

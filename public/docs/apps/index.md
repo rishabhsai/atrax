@@ -1,4 +1,4 @@
-# Launchpad
+# Apps
 
 Build and deploy workspace-owned apps.
 

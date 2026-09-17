@@ -10,6 +10,7 @@ import {generatedAgentFiles} from '../scripts/generate-agent-onboarding.mjs';
 
 const execute=promisify(execFile);
 const root=resolve(import.meta.dirname,'..');
+const {version}=JSON.parse(await readFile(join(root,'package.json'),'utf8'));
 
 async function run(file,args,options={}) {
   try {return {code:0,...await execute(file,args,{maxBuffer:5*1024*1024,timeout:180_000,...options})};}
@@ -62,7 +63,7 @@ test('the copied curl invocation installs the published release and repeats thro
   assert.match(second.stdout,/'outcome':'already_installed'|"outcome":"already_installed"/);
   assert.match(second.stderr,/Add .*npm prefix\/bin to PATH/);
   const cli=join(prefix,'bin','atrax');
-  assert.equal((await run(cli,['--version'])).stdout.trim(),'0.2.0');
+  assert.equal((await run(cli,['--version'])).stdout.trim(),version);
   assert.equal(JSON.parse((await run(cli,['setup','inspect','--client','codex','--json'],{env})).stdout).result.outcome,'installed');
   assert.equal(await readFile(join(home,'.agents','skills','atrax','SKILL.md'),'utf8'),await readFile(join(root,'skills','atrax','SKILL.md'),'utf8'));
 
@@ -89,7 +90,7 @@ test('the installer reports unsupported input and npm acquisition failures witho
   const npm=join(bin,'npm');
   await writeFile(npm,`#!/bin/sh\nif [ "$1" = prefix ]; then printf '%s\\n' '${prefix}'; exit 0; fi\nprintf '%s\\n' 'registry unavailable' >&2\nexit 73\n`);await chmod(npm,0o755);
   const failure=await run('sh',[join(root,'public/agents.sh'),'--client','codex'],{env:{...env,PATH:`${bin}:${env.PATH}`},cwd:directory});
-  assert.notEqual(failure.code,0);assert.match(failure.stderr,/npm could not install atrax-cloud@0\.2\.0/);
+  assert.notEqual(failure.code,0);assert.ok(failure.stderr.includes(`npm could not install atrax-cloud@${version}`));
   await assert.rejects(readFile(join(home,'.agents','skills','atrax','SKILL.md')),{code:'ENOENT'});
 });
 
@@ -118,7 +119,7 @@ test('the installer rejects an acquired release missing its bundled skill', {tim
   const bin=join(directory,'bin');await mkdir(bin);
   const npm=join(bin,'npm');
   await mkdir(join(prefix,'bin'),{recursive:true});
-  await writeFile(join(prefix,'bin','atrax'),'#!/bin/sh\nprintf "0.2.0\\n"\n');await chmod(join(prefix,'bin','atrax'),0o755);
+  await writeFile(join(prefix,'bin','atrax'),`#!/bin/sh\nprintf "${version}\\n"\n`);await chmod(join(prefix,'bin','atrax'),0o755);
   await writeFile(npm,`#!/bin/sh\ncase "$1" in\n  prefix) printf '%s\\n' '${prefix}' ;;\n  install) exit 0 ;;\n  root) printf '%s\\n' '${join(prefix,'node_modules')}' ;;\n  *) exit 64 ;;\nesac\n`);await chmod(npm,0o755);
   const result=await run('/bin/sh',[join(root,'public/agents.sh'),'--client','codex'],{env:{...env,PATH:`${bin}:${env.PATH}`},cwd:directory});
   assert.notEqual(result.code,0);assert.match(result.stderr,/bundled skill is missing/);

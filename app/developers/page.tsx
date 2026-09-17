@@ -146,7 +146,7 @@ export default function DevelopersPage() {
               Public web must be off for a private review. A guest grant covers
               only the selected app and actions.
             </p>
-            <Link className="text-link" href="/docs/door">
+            <Link className="text-link" href="/docs/access">
               Read the access rules →
             </Link>
           </div>

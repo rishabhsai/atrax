@@ -29,7 +29,7 @@ const toolConfigNames=new Set(['vite.config.js','vite.config.mjs','vite.config.c
 const serverExtensions=new Set(['.php','.py','.rb','.go','.rs','.java','.cs','.asp','.aspx','.jsp','.cgi','.cjs']);
 const serverModules=new Set([...builtinModules.map(name=>name.replace(/^node:/,'')),'express','fastify','koa','hapi','@hapi/hapi','next/server']);
 function unsupportedRuntime(detail) {
-  return Object.assign(new Error(`${detail}. Atrax web assets run in the browser. Export a static frontend into a dedicated asset directory, or adapt backend behavior to Atrax named actions and Tables. See https://atrax.run/docs/app-contract/index.md.`),{code:'unsupported_static_runtime'});
+  return Object.assign(new Error(`${detail}. Atrax web assets run in the browser. Export a static frontend into a dedicated asset directory, or adapt backend behavior to Atrax named actions and an app database. See https://atrax.run/docs/app-contract/index.md.`),{code:'unsupported_static_runtime'});
 }
 function isMetadata(name) {
   const lower=name.toLowerCase();

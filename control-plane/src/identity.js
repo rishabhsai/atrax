@@ -94,7 +94,7 @@ async function startEmail(input, { env, request }) {
   inputObject(input, ["email", "returnTo", "purpose"]);
   const email = normalizeEmail(input.email);
   if (input.purpose !== undefined && input.purpose !== "sign_in") throw new OperationError("invalid_input", 400, "Unsupported verification purpose.");
-  const returnTo = input.returnTo === undefined ? "/account" : inputString(input.returnTo, "returnTo", 1024);
+  const returnTo = input.returnTo === undefined ? "/workspaces" : inputString(input.returnTo, "returnTo", 1024);
   if (!returnTo.startsWith("/") || returnTo.startsWith("//") || /[\\\r\n]/.test(returnTo)) throw new OperationError("invalid_input", 400, "returnTo must be a relative console path.");
   if (!env.EMAIL || !env.EMAIL_FROM || !env.CONSOLE_ORIGIN) {
     throw new OperationError("email_unavailable", 503, "Sign-in email is not configured.");

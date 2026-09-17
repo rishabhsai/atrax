@@ -78,7 +78,7 @@ export function SiteHeader() {
           <Link href="/docs">Docs</Link>
           <Link href="/developers">CLI</Link>
           <Link href="/security">Security</Link>
-          <Link className="nav-account" href="/account">Account</Link>
+          <Link className="nav-account" href="/workspaces">Workspaces</Link>
         </nav>
 
         <details className="mobile-nav" ref={mobileMenu}>
@@ -89,7 +89,7 @@ export function SiteHeader() {
             <Link href="/docs">Docs</Link>
             <Link href="/developers">CLI</Link>
             <Link href="/security">Security</Link>
-            <Link href="/account">Account</Link>
+            <Link href="/workspaces">Workspaces</Link>
           </div>
         </details>
       </div>

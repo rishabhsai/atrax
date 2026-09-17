@@ -1,77 +1,52 @@
 # Atrax product spec
 
-## Position
+Atrax is a cloud for internal software at small businesses. A person uses their existing agent to build an app, run it locally, deploy it into a workspace, and share it with their team.
 
-Atrax is a cloud for everyone, starting with small companies and coding agents. A coding agent can turn a folder into a working, inspectable app and a shareable URL without operating a cloud console.
+## Product responsibilities
 
-The Atrax account is the hosted control plane for projects, stacks, releases,
-resources, activity, connections, and team membership. It reads Atrax state;
-it does not infer ownership by scraping a provider dashboard.
-
-## Products
-
-| Product | Owns |
+| Capability | Responsibility |
 | --- | --- |
-| Launchpad | Runtime, releases, deploys, URLs, previews, rollback, inspection |
-| Tables | Structured transactional data, migrations, queries, backup, restore |
-| Door | Identity, sessions, sharing, teams, roles, app identity |
-| Library | Files and permission-aware company knowledge |
-| Switchboard | Company vault, OAuth connections, typed tools, scoped app-to-app actions |
-| Loops | Declared webhooks, schedules, queues, durable jobs, and operational agents |
+| Apps | Local development, hosting, releases, deployment, app URLs, previews, and recovery |
+| Database | App-owned SQL records, ordered migrations, backup, and restore |
+| Access | Verified sign-in, workspace membership, app audiences, action permissions, and guest sharing |
+| Library | Files and permission-aware company knowledge with revision history |
+| Actions | Named app operations and authorized app-to-app calls |
 
-No responsibility may have two product owners. Agents are Loops with models and tools, not a separate runtime product.
+A workspace contains apps, Library, and team membership. An account identifies a person who can belong to more than one workspace. The console and CLI operate the same resources. MCP exposes eligible platform operations to an existing agent.
 
-Ordinary Worker request handlers are part of an app's web runtime. They become Loops only when declared through the durable Loop contract.
+Secrets and Automation are planned capabilities. Credential management is separate from Library. Hosted agents and scheduled execution are not part of the current release.
 
-Launchpad runs and releases software. Door controls who can enter it. Neither is a mode of the other.
+## App contract
 
-Atrax account identity is platform identity. Door provides identity and
-authorization to applications built on Atrax; it does not own sign-in to
-the Atrax control plane.
+- `atrax.json` declares web assets, actions, optional `tables` migrations, and app dependencies.
+- `atrax.lock.json` retains the hosted app identity and observed release across updates.
+- `.atrax/deploy.json` retains an interrupted deployment's artifact and step keys so the CLI can resume it.
+- Each stateful app owns its database. Other apps access its records through named actions.
+- Static frontends can be imported. Other server runtimes need adaptation to the app contract.
 
-## Contract
+Use [the app contract](https://atrax.run/docs/app-contract/) for exact fields and [the infrastructure model](https://atrax.run/docs/infrastructure-model/) for deployment and state ownership.
 
-- `atrax.json`: provider-neutral desired app architecture.
-- `stacks/<name>.json`: environment-specific intent and external references.
-- `atrax.lock.json`: stable, non-secret resource identities safe to commit.
-- Remote locked state: authoritative observed infrastructure, ownership, and drift metadata.
-- `.atrax/*`: disposable provider artifacts and local operational cache.
-
-`wrangler.jsonc`, Alchemy programs, or other provider files are never sources of truth.
-
-## Lifecycles
-
-1. Infrastructure: databases, buckets, queues, domains, and other stateful resources.
-2. Releases: immutable Worker versions and assets, promoted and rolled back independently.
-3. Connections: secret and OAuth references resolved through Switchboard, never copied into app files or infrastructure state.
-
-## Agent workflow
+## Supported workflow
 
 ```bash
-atrax plan --stack prod --json
-atrax deploy --stack prod --json
-atrax drift --stack prod --json
-atrax inspect --stack prod --json
-atrax logs --stack prod --json
+atrax new team-chat --template chat
+cd team-chat
+atrax dev
+# Stop local development when ready to publish.
+atrax deploy --json
 ```
 
-Finite commands have stable versioned JSON, non-zero failure exits, and equivalent human-readable output. Long-running streams need a stable event contract; v0 `logs --json` exposes Wrangler NDJSON until that Atrax event envelope ships.
+Local development needs no account. The first hosted deployment starts verified sign-in and workspace selection. Customers do not need their own Cloudflare account. A new app is company-only by default; its maintainer can restrict its audience, and workspace admins manage external sharing.
 
-## Reconciliation
+An ordinary deployment updates the app while preserving its URL and business data. A release is a built version; a deployment records the attempt to make it run. Destructive data changes and public web publication require the documented confirmations.
 
-Atrax products are the user-facing abstraction. Infrastructure-as-code is an internal reconciliation engine. The engine may use Wrangler, direct Cloudflare APIs, Alchemy, or another adapter; changing it must not change the app contract or state semantics.
+## Authoritative references
 
-`plan` compares desired architecture with locked remote state. `deploy` applies an approved change and emits an immutable release. `drift` reports provider changes made outside Atrax.
+- [Domain glossary](CONTEXT.md): names and boundaries.
+- [Approved launch scope](notes/launch-scope.md): product behavior and deferred work.
+- [Console guidance](notes/console-design.md): navigation and user interactions.
+- [CLI reference](https://atrax.run/docs/cli/) and `atrax help`: current commands.
+- `atrax operations inspect <name>`: exact operation inputs.
+- [Launch runbook](docs/operations/launch-runbook.md): release and verification procedure.
 
-`plan` and `drift` ship in v0 against the single implicit environment; the `--stack` selector arrives with named stacks. Both are read-only. Exit codes are `0` success, `1` error including a plan blocked by an unowned name conflict, and `2` reserved for `drift` when the provider no longer matches the lockfile.
-
-## Delivery stages
-
-- **Available v0:** public Worker + Static Assets, one D1 database, migrations, local development, deploy, readiness, stable URL, plan, drift, inspect, logs, committed lockfile, no-login chat.
-- **Available v0:** shared visibility with invite-link membership (Door alpha slice).
-- **Available v0:** instant anonymous hosting with claim-or-expire (`atrax deploy --instant`, `atrax claim`).
-- **Next foundation:** named stacks, remote locked state, immutable release history, preview and rollback.
-- **Account foundation:** Access-authenticated console, CLI device authorization, project registration, release and resource views, and activity ledger.
-- **Platform coverage:** Door, Library, Switchboard, Loops, custom domains, backup and restore, typed data access, hosted control panel.
-
-Roadmap features must be labelled planned until they work end to end.
+Earlier proposals for anonymous hosting and claims, named stacks, and Cloudflare Access account login have been superseded by the workspace system.

@@ -1,4 +1,4 @@
-# Switchboard
+# Actions
 
 Named app actions that preserve the employee’s permissions.
 

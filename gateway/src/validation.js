@@ -214,7 +214,7 @@ export function authorizedCall(value, requiresInvocation) {
       (requiresInvocation &&
         (typeof value.invocationId !== 'string' || !value.invocationId ||
           typeof value.rootInvocationId !== 'string' || !value.rootInvocationId))) {
-    throw new GatewayError('door_contract_error', 502, 'Door returned an invalid authorization result');
+    throw new GatewayError('door_contract_error', 502, 'Access returned an invalid authorization result');
   }
   return value;
 }

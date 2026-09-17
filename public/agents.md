@@ -12,13 +12,19 @@ Use macOS or Linux with Node.js 22.13 or newer and npm. Choose the client that w
 curl -fsSL https://atrax.run/agents.sh | sh -s -- --client codex
 ```
 
-Replace `codex` with `claude-code` or `cursor` when needed. The installer uses `atrax-cloud@0.2.0`, then asks that exact CLI to install or repair its matching skill. Start a fresh client session after setup. If `atrax` is unavailable afterward, use the installed CLI path printed by setup or add its reported bin directory to your PATH.
+Replace `codex` with `claude-code` or `cursor` when needed. The installer uses `atrax-cloud@0.2.1`, then asks that exact CLI to install or repair its matching skill. Start a fresh client session after setup. If `atrax` is unavailable afterward, use the installed CLI path printed by setup or add its reported bin directory to your PATH.
 
-Library holds company knowledge and files. It does not hold shared secrets. Shared-secret handling, hosted agents, and automatic document synchronization are planned.
+Library holds company knowledge and files. It does not hold shared secrets. Secrets and Automation are planned; hosted agents and automatic document synchronization are not available.
 
 ## Atrax workflow
 
 Atrax hosts a business's apps, data, access rules, and company knowledge. Work in the user's existing coding environment and follow the project's instructions. Use the installed `atrax` CLI; `atrax help` describes this release's commands.
+
+### Names and scope
+
+A workspace owns apps, Library, and team membership. An app owns its database and exposes actions. Library contains company knowledge and files; current business records come from the app that owns them. Secrets and Automation are planned capabilities.
+
+A platform operation such as `apps.create` manages Atrax resources. An app action such as `stock.reserve` performs business work. MCP tools expose platform operations; discover app actions with `actions.list` and invoke them with `actions.call`.
 
 ### Build and run locally
 

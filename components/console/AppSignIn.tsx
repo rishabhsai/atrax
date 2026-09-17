@@ -51,7 +51,7 @@ function ContinueToApp({
             >
               Try again
             </button>
-            <Link href="/account/">Your workspaces</Link>
+            <Link href="/workspaces/">Your workspaces</Link>
           </div>
         </>
       ) : (
@@ -77,7 +77,7 @@ export function AppSignIn() {
           This sign-in link is incomplete. Open the app from your workspace or
           its original address.
         </p>
-        <Link className={styles.primary} href="/account/">
+        <Link className={styles.primary} href="/workspaces/">
           Your workspaces
         </Link>
       </AuthFrame>

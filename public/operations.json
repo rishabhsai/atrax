@@ -2021,7 +2021,7 @@
       },
       "anonymous": false
     },
-    "workspace.transferOwnership": {
+    "workspaces.transferOwnership": {
       "description": "Transfer workspace ownership to another member.",
       "effect": "write",
       "inputSchema": {

@@ -125,7 +125,7 @@ test('first workspace setup completes browser approval and leaves the CLI ready 
   assert.equal(inspected.body.result.agentLabel,'Operations agent');
   assert.equal(inspected.body.result.status,'pending');
   const emptyDirectory=await fixture.call('workspaces.list',{},browserHeaders);
-  assert.deepEqual(emptyDirectory.body.result.workspaces,[],'a new account starts without a deployment workspace');
+  assert.deepEqual(emptyDirectory.body.result.workspaces,[],'a new person starts without a deployment workspace');
   const createdByBrowser=await fixture.call('workspaces.create',{
     name:'Paper Company',slug:'paper-company',
   },browserHeaders);

@@ -69,7 +69,7 @@ Mono for commands and technical labels. These are the existing site families.
 5. Keep the homepage on warm paper. Its decorative ink trees frame the central content and never carry text.
 6. Motion explains arrival or depth and always respects reduced motion.
 
-## Account console
+## Workspace console
 
 The console is live and uses actual workspace, app, Library, and team state.
 Keep it separate from marketing examples. Never invent deployments or activity.
@@ -92,7 +92,7 @@ and `/agents.sh` installer, with an explicit Codex, Claude Code, or Cursor choic
 - Show working CLI examples with their installation prerequisites.
 - Use whitespace to separate product ideas.
 - Keep feature ownership and availability explicit.
-- Make account and CLI workflows read as one system.
+- Make workspace and CLI workflows read as one system.
 
 ## Do not
 
@@ -104,7 +104,7 @@ and `/agents.sh` installer, with an explicit Codex, Claude Code, or Cursor choic
 
 ## Public agent handoff
 
-The homepage hero fills the first viewport including the navigation, while allowing content to grow on short screens. One near-black terminal contains the full selectable installer command, compact client choices, and a copy control. Below it, a plain sentence directs agents to `/agents.md`. Keep the local-start note and quickstart link. Announce copy success only after the clipboard resolves. Failed copies select the command and explain manual copying. No prompt cards, decorative eyebrows, fabricated activity, or long example narratives on the homepage.
+The homepage hero fills the first viewport including the navigation, while allowing content to grow on short screens. One near-black terminal contains the full selectable installer command, compact client choices, a plain-English Prompt option, and a copy control. Below it, a plain sentence directs agents to `/agents.md`. Keep the local-start note and quickstart link. Announce copy success only after the clipboard resolves. Failed copies select the command and explain manual copying. No prompt cards, decorative eyebrows, fabricated activity, or long example narratives on the homepage.
 
 ## Botanical motion and product art
 
@@ -113,17 +113,16 @@ center stays clear, the effect never intercepts input, and reduced-motion
 preferences hide it completely. Use only transform and opacity animation.
 
 Each product has its own edge-framing ink illustration, stored under
-`public/images/products/`: pine for Launchpad, ginkgo for Tables, wisteria for
-Door, oak and ferns for Library, climbing vines for Switchboard, bamboo for MCP,
-and unfurling ferns for Loops. Product introductions are centered above their
+`public/images/products/`: pine for Apps, ginkgo for Database, wisteria for
+Access, oak and ferns for Library, climbing vines for Actions, bamboo for MCP,
+and unfurling ferns for Automation. Product introductions are centered above their
 example panel so the paper center stays clear behind copy. On phones the art
 frames the top and fades before the body text.
 
 ## Homepage catalog and pointer response
 
-The homepage owns the complete product overview at `/#products`, after the hero.
-Navigation links scroll to that section; individual product pages keep their
-URLs. The former `/products` index redirects to the homepage section. Do not
+The homepage owns the current capability overview at `/#products`, after the hero.
+Navigation links scroll to that section; individual product pages use the canonical capability names in their URLs. The former `/products` index redirects to the homepage section. Do not
 reintroduce a second product index or repeat the catalog in a feature summary.
 
 On fine pointers, branches and petals shift gently in response to cursor

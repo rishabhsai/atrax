@@ -35,7 +35,7 @@ Read the returned URL. Do not guess a hostname. Keep atrax.lock.json: it identif
 
 ## Invite your team
 
-Open Home, then Team to invite a coworker by email. They verify that address and join the workspace. Workspace-wide apps become available immediately.
+Open your workspace, then Team to invite a coworker by email. They verify that address and join the workspace. Workspace-wide apps become available immediately.
 
 Use the app’s sharing controls to select people, appoint another maintainer, or restrict an action. Removing a teammate revokes their existing app and agent access.
 

@@ -1,4 +1,4 @@
-# Connect an agent
+# MCP
 
 Use your existing agent through the official MCP stdio protocol.
 

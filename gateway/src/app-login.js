@@ -72,7 +72,7 @@ function denial(result) {
   const error = result?.error;
   if (!error || typeof error.code !== 'string' || !Number.isInteger(error.status) ||
       typeof error.message !== 'string') {
-    return new GatewayError('door_contract_error', 502, 'Door returned an invalid app login result');
+    return new GatewayError('door_contract_error', 502, 'Access returned an invalid app login result');
   }
   return new GatewayError(error.code, error.status, error.message, error.details);
 }
@@ -132,7 +132,7 @@ export async function completeAppLogin(request, env) {
   if (!session || !/^[a-f0-9]{64}$/.test(session.token) ||
       !Number.isSafeInteger(session.expiresAt) || session.expiresAt <= Date.now() ||
       session.expiresAt > 8_640_000_000_000_000) {
-    throw new GatewayError('door_contract_error', 502, 'Door returned an invalid app session');
+    throw new GatewayError('door_contract_error', 502, 'Access returned an invalid app session');
   }
   const headers = new Headers({
     'cache-control': 'private, no-store',

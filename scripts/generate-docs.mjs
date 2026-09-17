@@ -1,5 +1,5 @@
 import {build} from 'esbuild';
-import {mkdir,writeFile} from 'node:fs/promises';
+import {mkdir,rm,writeFile} from 'node:fs/promises';
 import {resolve,dirname} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {operations} from '../shared/operations.js';
@@ -19,6 +19,9 @@ const markdown=doc=>[
     ...(section.note?[section.note]:[]),
   ]),
 ].join('\n\n')+'\n';
+// This directory contains only generated references. Rebuild it so retired
+// document names cannot remain publicly accessible after a rename.
+await rm(resolve(root,'public/docs'),{recursive:true,force:true});
 for(const doc of documents) {
   const directory=resolve(root,'public/docs',doc.slug);await mkdir(directory,{recursive:true});
   await writeFile(resolve(directory,'index.md'),markdown(doc));

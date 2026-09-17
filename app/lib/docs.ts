@@ -1,5 +1,5 @@
 export type DocSection = { heading: string; paragraphs?: readonly string[]; bullets?: readonly string[]; code?: string; note?: string };
-export type DocPage = { slug: string; title: string; description: string; group: "Start" | "Build" | "Products" | "Operate"; status: "available" | "planned" | "mixed"; sections: readonly DocSection[] };
+export type DocPage = { slug: string; title: string; description: string; group: "Start" | "Build" | "Products" | "For agents" | "Planned" | "Operate"; status: "available" | "planned" | "mixed"; sections: readonly DocSection[] };
 export const docs: Record<string, DocPage> = {
   "quickstart": {
     "slug": "quickstart",
@@ -34,7 +34,7 @@ export const docs: Record<string, DocPage> = {
       {
         "heading": "Invite your team",
         "paragraphs": [
-          "Open Home, then Team to invite a coworker by email. They verify that address and join the workspace. Workspace-wide apps become available immediately.",
+          "Open your workspace, then Team to invite a coworker by email. They verify that address and join the workspace. Workspace-wide apps become available immediately.",
           "Use the app\u2019s sharing controls to select people, appoint another maintainer, or restrict an action. Removing a teammate revokes their existing app and agent access."
         ]
       },
@@ -65,7 +65,7 @@ export const docs: Record<string, DocPage> = {
       {
         "heading": "Setup and discovery",
         "paragraphs": [
-          "Install through https://atrax.run/agents.sh or npm install -g atrax-cloud@0.2.0. Setup manages the matching skill for one selected local client. Recipes explain workflows; operation inspection returns the current input contract without loading the whole registry."
+          "Install through https://atrax.run/agents.sh or npm install -g atrax-cloud@0.2.1. Setup manages the matching skill for one selected local client. Recipes explain workflows; operation inspection returns the current input contract without loading the whole registry."
         ],
         "code": "atrax setup --client codex\natrax setup inspect --client codex --json\natrax recipes list\natrax recipes show deploy-share\natrax operations inspect apps.guests.invite --json"
       },
@@ -251,9 +251,9 @@ export const docs: Record<string, DocPage> = {
       }
     ]
   },
-  "launchpad": {
-    "slug": "launchpad",
-    "title": "Launchpad",
+  "apps": {
+    "slug": "apps",
+    "title": "Apps",
     "description": "Build and deploy workspace-owned apps.",
     "group": "Products",
     "status": "available",
@@ -273,9 +273,9 @@ export const docs: Record<string, DocPage> = {
       }
     ]
   },
-  "tables": {
-    "slug": "tables",
-    "title": "Tables",
+  "database": {
+    "slug": "database",
+    "title": "Database",
     "description": "Persistent structured data for each app.",
     "group": "Products",
     "status": "available",
@@ -317,9 +317,9 @@ export const docs: Record<string, DocPage> = {
       }
     ]
   },
-  "door": {
-    "slug": "door",
-    "title": "Door",
+  "access": {
+    "slug": "access",
+    "title": "Access",
     "description": "Verified company access, app sharing, and revocable agent sessions.",
     "group": "Products",
     "status": "available",
@@ -377,9 +377,9 @@ export const docs: Record<string, DocPage> = {
       }
     ]
   },
-  "switchboard": {
-    "slug": "switchboard",
-    "title": "Switchboard",
+  "actions": {
+    "slug": "actions",
+    "title": "Actions",
     "description": "Named app actions that preserve the employee\u2019s permissions.",
     "group": "Products",
     "status": "available",
@@ -401,9 +401,9 @@ export const docs: Record<string, DocPage> = {
   },
   "mcp": {
     "slug": "mcp",
-    "title": "Connect an agent",
+    "title": "MCP",
     "description": "Use your existing agent through the official MCP stdio protocol.",
-    "group": "Start",
+    "group": "For agents",
     "status": "available",
     "sections": [
       {
@@ -429,11 +429,11 @@ export const docs: Record<string, DocPage> = {
       }
     ]
   },
-  "loops": {
-    "slug": "loops",
-    "title": "Loops",
+  "automation": {
+    "slug": "automation",
+    "title": "Automation",
     "description": "Hosted agents and scheduled automation are planned.",
-    "group": "Products",
+    "group": "Planned",
     "status": "planned",
     "sections": [
       {
@@ -515,13 +515,13 @@ export const docOrder = [
   "infrastructure-model",
   "chat-example",
   "inventory-orders",
-  "launchpad",
-  "tables",
-  "door",
+  "apps",
+  "database",
+  "access",
   "library",
-  "switchboard",
+  "actions",
   "mcp",
-  "loops",
+  "automation",
   "security",
   "status"
 ] as const;
