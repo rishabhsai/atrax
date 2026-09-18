@@ -35,7 +35,7 @@ export const docs: Record<string, DocPage> = {
         "heading": "Invite your team",
         "paragraphs": [
           "Open your workspace, then Team to invite a coworker by email. They verify that address and join the workspace. Workspace-wide apps become available immediately.",
-          "Use the app\u2019s sharing controls to select people, appoint another maintainer, or restrict an action. Removing a teammate revokes their existing app and agent access."
+          "Use the app’s sharing controls to select people, appoint another maintainer, or restrict an action. Removing a teammate revokes their existing app and agent access."
         ]
       },
       {
@@ -135,24 +135,24 @@ export const docs: Record<string, DocPage> = {
       {
         "heading": "Resources and request capabilities",
         "bullets": [
-          "db: the app\u2019s own D1 database when tables are declared.",
+          "db: the app’s own D1 database when tables are declared.",
           "actor: descriptive person/session identity, command key, and invocation chain. It contains no session bearer token.",
           "actions.call(alias,name,input,{key}): a declared dependency, acting as the current employee.",
           "knowledge.search/get/create/revise: permitted Library operations in the current workspace.",
-          "secrets.get(bindingName): retrieve a credential granted to this trusted backend during a live action. Previews and ordinary local development do not receive live credentials."
+          "secrets.get(bindingName): upcoming in the 0.3.0 hosted rollout. Retrieves a credential granted to a trusted backend during a live action. Previews and ordinary local development do not receive live credentials."
         ]
       },
       {
         "heading": "Declare another app",
         "paragraphs": [
-          "Both apps must belong to the same workspace. The target checks the employee\u2019s current app and action permissions on every call. A preview has no live dependency bindings."
+          "Both apps must belong to the same workspace. The target checks the employee’s current app and action permissions on every call. A preview has no live dependency bindings."
         ],
         "code": "\"dependencies\": {\"inventory\": {\"appId\": \"<inventory-app-id>\"}}"
       },
       {
         "heading": "Artifact checks",
         "paragraphs": [
-          "Build bundles imports and npm dependencies, inspects action declarations in the Worker runtime, and captures hashed assets and an immutable migration history. Hosting checks artifact, asset, and migration checksums again. Uploaded code never receives the platform database, provider credential, or another app\u2019s raw database binding."
+          "Build bundles imports and npm dependencies, inspects action declarations in the Worker runtime, and captures hashed assets and an immutable migration history. Hosting checks artifact, asset, and migration checksums again. Uploaded code never receives the platform database, provider credential, or another app’s raw database binding."
         ]
       }
     ]
@@ -173,7 +173,7 @@ export const docs: Record<string, DocPage> = {
       {
         "heading": "Private execution",
         "paragraphs": [
-          "The public Worker is Atrax\u2019s trusted gateway. App code runs behind a private service binding with public Worker URLs disabled. Identity, policy, input validation, and action invocation records remain outside uploaded code."
+          "The public Worker is Atrax’s trusted gateway. App code runs behind a private service binding with public Worker URLs disabled. Identity, policy, input validation, and action invocation records remain outside uploaded code."
         ]
       },
       {
@@ -231,23 +231,49 @@ export const docs: Record<string, DocPage> = {
     "status": "available",
     "sections": [
       {
-        "heading": "Create both apps",
+        "heading": "Create and deploy Inventory",
         "paragraphs": [
-          "Deploy Inventory first. Set orders/atrax.json dependencies.inventory.appId to the returned app ID, then deploy Orders to the same workspace. The Inventory app starts with sample products; inspect them before using the example for real work."
+          "Create both example apps. Deploy Inventory first, using a workspace that will also own Orders. Save the returned app ID and live URL.",
+          "Inventory starts with sample products. Read stock.list to choose a SKU and check its quantity before creating a sample order."
         ],
-        "code": "atrax new inventory --template inventory\natrax new orders --template orders"
+        "code": "atrax new inventory --template inventory\natrax new orders --template orders\ncd inventory\natrax deploy --workspace WORKSPACE_ID --json\natrax call actions.call --input '{\"appId\":\"INVENTORY_APP_ID\",\"actionName\":\"stock.list\",\"input\":{}}' --json"
       },
       {
-        "heading": "Reserve without overselling",
+        "heading": "Connect Orders to Inventory",
         "paragraphs": [
-          "orders.create saves an order intent, then calls stock.reserve in Inventory. Inventory is the authority for stock. A conditional database transaction prevents stock from becoming negative. The order ID is the business command key in both apps.",
-          "An interrupted order remains inspectable and can be retried with the same input and key. A reservation already committed in Inventory is reused. Cancellation records intent and releases stock once; a cancellation that arrives first prevents a later reservation."
-        ]
+          "In orders/atrax.json, replace dependencies.inventory.appId with the actual Inventory app ID. Keep the inventory alias because the Orders action code uses that name. The following fragment shows the property to edit inside the existing file."
+        ],
+        "code": "\"dependencies\": {\n\t\"inventory\": { \"appId\": \"INVENTORY_APP_ID\" }\n}"
       },
       {
-        "heading": "Permissions still apply",
+        "heading": "Deploy Orders",
         "paragraphs": [
-          "An employee who cannot reserve stock cannot do so through Orders, a CLI call, an agent, or a retry of a previous order. Removing their workspace membership stops existing sessions. There is no database transaction spanning both apps."
+          "From the Inventory directory, switch to Orders and deploy it to the same workspace. Each app keeps its own database. Orders calls Inventory through the declared action dependency."
+        ],
+        "code": "cd ../orders\natrax deploy --workspace WORKSPACE_ID --json"
+      },
+      {
+        "heading": "Create an order and inspect the reservation",
+        "paragraphs": [
+          "Replace SKU with a value from stock.list. Use the same order ID as the write key. The Orders app saves the intent, then asks Inventory to reserve stock with the current caller's permissions.",
+          "A successful reservation produces a confirmed order. Read orders.get to inspect both the stored order and its current Inventory reservation. Unknown SKUs and insufficient stock produce rejected orders with the corresponding outcome."
+        ],
+        "code": "atrax call actions.call --key order-42 --input '{\"appId\":\"ORDERS_APP_ID\",\"actionName\":\"orders.create\",\"input\":{\"orderId\":\"order-42\",\"sku\":\"SKU\",\"quantity\":1}}' --json\natrax call actions.call --input '{\"appId\":\"ORDERS_APP_ID\",\"actionName\":\"orders.get\",\"input\":{\"orderId\":\"order-42\"}}' --json"
+      },
+      {
+        "heading": "Retry or cancel the same order",
+        "paragraphs": [
+          "If the request is interrupted, inspect the order and retry orders.create with the exact same input and key. Inventory reuses an already committed reservation. A conditional transaction prevents stock from becoming negative.",
+          "Reusing an order ID with a different SKU or quantity returns idempotency_conflict. A key that does not match the order ID returns idempotency_key_mismatch. Use a new order ID for a different business intent.",
+          "Cancellation records its intent and releases stock once. Retry an interrupted cancellation with the same order ID and key. There is no transaction spanning the two databases, so inspect the final order and reservation rather than inferring success from a network response."
+        ],
+        "code": "atrax call actions.call --key order-42 --input '{\"appId\":\"ORDERS_APP_ID\",\"actionName\":\"orders.cancel\",\"input\":{\"orderId\":\"order-42\"}}' --json"
+      },
+      {
+        "heading": "Keep caller permissions across both apps",
+        "paragraphs": [
+          "The caller needs access to Orders and its operation, plus access to Inventory and the target stock action. Restricting stock.reserve prevents the same person from reserving through Orders, their CLI, their agent, or a retry.",
+          "A dependency declaration does not grant access. Check the current app and action audiences if a call is denied. Removing workspace membership stops workspace-derived access for existing sessions too."
         ]
       }
     ]
@@ -262,7 +288,7 @@ export const docs: Record<string, DocPage> = {
       {
         "heading": "Deploy once, update the same app",
         "paragraphs": [
-          "Local development is account-free. Hosted deployment uses verified workspace membership. The maintainer\u2019s CLI uploads a validated artifact, prepares an isolated candidate, checks its private gateway, and follows the durable job to completion."
+          "Local development is account-free. Hosted deployment uses verified workspace membership. The maintainer’s CLI uploads a validated artifact, prepares an isolated candidate, checks its private gateway, and follows the durable job to completion."
         ]
       },
       {
@@ -328,13 +354,29 @@ export const docs: Record<string, DocPage> = {
       {
         "heading": "Company-only by default",
         "paragraphs": [
-          "Every active workspace member can open a new app. A maintainer can narrow the audience to selected coworkers, assign maintainers, and control each action\u2019s audience and explicit denials. Workspace owners and admins manage membership."
+          "Every active workspace member can open a new app. A maintainer can narrow the audience to selected coworkers, assign maintainers, and control each action’s audience and explicit denials. Workspace owners and admins manage membership."
         ]
       },
       {
         "heading": "Private guests and public pages",
         "paragraphs": [
           "Workspace admins can invite a verified external email to an exact app and explicitly selected actions. A forwarded invitation is not proof of that email. Public publishing requires explicit confirmation from an admin. It publishes the web interface; app actions and Library remain protected."
+        ]
+      },
+      {
+        "heading": "Invite a guest without changing the team audience",
+        "paragraphs": [
+          "A workspace owner or admin can invite an external email to one app. The guest accepts after signing in with the exact invited address. A forwarded invitation alone does not grant access.",
+          "Omitting --actions grants app-page access without business action grants. Discover the actions needed by the interface before selecting them. Inviting a guest preserves the existing workspace audience and public-web setting."
+        ],
+        "code": "atrax call actions.list --input '{\"appId\":\"APP_ID\"}' --json\natrax share guest@example.com --app APP_ID --actions orders.list,orders.get --key guest-invite-v1 --json\natrax call apps.guests.list --input '{\"appId\":\"APP_ID\"}' --json",
+        "note": "The action names in this example belong to Orders. Use the names returned by the target app. Connected operations may also need access to the dependency app."
+      },
+      {
+        "heading": "Recipient-only access in the next release",
+        "paragraphs": [
+          "The 0.3.0 source candidate allows an empty selected-person workspace audience, followed by an explicit guest grant. This recipient-only behavior is awaiting hosted rollout. The current hosted release requires at least one selected workspace person.",
+          "After rollout, the empty selected audience removes live app use from workspace members while maintainers retain management and private-candidate authority. To establish recipient-only access, also verify that public web is off, remove other accepted guests, and cancel other pending invitations."
         ]
       },
       {
@@ -355,7 +397,7 @@ export const docs: Record<string, DocPage> = {
       {
         "heading": "Contribute company knowledge",
         "paragraphs": [
-          "Save policies, terminology, preferences, and decisions as entries. An agent can deliberately save \u201cwe do not use blue in our company\u201d with library.entry.create. Current stock and orders belong in the apps that own those live records."
+          "Save policies, terminology, preferences, and decisions as entries. An agent can deliberately save “we do not use blue in our company” with library.entry.create. Current stock and orders belong in the apps that own those live records."
         ]
       },
       {
@@ -373,7 +415,7 @@ export const docs: Record<string, DocPage> = {
       {
         "heading": "Permission-aware sources",
         "paragraphs": [
-          "Company-wide is the default audience. Selected audiences restrict access. A derived entry also depends on its sources\u2019 current permissions, including historical revisions. Search filters access before returning titles, snippets, or content. Automatic Drive/Notion synchronization and conversation capture are not included."
+          "Company-wide is the default audience. Selected audiences restrict access. A derived entry also depends on its sources’ current permissions, including historical revisions. Search filters access before returning titles, snippets, or content. Automatic Drive/Notion synchronization and conversation capture are not included."
         ]
       }
     ]
@@ -381,7 +423,7 @@ export const docs: Record<string, DocPage> = {
   "actions": {
     "slug": "actions",
     "title": "Actions",
-    "description": "Named app actions that preserve the employee\u2019s permissions.",
+    "description": "Named app actions that preserve the employee’s permissions.",
     "group": "Products",
     "status": "available",
     "sections": [
@@ -393,9 +435,32 @@ export const docs: Record<string, DocPage> = {
         "code": "atrax call actions.list --input '{\"appId\":\"<id>\"}' --json\natrax call actions.call --key order-42 --input '{\"appId\":\"<orders-id>\",\"actionName\":\"orders.create\",\"input\":{\"orderId\":\"order-42\",\"sku\":\"<sku>\",\"quantity\":1}}' --json"
       },
       {
+        "heading": "Use actions from an app or an agent",
+        "paragraphs": [
+          "An action is one named operation with an input schema, an output schema, and a read or write effect. A browser interface, CLI user, agent, or another app can call it when the person has the required permissions.",
+          "Discover the published action names and inspect their schemas before constructing a request. A page being public does not make its actions public."
+        ]
+      },
+      {
+        "heading": "Connect a declared dependency",
+        "paragraphs": [
+          "Declare the target app ID under a local alias in atrax.json. From an action handler, call that alias with actions.call. The target receives the original caller's restrictions, not a general-purpose credential for the source app.",
+          "Both apps must belong to the same workspace. The Inventory and Orders guide demonstrates the full flow, including a retried reservation and cancellation."
+        ],
+        "code": "// In an action handler with a declared inventory dependency:\nconst reservation = await ctx.actions.call(\n\t'inventory', 'stock.reserve', input, { key: input.orderId }\n);"
+      },
+      {
+        "heading": "Treat writes as business operations",
+        "paragraphs": [
+          "Supply a stable key for a write and keep the original input when retrying it. The action handler owns its business retry rules. Atrax records the invocation identity but cannot deduplicate arbitrary side effects inside customer code.",
+          "Read the action result as well as the transport status. An accepted invocation can return a business outcome such as insufficient stock. A network timeout does not establish whether a write committed."
+        ]
+      },
+      {
         "heading": "Limits",
         "paragraphs": [
-          "A request capability has bounded lifetime, depth, and call count and closes when the invocation ends. Preview environments do not receive bindings to live apps or credentials. Workspace admins manage credentials through Secrets; third-party OAuth connectors remain separate future work."
+          "A request capability has bounded lifetime, depth, and call count. It closes when the invocation ends. Preview environments do not receive bindings to live apps or credentials.",
+          "Shared Secrets for trusted app backends is awaiting the 0.3.0 hosted rollout. Third-party OAuth connectors and scheduled background work remain separate future capabilities."
         ]
       }
     ]
@@ -410,7 +475,7 @@ export const docs: Record<string, DocPage> = {
       {
         "heading": "Sign in once",
         "paragraphs": [
-          "Use a separate named login for each agent connection. It acts as your verified person. You can revoke that session without removing another device\u2019s session."
+          "Use a separate named login for each agent connection. It acts as your verified person. You can revoke that session without removing another device’s session."
         ],
         "code": "atrax login --agent \"Operations agent\"\natrax workspace use <workspace-id>"
       },
@@ -481,12 +546,12 @@ export const docs: Record<string, DocPage> = {
   "status": {
     "slug": "status",
     "title": "Feature status",
-    "description": "The first launch focuses on a complete company app workflow.",
+    "description": "What you can use now, what is awaiting rollout, and what remains planned.",
     "group": "Operate",
     "status": "mixed",
     "sections": [
       {
-        "heading": "First launch",
+        "heading": "Available on the hosted service",
         "bullets": [
           "Create and run apps locally without an account.",
           "Verify an email, create/join a workspace, and deploy without a Cloudflare account.",
@@ -494,10 +559,21 @@ export const docs: Record<string, DocPage> = {
           "Share with coworkers, appoint maintainers, and restrict named actions.",
           "Connect Inventory and Orders with reliable business retries.",
           "Contribute and correct Library guidance; upload files manually or through the CLI.",
-          "Manage encrypted Secrets and grant them to trusted app backends.",
-          "Inspect recorded app operations and recover code or database snapshots separately.",
-          "Use your existing agent through MCP with the same permissions."
+          "Use your existing agent through MCP with the same permissions.",
+          "Inspect deployments, capture snapshots, roll back code, and restore data through the existing CLI operations."
         ]
+      },
+      {
+        "heading": "Awaiting the 0.3.0 hosted rollout",
+        "paragraphs": [
+          "The public CLI is atrax-cloud@0.2.1. The following features are implemented and locally verified in the 0.3.0 source candidate. They are not yet available on the hosted service."
+        ],
+        "bullets": [
+          "Secrets: administrator-managed credentials, named app bindings, rotation, and revocation.",
+          "App operations: a consolidated console and apps.operations.get for recent deployments, releases, snapshots, and recorded action counts.",
+          "Recipient-only sharing: an empty selected-person workspace audience with an explicit guest grant."
+        ],
+        "note": "The matching CLI release and hosted rollout must be published before using these features. The Secrets and App operations guides distinguish upcoming behavior from existing operations."
       },
       {
         "heading": "Deferred",
@@ -509,24 +585,164 @@ export const docs: Record<string, DocPage> = {
         ]
       }
     ]
+  },
+  "secrets": {
+    "slug": "secrets",
+    "title": "Secrets",
+    "description": "Credential storage and app bindings prepared for the next release.",
+    "group": "Products",
+    "status": "planned",
+    "sections": [
+      {
+        "heading": "Release availability",
+        "paragraphs": [
+          "Secrets is implemented in the 0.3.0 source candidate and is not yet available on the hosted service. The public CLI remains 0.2.1. The commands and backend API on this page describe the upcoming release.",
+          "Use these instructions after the matching CLI and hosted rollout are published. Workspace credentials belong in Secrets, separately from company files and guidance in Library."
+        ]
+      },
+      {
+        "heading": "Choose who can manage and use a credential",
+        "bullets": [
+          "Workspace owners and admins create, rename, rotate, grant, and revoke credentials. Listing metadata also requires an owner or admin.",
+          "An app grant trusts the app backend and its maintainers with the credential. People call that backend through their permitted app actions.",
+          "An agent acts with the current permissions of the person who connected it. An agent session does not grant extra credential access.",
+          "Management returns metadata only. There is no operation to reveal or download a stored value."
+        ]
+      },
+      {
+        "heading": "Store a credential",
+        "paragraphs": [
+          "Sign in and select the workspace. Pipe a protected file or password-manager output through stdin. Keep the value out of command arguments, source control, Library, and agent transcripts.",
+          "The CLI preserves stdin exactly, including a trailing newline. Check the input format expected by the credential provider. A value must contain 1 to 16,384 characters.",
+          "The create result includes the credential ID, revision, and an empty app-grant list. Save the ID. Creation does not grant any app access."
+        ],
+        "code": "atrax login\natrax workspace use WORKSPACE_ID\natrax secrets create payments --stdin --key payments-create-v1 < /secure/payments-key\natrax secrets list --json"
+      },
+      {
+        "heading": "Grant named bindings to apps",
+        "paragraphs": [
+          "Read the current metadata and choose a binding name for each trusted app. Apps must belong to the same workspace. Binding names start with an uppercase letter and contain only uppercase letters, digits, and underscores, up to 64 characters.",
+          "set-apps replaces the complete grant list. Include every app that should retain access. Each app can have one binding for this credential, and a binding name cannot identify two credentials in the same app.",
+          "Replace SECRET_ID, APP_ID, and CURRENT_REVISION with observed values. Every successful change returns a new revision."
+        ],
+        "code": "atrax secrets list --json\natrax secrets set-apps SECRET_ID --revision CURRENT_REVISION --apps APP_ID:PAYMENTS_API_KEY --key payments-grant-v1",
+        "note": "Removing one app means submitting the remaining grants. Use --apps none to remove all grants while retaining the stored credential."
+      },
+      {
+        "heading": "Read the binding in a live action",
+        "paragraphs": [
+          "After the Secrets release is available, rebuild existing apps with the matching CLI and deploy them normally once. Preserve their lockfiles. Older deployed runtimes do not provide ctx.secrets.get or the required gateway binding.",
+          "The action handler retrieves the binding through its request context. Each retrieval checks the live invocation and current app grant, then returns the current credential value.",
+          "Keep the value inside the trusted backend. Do not return it to the browser, include it in an action result, or write it to logs. An app grant cannot prevent trusted application code from copying a retrieved value."
+        ],
+        "code": "async handler(input, ctx) {\n\tconst key = await ctx.secrets.get('PAYMENTS_API_KEY');\n\tconst response = await fetch('https://api.example.com/records', {\n\t\theaders: { Authorization: `Bearer ${key}` }\n\t});\n\treturn { ok: response.ok };\n}"
+      },
+      {
+        "heading": "Rotate a value or revoke access",
+        "paragraphs": [
+          "For rotation, read the latest revision and supply the replacement value through stdin. Future retrievals use the replacement without an app redeployment. A value already retrieved by an in-flight action is not recalled.",
+          "To stop app access temporarily, remove the grants with set-apps. To revoke the credential permanently, use revoke. Revocation erases the current stored value, removes every grant, and leaves the metadata marked revoked.",
+          "Revocation does not invalidate the credential at its provider, erase copies already retrieved, or remove historical database backups. Revoke or rotate it with its provider when necessary. A revoked Atrax credential cannot be reactivated."
+        ],
+        "code": "atrax secrets rotate SECRET_ID --revision CURRENT_REVISION --stdin --key payments-rotate-v2 < /secure/replacement-key\n\n# Read the new revision before a separate change.\natrax secrets list --json\natrax secrets revoke SECRET_ID --revision CURRENT_REVISION --key payments-revoke-v1"
+      },
+      {
+        "heading": "Handle conflicts and retries",
+        "bullets": [
+          "revision_conflict: read current metadata, review the other change, and submit your revised intent with that revision and a new key.",
+          "idempotency_conflict: the key was already used with different input. Reuse a key only to retry the exact same request.",
+          "secret_changed: inspect the app workspace and existing binding names, then refresh the metadata before resubmitting.",
+          "secret_not_available: the live action cannot retrieve that binding. Check its spelling and the app grant.",
+          "secret_revoked: create a new credential if the app needs access again."
+        ],
+        "note": "If a response is lost, retry the original input and key first. A saved receipt can confirm the completed write without repeating it."
+      },
+      {
+        "heading": "Local development, previews, and agents",
+        "paragraphs": [
+          "Ordinary atrax dev has no workspace Secrets connection. Preview and deployment-candidate environments cannot retrieve live credentials. Use non-sensitive fixtures for those checks.",
+          "After the release, inspect secrets.* operation schemas before using the generic CLI or MCP interface. Dedicated secrets commands keep values on stdin. HTTP and MCP clients can record request bodies, so choose input and logging settings that keep credentials out of transcripts."
+        ],
+        "code": "atrax operations inspect secrets.create --json\natrax operations inspect secrets.setApps --json"
+      }
+    ]
+  },
+  "operations": {
+    "slug": "operations",
+    "title": "App operations",
+    "description": "Inspect deployments and recover code or data, with availability for the upcoming console.",
+    "group": "Operate",
+    "status": "mixed",
+    "sections": [
+      {
+        "heading": "Release availability",
+        "paragraphs": [
+          "The CLI operations for inspecting deployments, rolling back code, capturing snapshots, and restoring data are available in the current release.",
+          "The consolidated App operations console and apps.operations.get are implemented in the 0.3.0 source candidate. They are awaiting hosted rollout. The console and recorded action-count descriptions below apply to that upcoming release."
+        ]
+      },
+      {
+        "heading": "Find the app and its current release",
+        "paragraphs": [
+          "Use an app maintainer session. Opening an app as a member or guest does not grant permission to inspect deployment records or perform recovery.",
+          "Read the app ID from the workspace or the app lockfile. Inspect the app and its releases before choosing a recovery target. Keep the observed active release ID for operations that require expectedReleaseId."
+        ],
+        "code": "atrax call apps.get --input '{\"appId\":\"APP_ID\"}' --json\natrax call releases.list --input '{\"appId\":\"APP_ID\"}' --json\natrax call backups.list --input '{\"appId\":\"APP_ID\"}' --json"
+      },
+      {
+        "heading": "Inspect a deployment",
+        "paragraphs": [
+          "Read the deployment ID returned by deploy or a recovery operation. deployments.get reports its status, phase, error, and cleanup progress. Preparation is not publication.",
+          "At awaiting_verification, the candidate is private. deployments.verify checks that candidate using your current session and attempts promotion. Report the update as complete only when the deployment reports succeeded.",
+          "If a provider response is uncertain, inspect the job before taking another action. A timeout does not establish whether the provider changed a resource. Run atrax deploy again to resume a saved CLI attempt."
+        ],
+        "code": "atrax call deployments.get --input '{\"appId\":\"APP_ID\",\"deploymentId\":\"DEPLOYMENT_ID\"}' --json\n\n# Use this once the deployment is awaiting_verification.\natrax call deployments.verify --key verify-reviewed-candidate-v1 --input '{\"appId\":\"APP_ID\",\"deploymentId\":\"DEPLOYMENT_ID\"}' --json"
+      },
+      {
+        "heading": "Roll back code while retaining data",
+        "paragraphs": [
+          "Choose a previously deployed release and inspect deployments.plan. Code rollback keeps business records and compatible additive schema. It does not restore the database to the date of that release.",
+          "Submit deployments.rollback with the target release and the observed current release. Follow the returned deployment through preparation, verification, and completion.",
+          "If another deployment changes the live release, refresh the app state and review the target again. Do not substitute a new expectedReleaseId without checking what changed."
+        ],
+        "code": "atrax call deployments.plan --input '{\"appId\":\"APP_ID\",\"releaseId\":\"TARGET_RELEASE_ID\",\"expectedReleaseId\":\"CURRENT_RELEASE_ID\"}' --json\natrax call deployments.rollback --key rollback-reviewed-release-v1 --input '{\"appId\":\"APP_ID\",\"releaseId\":\"TARGET_RELEASE_ID\",\"expectedReleaseId\":\"CURRENT_RELEASE_ID\"}' --json"
+      },
+      {
+        "heading": "Capture a database snapshot",
+        "paragraphs": [
+          "Create a snapshot when you need a recovery point for an app with a database. The capture refers to the observed release. D1 pauses queries while it exports the database.",
+          "Read the returned backup ID and inspect backups.get until capture completes. If capture is interrupted, use backups.resume with that ID. The snapshot timestamp and completed status establish what data is available for a restore."
+        ],
+        "code": "atrax call backups.create --key snapshot-before-change-v1 --input '{\"appId\":\"APP_ID\",\"expectedReleaseId\":\"CURRENT_RELEASE_ID\"}' --json\natrax call backups.get --input '{\"appId\":\"APP_ID\",\"backupId\":\"BACKUP_ID\"}' --json"
+      },
+      {
+        "heading": "Restore data into a new database",
+        "paragraphs": [
+          "Inspect data.restore.plan for the chosen snapshot. Review its capture time, original database, matching release, and connected apps before deciding to proceed.",
+          "data.restore.start requires the expected live release and explicit confirmation of the original database ID, snapshot timestamp, connected app IDs, and retention of the original database. Use the observed values from the plan.",
+          "Restore prepares a new database and matching code for verification. The original database and its later writes are retained. Restoring Inventory does not rewind Orders or any other connected app. Review those records before publishing the restored candidate."
+        ],
+        "code": "atrax call data.restore.plan --input '{\"appId\":\"APP_ID\",\"backupId\":\"BACKUP_ID\"}' --json\natrax operations inspect data.restore.start --json",
+        "note": "Code rollback and data restore are separate decisions. A restore plan does not change the live app. After a successful rollback or restore, review the new live release and run atrax link APP_ID in your checkout before the next ordinary deployment."
+      },
+      {
+        "heading": "Read the upcoming App operations console",
+        "paragraphs": [
+          "After rollout, open an app in the workspace to see its deployment state, release history, failed attempts, snapshots, and recorded action calls. apps.operations.get provides the same summary for CLI and MCP clients.",
+          "The summary contains the 10 most recent deployments, 10 most recent releases, and 5 most recent snapshots. Use the corresponding list or get operation when investigating beyond this summary."
+        ],
+        "code": "atrax call apps.operations.get --input '{\"appId\":\"APP_ID\"}' --json"
+      },
+      {
+        "heading": "Interpret recorded action counts",
+        "paragraphs": [
+          "The upcoming summary counts recorded action invocations in the last 24 hours, including previews. It separates succeeded, failed, running, and interrupted calls, both overall and by action name.",
+          "Interrupted means the invocation expired without a recorded completion. It does not prove that the action made no business change. Inspect the business record and retry with the original key when the action supports that recovery.",
+          "These counts are not HTTP request totals, billed usage, or an uptime measurement. An empty count is not proof that an app is unavailable."
+        ]
+      }
+    ]
   }
-};
-docs.secrets = {
-  slug: "secrets", title: "Secrets", description: "Share credentials with trusted app backends.", group: "Products", status: "available",
-  sections: [
-    { heading: "Store a credential", paragraphs: ["Workspace owners and admins manage Secrets in the workspace console or through the same CLI and MCP operations. Credentials are separate from Library. Atrax encrypts stored values and returns metadata only; there is no reveal or download operation.", "For CLI writes, pipe a protected file or password-manager output through stdin. Stdin is preserved exactly, including trailing newlines. Keep values out of command arguments, source files, Library, client logs, and agent transcripts."], code: "atrax secrets create payments --stdin --key payments-create < /secure/payments-key\natrax secrets list --json" },
-    { heading: "Grant an app access", paragraphs: ["Choose the apps that need a credential and give each a binding name. A grant trusts the app's backend code and its maintainers with the value. Ordinary members use it through actions they can call; they cannot manage credentials. The backend must keep retrieved values out of its own responses and logs."], code: "atrax secrets set-apps <secret-id> --revision 1 --apps <app-id>:PAYMENTS_API_KEY --key payments-grant\n\n// Inside an app action:\nconst key = await ctx.secrets.get('PAYMENTS_API_KEY');\nconst response = await fetch('https://api.example.com/records', {\n  headers: { Authorization: `Bearer ${key}` }\n});", note: "Use the revision returned by the latest write or secrets list. The example revision is not a fixed value." },
-    { heading: "Rotate or revoke", paragraphs: ["Rotation replaces the value for every granted app. Each retrieval checks current permissions and reads the current value, so customer rotations need no deployment. A stale revision is rejected; read current metadata before changing it.", "Revocation erases Atrax's current stored value and removes all app grants. It does not revoke the credential at its provider, erase previously retrieved copies, or remove historical database backups. Revoke it with the provider too when required."], code: "atrax secrets rotate <secret-id> --revision <current-revision> --stdin --key payments-rotate < /secure/replacement-key\natrax secrets revoke <secret-id> --revision <current-revision> --key payments-revoke" },
-    { heading: "Development and agents", paragraphs: ["Live app actions receive request-scoped access. Preview and candidate environments cannot use live credentials. Ordinary atrax dev has no workspace Secrets connection; use non-sensitive test fixtures for local development.", "Agents use the same admin permissions. Inspect secrets.* operation schemas before calling them. Generic CLI writes with sensitive input use atrax call <operation> --stdin; the dedicated secrets commands are simpler. HTTP and MCP clients may record request bodies, so configure their logging and input handling accordingly."] },
-  ],
-};
-docs.operations = {
-  slug: "operations", title: "App operations", description: "Inspect deployments, action calls, and recovery options.", group: "Operate", status: "available",
-  sections: [
-    { heading: "Inspect the app", paragraphs: ["Open an app from your workspace to inspect its deployment status, release history, failed deployments, and database snapshots. Maintainers can inspect these records through apps.operations.get too.", "Action usage shows recorded calls during the last 24 hours, including previews. It separates successful, failed, running, and interrupted calls. An interrupted call expired without a recorded completion. These counts are not HTTP request totals, billed usage, or a measured uptime check."], code: "atrax call apps.operations.get --input '{\"appId\":\"<app-id>\"}' --json" },
-    { heading: "Recover code", paragraphs: ["Choose a previously deployed release for code rollback. Atrax retains business data and compatible additive schema. Preparation creates a private candidate; verification must succeed before it becomes live. If another deployment changes the live release, inspect the new state before trying again.", "The console exposes preparation, verification, retry, and completion separately. Through the CLI or MCP, inspect deployments.get, call deployments.verify at awaiting_verification, and report completion only after succeeded."] },
-    { heading: "Recover data", paragraphs: ["Create a database snapshot before changes that need a recovery point. D1 pauses queries while exporting. Snapshot capture can be resumed after an interruption.", "A data restore creates a new database from a snapshot and retains the original database. Review the capture time and connected apps, then explicitly confirm the restore plan. Connected apps may hold newer records; their data is not rewound. Code rollback and data restore are separate decisions."] },
-  ],
 };
 export const docOrder = [
   "quickstart",

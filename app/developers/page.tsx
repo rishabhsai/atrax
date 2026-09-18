@@ -1,3 +1,5 @@
+import { SupportHero } from "../components/SupportHero";
+import styles from "../components/support.module.css";
 import Link from "next/link";
 import { AgentCommand } from "../components/AgentCommand";
 
@@ -33,31 +35,18 @@ const commands = [
 
 export default function DevelopersPage() {
   return (
-    <main className="developers-page">
-      <section className="page-hero page-hero-dark">
-        <div className="shell page-hero-grid">
-          <div>
-            <h1>Build locally. Run it for your company.</h1>
-            <p>
-              Use the CLI to create, develop, deploy, and manage apps. Connect
-              the agent you already use through MCP to work with the same
-              workspace permissions.
-            </p>
-            <div className="hero-actions">
-              <a className="button button-orange" href="/agents.md">
-                Give this to your agent <span aria-hidden="true">→</span>
-              </a>
-              <Link className="text-link" href="/docs/mcp">
-                Connect MCP <span aria-hidden="true">↗</span>
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
+    <main className={styles.page}>
+      <SupportHero
+        eyebrow="Developers"
+        title="Build locally. Run it for your company."
+        description="Use the CLI to create, develop, deploy, and manage apps. Connect the agent you already use through MCP to work with the same workspace permissions."
+      >
+        <Link className="button button-dark" href="/#hero">Start building <span aria-hidden="true">→</span></Link><Link className="text-link" href="/docs/mcp">Connect MCP <span aria-hidden="true">↗</span></Link>
+      </SupportHero>
 
-      <section className="section shell cli-orientation">
-        <div className="section-split">
-          <div className="split-copy">
+      <section className={`${styles.section} ${styles.shell} ${styles.orientation}`}>
+        <div className={styles.split}>
+          <div className={styles.copy}>
             <h2>Readable commands. Structured results.</h2>
             <p>
               Use <code>--json</code> for machine-readable command results.
@@ -73,7 +62,7 @@ export default function DevelopersPage() {
               .
             </p>
           </div>
-          <nav className="agent-files" aria-label="Agent references">
+          <nav className={styles.references} aria-label="Agent references">
             <a href="/agents.md">
               <span>agents.md</span>
               <small>Canonical setup and workflow guide</small>
@@ -95,17 +84,17 @@ export default function DevelopersPage() {
         <AgentCommand />
       </section>
 
-      <section className="sharing-section" id="private-sharing">
-        <div className="shell">
-          <div className="section-intro">
+      <section className={styles.sharing} id="private-sharing">
+        <div className={styles.shell}>
+          <div className={styles.intro}>
             <h2>Share a private app with one person.</h2>
             <p>
               An owner or admin can invite a verified email to one app. The
               guest proves control of that exact email before opening it.
             </p>
           </div>
-          <div className="share-recipe-grid">
-            <ol className="recipe-steps">
+          <div className={styles.recipe}>
+            <ol className={styles.recipeSteps}>
               <li>
                 <strong>Review access</strong>
                 <p>
@@ -128,7 +117,7 @@ export default function DevelopersPage() {
                 </p>
               </li>
             </ol>
-            <div className="recipe-code">
+            <div className={styles.recipeCode}>
               <pre>
                 <code>{String.raw`atrax share reviewer@example.com \
   --app <app-id> \
@@ -140,7 +129,7 @@ export default function DevelopersPage() {
               </p>
             </div>
           </div>
-          <div className="sharing-caveat">
+          <div className={styles.caveat}>
             <strong>Private means private</strong>
             <p>
               Public web must be off for a private review. A guest grant covers
@@ -153,11 +142,11 @@ export default function DevelopersPage() {
         </div>
       </section>
 
-      <section className="section shell">
-        <div className="section-intro">
+      <section className={`${styles.section} ${styles.shell}`}>
+        <div className={styles.intro}>
           <h2>Work from a new app to a connected workspace.</h2>
         </div>
-        <div className="command-examples">
+        <div className={styles.commands}>
           {commands.map(([title, code, copy]) => (
             <article key={title}>
               <div>
@@ -172,9 +161,9 @@ export default function DevelopersPage() {
         </div>
       </section>
 
-      <section className="section shell rule-top">
-        <div className="section-split">
-          <div className="split-copy">
+      <section className={`${styles.section} ${styles.shell} ${styles.rule}`}>
+        <div className={styles.split}>
+          <div className={styles.copy}>
             <h2>Use the same operations from the CLI and MCP.</h2>
             <p>
               Both interfaces use the platform operation registry and check the
@@ -183,7 +172,7 @@ export default function DevelopersPage() {
               login flow.
             </p>
           </div>
-          <div className="cli-details">
+          <div className={styles.details}>
             <h3>More operations</h3>
             <p>
               <code>atrax call &lt;operation&gt;</code> covers team invitations,
@@ -202,8 +191,8 @@ export default function DevelopersPage() {
           </div>
         </div>
       </section>
-      <section className="final-cta">
-        <div className="shell final-cta-grid">
+      <section className={styles.cta}>
+        <div className={`${styles.shell} ${styles.ctaGrid}`}>
           <div>
             <h2>Give your agent the guide.</h2>
           </div>

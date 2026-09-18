@@ -1,3 +1,5 @@
+import { SupportHero } from "../components/SupportHero";
+import styles from "../components/support.module.css";
 import Link from "next/link";
 
 export const metadata = {
@@ -8,26 +10,17 @@ export const metadata = {
 
 export default function CompanyPage() {
   return (
-    <main>
-      <section className="page-hero page-hero-orange">
-        <div className="shell page-hero-grid">
-          <div>
-            <h1>Your business has its own way of working.</h1>
-            <p>
-              Your software should fit it. Atrax is a cloud for small businesses
-              building and running their own internal tools with the agents they
-              already use.
-            </p>
-            <div className="button-row">
-              <Link className="button button-dark" href="/solutions">
-                Explore the use cases <span aria-hidden="true">→</span>
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
-      <section className="section shell company-thesis">
-        <div className="section-intro">
+    <main className={styles.page}>
+      <SupportHero
+        eyebrow="About Atrax"
+        title="Your business has its own way of working."
+        description="Your software should fit it. Atrax is a cloud for small businesses building and running their own internal tools with the agents they already use."
+        artwork="threads"
+      >
+        <Link className="button button-dark" href="/solutions">Explore the use cases <span aria-hidden="true">→</span></Link>
+      </SupportHero>
+      <section className={`${styles.section} ${styles.shell} ${styles.thesis}`}>
+        <div className={styles.intro}>
           <h2>The prototype is only the beginning.</h2>
         </div>
         <div>
@@ -47,8 +40,8 @@ export default function CompanyPage() {
           </p>
         </div>
       </section>
-      <section className="principles">
-        <div className="shell">
+      <section className={styles.principles}>
+        <div className={styles.shell}>
           {[
             [
               "Useful software first",
@@ -74,8 +67,8 @@ export default function CompanyPage() {
           ))}
         </div>
       </section>
-      <section className="final-cta">
-        <div className="shell final-cta-grid">
+      <section className={styles.cta}>
+        <div className={`${styles.shell} ${styles.ctaGrid}`}>
           <div>
             <h2>A cloud for the tools your team needs.</h2>
           </div>

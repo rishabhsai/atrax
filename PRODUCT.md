@@ -54,11 +54,17 @@ copy feedback, the direct agent guide, and the local-start/quickstart note.
 The homepage tells the full capability story with distinct compositions. Apps
 uses a woven frame on database layers, Database is the adjoining compact strip,
 Access uses a braided boundary on dark olive, Library uses a fabric-bound folio,
-and Actions pairs a clearly labeled interactive workflow with interwoven threads.
+and Actions uses a wide illustration of interwoven threads. Connected-app examples belong in the documentation.
 Navigation scrolls to these sections. Documentation contains implementation
 details. Existing product deep links remain available.
 
 Motion adds gentle pointer depth to the hero, a brief entrance, one-time artwork
-reveals, and a sliding workflow indicator. It never hides essential content or
-runs indefinitely. Respect reduced motion and touch input. The console uses real
-state and stays separate from the illustrated marketing workflow.
+reveals, and understated link feedback. It never hides essential content or
+runs indefinitely. Respect reduced motion and touch input. The closing action
+returns to the hero's installer and copyable prompt.
+
+Carry the paper, copper, olive, and woven visual family through supporting pages,
+documentation, and the workspace console. Entry and empty screens can use new
+artwork. Working screens prioritize readable records, access controls, and forms.
+The console only shows real state. Documentation distinguishes hosted features
+from the unreleased Secrets, operations summary, and recipient-only sharing work.

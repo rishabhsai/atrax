@@ -416,78 +416,9 @@
 .actions-heading .body-copy {
   margin-top: 33px;
 }
-.action-story {
-  position: relative;
-  z-index: 1;
-  margin-top: 62px;
-}
-.story-top {
-  display: flex;
-  justify-content: space-between;
-  color: var(--muted);
-  font-size: 11px;
-  padding-bottom: 22px;
-  border-bottom: 1px solid var(--line);
-}
-.story-steps {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 0;
-}
-.story-steps button {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  text-align: left;
-  gap: 5px;
-  padding: 28px 28px 27px 0;
-  border: 0;
-  background: transparent;
-  color: var(--muted);
-  min-width: 0;
-}
-.story-steps button > span {
-  font-size: 12px;
-  color: var(--copper);
-  margin-bottom: 12px;
-}
-.story-steps strong {
-  font-size: 22px;
-  font-weight: 550;
-  line-height: 1.25;
-  letter-spacing: -0.025em;
-}
-.story-steps small {
-  font-size: 12px;
-  margin-top: 4px;
-}
-.story-steps button[aria-pressed="true"] {
-  color: var(--ink);
-}
-.story-steps button:hover strong {
-  color: var(--copper);
-}
-.story-track {
-  height: 2px;
-  background: var(--line);
-}
-.story-track > span {
-  display: block;
-  width: 33.333%;
-  height: 2px;
-  background: var(--copper);
-  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.story-description {
-  max-width: 660px;
-  min-height: 96px;
-  font-size: 15px;
-  color: var(--muted);
-  padding-top: 23px;
-}
 .action-weave {
   height: 320px;
-  margin-top: -22px;
+  margin-top: 36px;
   position: relative;
 }
 .action-weave img {
@@ -814,38 +745,9 @@
   .actions-heading .body-copy {
     margin-top: 0;
   }
-  .action-story {
-    margin-top: 36px;
-  }
-  .story-top {
-    font-size: 10px;
-    gap: 20px;
-    padding-bottom: 16px;
-  }
-  .story-steps button {
-    padding: 20px 7px 21px 0;
-    gap: 4px;
-  }
-  .story-steps button > span {
-    margin-bottom: 8px;
-    font-size: 10px;
-  }
-  .story-steps strong {
-    font-size: 16px;
-    line-height: 1.25;
-  }
-  .story-steps small {
-    font-size: 10px;
-  }
-  .story-description {
-    font-size: 13px;
-    line-height: 1.7;
-    min-height: 126px;
-    padding-top: 21px;
-  }
   .action-weave {
     height: 195px;
-    margin-top: 0;
+    margin-top: 24px;
   }
   .action-weave img {
     object-position: center bottom;
@@ -866,11 +768,6 @@
     max-width: 30ch;
     margin-inline: auto;
     line-height: 1.7;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .story-track > span {
-    transition: none;
   }
 }
 

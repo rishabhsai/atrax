@@ -21,6 +21,7 @@ import {
   LoadingPanel,
 } from "./ConsoleFrame";
 import { CreateWorkspace } from "./CreateWorkspace";
+import { ConsoleArtwork } from "./ConsoleArtwork";
 import { useSession } from "./useConsole";
 import styles from "./console.module.css";
 
@@ -52,11 +53,14 @@ function WorkspaceSelection({ session }: { session: Session }) {
           ))}
         </ul>
       ) : (
-        <div className={styles.empty}>
-          <h2>Your team starts here</h2>
-          <p>
-            Create a workspace below, or open an invitation sent by your team.
-          </p>
+        <div className={`${styles.empty} ${styles.emptyWithArt}`}>
+          <div>
+            <h2>Your team starts here</h2>
+            <p>
+              Create a workspace below, or open an invitation sent by your team.
+            </p>
+          </div>
+          <ConsoleArtwork kind="workspace" />
         </div>
       )}
       {session.invitations.length > 0 && (
@@ -141,14 +145,17 @@ function AppDirectory({ workspaceId }: { workspaceId: string }) {
     );
   if (state.apps.length === 0)
     return (
-      <section className={styles.empty}>
-        <h2>No apps are available yet</h2>
-        <p>
-          Deploy an app with your agent to make it available to your team here.
-        </p>
-        <Link href="/docs/quickstart/" className={styles.primary}>
-          Create an app
-        </Link>
+      <section className={`${styles.empty} ${styles.emptyWithArt}`}>
+        <div>
+          <h2>No apps are available yet</h2>
+          <p>
+            Deploy an app with your agent to make it available to your team here.
+          </p>
+          <Link href="/docs/quickstart/" className={styles.primary}>
+            Create an app
+          </Link>
+        </div>
+        <ConsoleArtwork kind="workspace" />
       </section>
     );
   const visible = state.apps

@@ -1,3 +1,5 @@
+import { SupportHero } from "../components/SupportHero";
+import styles from "../components/support.module.css";
 import Link from "next/link";
 import { ChipGrid } from "../components/ChipGrid";
 import { Reveal } from "../components/Reveal";
@@ -10,27 +12,17 @@ export const metadata = {
 
 export default function PricingPage() {
   return (
-    <main>
-      <section className="page-hero page-hero-dark">
-        <div className="shell page-hero-grid">
-          <div>
-            <h1>Try the workflow. Hosted pricing is coming.</h1>
-            <p>
-              Build and run an app locally with the released CLI. Hosted
-              deployment is available; commercial plans, pricing, and published
-              allowances are still being defined.
-            </p>
-            <div className="button-row">
-              <Link className="button button-orange" href="/developers">
-                Use the CLI <span aria-hidden="true">→</span>
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
-      <section className="section shell pricing-now">
-        <div className="section-split section-split-center">
-          <Reveal className="split-copy pricing-figure">
+    <main className={styles.page}>
+      <SupportHero
+        eyebrow="Pricing"
+        title="Try the workflow. Hosted pricing is coming."
+        description="Build and run an app locally with the released CLI. Hosted deployment is available; commercial plans, pricing, and published allowances are still being defined."
+      >
+        <Link className="button button-dark" href="/#hero">Start building <span aria-hidden="true">→</span></Link><Link className="text-link" href="/docs">Read the quickstart <span aria-hidden="true">→</span></Link>
+      </SupportHero>
+      <section className={`${styles.section} ${styles.shell}`}>
+        <div className={styles.split}>
+          <Reveal className={styles.copy}>
             <h2>Get to know Atrax with a real app.</h2>
             <p>
               Install the CLI, create an app, and run it on your machine without
@@ -66,7 +58,7 @@ export default function PricingPage() {
             />
           </Reveal>
         </div>
-        <div className="pricing-notes">
+        <div className={styles.notes}>
           <p>
             Hosted pricing and usage allowances will be published before
             commercial plans are offered. A free hosted tier has not been
@@ -80,13 +72,13 @@ export default function PricingPage() {
           </p>
         </div>
       </section>
-      <section className="final-cta">
-        <div className="shell final-cta-grid">
+      <section className={styles.cta}>
+        <div className={`${styles.shell} ${styles.ctaGrid}`}>
           <div>
             <h2>Build the app before choosing a plan.</h2>
           </div>
-          <Link className="button button-orange" href="/developers">
-            Open the CLI guide <span aria-hidden="true">→</span>
+          <Link className="button button-orange" href="/#hero">
+            Start building <span aria-hidden="true">→</span>
           </Link>
         </div>
       </section>

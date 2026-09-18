@@ -30,7 +30,7 @@
 .fieldLabel { display: block; font-weight: 600; margin-bottom: 9px; }
 .choiceGroup label { display: flex; gap: 10px; align-items: flex-start; max-width: 560px; }
 .choiceGroup input { margin-top: 4px; }
-.choiceGroup span { display: grid; gap: 2px; }
+.choiceGroup span { min-width: 0; overflow-wrap: anywhere; display: grid; gap: 2px; }
 .choiceGroup small { color: var(--muted); }
 .picker { display: grid; justify-items: start; gap: 10px; max-width: 640px; }
 .pickerPanel {
@@ -39,13 +39,13 @@
   gap: 8px;
   padding: 16px;
   border: 1px solid var(--border);
-  border-radius: 6px;
-  background: var(--bg);
+  border-radius: 10px;
+  background: var(--surface);
 }
 .pickerPanel > label { font-weight: 600; }
 .pickerPanel > input {
-  width: 100%; min-width: 0; min-height: 42px; padding: 9px 11px;
-  color: var(--ink); background: var(--bg); border: 1px solid oklch(0.59 0.012 60); border-radius: 6px;
+  width: 100%; min-width: 0; min-height: 44px; padding: 9px 11px;
+  color: var(--ink); background: var(--surface); border: 1px solid var(--control-border); border-radius: 10px;
 }
 .checklist { max-height: 240px; overflow-y: auto; border-top: 1px solid var(--border); }
 .checklist label { display: flex; gap: 10px; align-items: flex-start; padding: 11px 4px; border-bottom: 1px solid var(--border); }
@@ -55,16 +55,16 @@
 .selectedPeople { list-style: none; display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 0; }
 .selectedPeople li { display: inline-flex; align-items: center; gap: 8px; min-width: 0; padding: 6px 8px 6px 10px; border: 1px solid var(--border); border-radius: 999px; background: var(--subtle); }
 .selectedPeople span { overflow-wrap: anywhere; }
-.selectedPeople button { min-height: 24px; border: 0; background: transparent; color: var(--muted); text-decoration: underline; cursor: pointer; }
+.selectedPeople button { min-height: 32px; border: 0; background: transparent; color: var(--muted); text-decoration: underline; cursor: pointer; }
 .selectionEmpty { color: var(--muted); font-size: 13px; margin: 0 !important; }
 .actionsBlock { border-bottom: 0; }
 .actionPolicy { border-block: 1px solid var(--border); }
 .actionPolicy + .actionPolicy { border-top: 0; }
 .actionPolicy summary { display: flex; justify-content: space-between; gap: 16px; padding: 16px 4px; cursor: pointer; }
-.actionPolicy summary span { color: var(--muted); font-size: 13px; text-align: right; }
+.actionPolicy summary span { min-width: 0; overflow-wrap: anywhere; color: var(--muted); font-size: 13px; text-align: right; }
 .actionBody { display: grid; gap: 20px; padding: 4px 4px 24px; }
 .emptyState { color: var(--muted); padding: 24px 0; border-block: 1px solid var(--border); }
-.conflictReview { display: grid; justify-items: start; gap: 7px; padding: 16px; border-left: 3px solid var(--accent); background: var(--subtle); }
+.conflictReview { display: grid; justify-items: start; gap: 7px; padding: 16px; border: 1px solid var(--border); border-radius: 10px; background: var(--subtle); }
 .conflictReview span { color: var(--muted); }
 .conflictReview button { margin-top: 5px; }
 .teamSection { display: grid; gap: 20px; max-width: 900px; margin-top: 36px; }
@@ -72,7 +72,7 @@
 .teamHeading { display: flex; justify-content: space-between; gap: 20px; }
 .memberList,
 .invitationList { list-style: none; padding: 0; margin: 0; border-block: 1px solid var(--border); }
-.memberRow { display: grid; grid-template-columns: minmax(180px, 1fr) 100px minmax(240px, auto); gap: 16px; align-items: center; min-height: 68px; padding: 12px 4px; border-bottom: 1px solid var(--border); }
+.memberRow { display: grid; grid-template-columns: minmax(0, 1fr) 80px minmax(0, 1.2fr); gap: 16px; align-items: center; min-height: 68px; padding: 12px 4px; border-bottom: 1px solid var(--border); }
 .memberRow:last-child,
 .invitationList li:last-child { border-bottom: 0; }
 .memberRow > div:first-child { display: grid; min-width: 0; overflow-wrap: anywhere; }
@@ -80,20 +80,20 @@
 .roleText { color: var(--muted); }
 .memberControls { display: flex; justify-content: flex-end; align-items: center; flex-wrap: wrap; gap: 8px; }
 .memberControls select,
-.selectField select { min-height: 38px; padding: 7px 30px 7px 10px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--ink); }
+.selectField select { max-width: 100%; min-height: 44px; padding: 7px 30px 7px 10px; border: 1px solid var(--control-border); border-radius: 10px; background: var(--surface); color: var(--ink); }
 .noControls { color: var(--muted); font-size: 13px; text-align: right; }
-.dangerButton { min-height: 38px; padding: 8px 12px; border: 1px solid oklch(0.66 0.11 28); border-radius: 6px; background: transparent; color: oklch(0.4 0.12 28); cursor: pointer; font-weight: 600; }
-.dangerButton:hover { background: oklch(0.97 0.015 28); }
-.dangerButton:disabled { opacity: .6; cursor: wait; }
+.dangerButton { min-height: 44px; padding: 8px 12px; border: 1px solid oklch(0.66 0.11 28); border-radius: 999px; background: transparent; color: oklch(0.4 0.12 28); cursor: pointer; font-weight: 600; }
+.dangerButton:hover:not(:disabled) { background: oklch(0.97 0.015 28); }
+.dangerButton:disabled { opacity: .6; cursor: not-allowed; }
 .inviteForm { display: grid; grid-template-columns: minmax(220px, 1fr) 160px; gap: 16px; align-items: end; }
 .inviteForm > p,
-.inviteForm > .actions { grid-column: 1 / -1; }
+.inviteForm > div:last-child { grid-column: 1 / -1; }
 .selectField { display: grid; gap: 7px; }
 .selectField label { font-weight: 550; }
 .invitationList li { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 16px 4px; border-bottom: 1px solid var(--border); }
 .invitationList div { display: grid; min-width: 0; overflow-wrap: anywhere; }
 .invitationList small { color: var(--muted); margin-top: 3px; }
-.confirmation { width: min(calc(100% - 32px), 520px); padding: 24px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--ink); box-shadow: 0 20px 60px rgb(30 25 20 / 20%); }
+.confirmation { max-height: calc(100dvh - 32px); overflow-y: auto; width: min(calc(100% - 32px), 520px); padding: 24px; border: 1px solid var(--border); border-radius: 20px; background: var(--surface); color: var(--ink); box-shadow: 0 20px 60px rgb(30 25 20 / 20%); }
 .confirmation::backdrop { background: rgb(30 25 20 / 36%); }
 .confirmation h2 { margin: 0; font-size: 20px; }
 .confirmation p { color: var(--muted); }
@@ -101,15 +101,18 @@
 @media (max-width: 767px) {
   .sharingSection { margin-top: 36px; padding-top: 24px; }
   .policyBlock, .actionsBlock { padding: 20px 0; }
-  .actionPolicy summary { align-items: flex-start; }
+  .actionPolicy summary { flex-direction: column; align-items: flex-start; gap: 6px; }
+  .actionPolicy summary span { text-align: left; }
+  .sectionHeading { flex-wrap: wrap; }
   .picker { justify-items: stretch; }
   .picker > button, .policyBlock > button { justify-self: stretch; }
   .selectedPeople { display: grid; width: 100%; }
-  .selectedPeople li { justify-content: space-between; border-radius: 6px; }
+  .selectedPeople button { min-height: 44px; }
+  .selectedPeople li { justify-content: space-between; border-radius: 10px; }
   .memberRow { grid-template-columns: minmax(0, 1fr) auto; gap: 8px 12px; padding: 16px 4px; }
   .memberControls, .noControls { grid-column: 1 / -1; justify-content: flex-start; text-align: left; }
   .memberControls > * { min-height: 44px; }
   .inviteForm { grid-template-columns: minmax(0, 1fr); }
-  .inviteForm > p, .inviteForm > .actions { grid-column: auto; }
+  .inviteForm > p, .inviteForm > div:last-child { grid-column: auto; }
   .invitationList li { align-items: flex-start; }
 }

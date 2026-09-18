@@ -3,13 +3,12 @@ import Image from "next/image";
 import { AgentCommand } from "./components/AgentCommand";
 import { HeroAtmosphere } from "./components/HeroAtmosphere";
 import { Reveal } from "./components/Reveal";
-import { ActionStory } from "./components/ActionStory";
 import styles from "./home.module.css";
 
 export default function Home() {
   return (
     <main id="main" className={styles["home"]}>
-      <section className={styles["hero"]} aria-labelledby="hero-title">
+      <section id="hero" className={styles["hero"]} aria-labelledby="hero-title">
         <HeroAtmosphere />
         <div className={styles["hero-copy"]}>
           <h1 id="hero-title">A cloud for everyone.</h1>
@@ -271,7 +270,6 @@ export default function Home() {
               </Link>
             </div>
           </div>
-          <ActionStory />
         </div>
         <div className={styles["action-weave"]} aria-hidden="true">
           <picture>
@@ -303,8 +301,8 @@ export default function Home() {
           Put your first
           <br /> idea to work.
         </h2>
-        <a className={styles["primary-button"]} href="/agents.md">
-          Open the agent guide <span aria-hidden="true">↗</span>
+        <a className={styles["primary-button"]} href="#hero">
+          Start with your agent <span aria-hidden="true">↑</span>
         </a>
         <p>Start locally, no account needed.</p>
       </section>
