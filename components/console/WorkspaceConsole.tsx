@@ -163,7 +163,7 @@ function AppDirectory({ workspaceId, onCreate }: { workspaceId: string; onCreate
       <div className={views.directoryToolbar}>
         <div className={views.filters} role="group" aria-label="Filter apps">
           <button type="button" aria-pressed={filter === "all"} onClick={() => setFilter("all")}>All apps <span>{state.apps.length}</span></button>
-          <button type="button" aria-pressed={filter === "maintain"} onClick={() => setFilter("maintain")}>I maintain</button>
+          <button type="button" aria-pressed={filter === "maintain"} onClick={() => setFilter("maintain")}>Apps I manage</button>
         </div>
         <div className={views.searchField}>
           <label htmlFor="app-search" className={views.visuallyHidden}>Find an app</label>
