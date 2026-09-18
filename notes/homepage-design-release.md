@@ -44,3 +44,31 @@ released CLI and preserves the existing console/API contract. The main checkout
 retains both the 0.3.0 candidate and the design, ready for the separate product
 rollout. Build and hash the isolated release before upload; record final build
 and live verification after deployment.
+
+## Published verification
+
+Published to Cloudflare Pages production on branch `main` from release commit
+`75de475`, which contains the design commit `cdc32e7` applied to `0bc8369`.
+Deployment: https://e803dd6c.tarantula-9l0.pages.dev
+Live domain: https://atrax.run/
+
+- Isolated `npm ci`, production build, full ESLint, and the rendered-HTML and
+  agent-onboarding tests passed. Seven tests passed, zero failed or skipped.
+- Verified 40 local homepage references and hashed all 332 export files before
+  upload. The hashes were unchanged after upload. `/products/` redirects to
+  `/#products` in the local Pages runtime.
+- The queryless live homepage and installer matched the exported files byte for
+  byte. All nine live artwork files also matched. Quickstart, Actions docs,
+  Workspaces, and the existing Apps detail URL returned HTTP 200.
+- Opened the actual custom domain in Chrome. Desktop and mobile render the new
+  art. The header plus hero measured 996px on a 996px desktop viewport and 844px
+  on an 844px phone viewport. The mobile document had no horizontal overflow.
+- The live Actions controls changed the active step and explanation. All five
+  full-size artwork images loaded. Fine-pointer interaction changed the hero's
+  bounded offset in the release build. Confirmed the tablet caption fix in that
+  build, after an old dev tab had retained its prior stylesheet.
+- Python urllib received HTTP 403 during one automated fetch attempt. Curl and
+  Chrome served the expected public files; byte comparisons used curl.
+
+The new backend candidate remains unshipped. No production migration, encryption
+key, backend deployment, npm publication, or console feature rollout was performed.
