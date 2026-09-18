@@ -33,6 +33,16 @@ atrax deploy --json
 
 Read the returned URL. Do not guess a hostname. Keep atrax.lock.json: it identifies this app for future updates.
 
+## Use your workspace in the browser
+
+Sign in at https://atrax.run/sign-in/ and choose a workspace. The workspace menu switches teams; Apps, Library, and Team stay available while you move between pages.
+
+In Apps, search by name or select I maintain. Open app takes you to the live tool. Manage opens its overview, Access controls for coworkers and maintainers, and Sharing controls for guests and public web. Your permissions determine which controls are available.
+
+Create an app gives you a prompt for your coding agent and the deployment steps. In Library, use Add entry for written guidance or Upload a file for a document. Open an item to review its content, sources, revision history, and access.
+
+Use Sign out at the bottom of the workspace menu to end the current browser session. On smaller screens, open Menu to find workspace navigation.
+
 ## Invite your team
 
 Open your workspace, then Team to invite a coworker by email. They verify that address and join the workspace. Workspace-wide apps become available immediately.

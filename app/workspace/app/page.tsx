@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { AppOverview } from "@/components/console/AppOverview";
-import { LoadingPanel } from "@/components/console/ConsoleFrame";
+import { PageLoading } from "@/components/console/ConsoleFrame";
 
 export const metadata = {
   title: "App overview",
@@ -9,7 +9,7 @@ export const metadata = {
 
 export default function AppPage() {
   return (
-    <Suspense fallback={<LoadingPanel />}>
+    <Suspense fallback={<PageLoading />}>
       <AppOverview />
     </Suspense>
   );

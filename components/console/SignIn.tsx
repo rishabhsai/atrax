@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useRef, useState, type FormEvent } from "react";
 import { api, safeReturnTo } from "./api";
 import { AuthFrame, ErrorNotice } from "./ConsoleFrame";
-import { useSubmission } from "./useConsole";
+import { useSession, useSubmission } from "./useConsole";
 import styles from "./console.module.css";
 
 type Step =
@@ -23,6 +23,7 @@ export function SignIn({ confirmation = false }: { confirmation?: boolean }) {
   const [email, setEmail] = useState("");
   const link = useRef<{ challengeId: string; secret: string } | null>(null);
   const command = useSubmission();
+  const { reloadIdentity } = useSession();
   const pending = command.state.kind === "pending";
 
   async function sendEmail(event: FormEvent<HTMLFormElement>) {
@@ -63,7 +64,10 @@ export function SignIn({ confirmation = false }: { confirmation?: boolean }) {
         throw new Error(
           "This sign-in link is incomplete. Request another email to continue.",
         );
-      return api.verifyEmail(input, key);
+      return api.verifyEmail(input, key).then(async (verified) => {
+        await reloadIdentity();
+        return verified;
+      });
     });
     if (!result) return;
     link.current = null;

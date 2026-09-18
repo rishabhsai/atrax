@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { SecretsConsole } from "@/components/console/SecretsConsole";
-import { LoadingPanel } from "@/components/console/ConsoleFrame";
+import { PageLoading } from "@/components/console/ConsoleFrame";
 
 export const metadata = {
   title: "Secrets",
@@ -9,5 +9,5 @@ export const metadata = {
 };
 
 export default function SecretsPage() {
-  return <Suspense fallback={<LoadingPanel />}><SecretsConsole /></Suspense>;
+  return <Suspense fallback={<PageLoading />}><SecretsConsole /></Suspense>;
 }

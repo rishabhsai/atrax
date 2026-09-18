@@ -3,8 +3,8 @@
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState, type FormEvent } from "react";
-import { api, errorMessage, isSignInRequired, type App, type SecretGrant, type Workspace, type WorkspaceSecret } from "./api";
-import { AuthFrame, ConsoleFrame, ErrorNotice, LoadingPanel } from "./ConsoleFrame";
+import { api, errorMessage, type App, type SecretGrant, type Workspace, type WorkspaceSecret } from "./api";
+import { ErrorNotice } from "./ConsoleFrame";
 import { useSession, useSubmission } from "./useConsole";
 import styles from "./console.module.css";
 import local from "./secrets.module.css";
@@ -124,10 +124,9 @@ function SecretsDirectory({ workspace }: { workspace: Workspace }) {
 export function SecretsConsole() {
   const params = useSearchParams();
   const workspaceId = params.get("workspace");
-  const { state, retry } = useSession();
-  if (state.kind === "loading") return <LoadingPanel />;
-  if (state.kind === "error") return <AuthFrame><h1>{isSignInRequired(state.error) ? "Sign in to Secrets" : "Couldn’t open Secrets"}</h1>{isSignInRequired(state.error) ? <Link className={styles.primary} href={`/sign-in/?returnTo=${encodeURIComponent(`/workspace/secrets/?workspace=${workspaceId ?? ""}`)}`}>Continue with email</Link> : <><ErrorNotice message={errorMessage(state.error)} /><button className={styles.secondary} onClick={retry}>Try again</button></>}</AuthFrame>;
+  const { state } = useSession();
+  if (state.kind !== "ready") return null;
   const workspace = state.session.workspaces.find(workspace => workspace.id === workspaceId);
-  if (!workspace) return <ConsoleFrame session={state.session}><h1>Workspace unavailable</h1><Link href="/workspaces/">Choose a workspace</Link></ConsoleFrame>;
-  return <ConsoleFrame session={state.session} workspace={workspace} active="secrets">{["owner", "admin"].includes(workspace.role) ? <SecretsDirectory key={workspace.id} workspace={workspace} /> : <><h1>Secrets</h1><p className={styles.muted}>Ask a workspace admin to manage credentials and app grants.</p></>}</ConsoleFrame>;
+  if (!workspace) return <><h1>Workspace unavailable</h1><Link href="/workspaces/">Choose a workspace</Link></>;
+  return <>{["owner", "admin"].includes(workspace.role) ? <SecretsDirectory key={workspace.id} workspace={workspace} /> : <><h1>Secrets</h1><p className={styles.muted}>Ask a workspace admin to manage credentials and app grants.</p></>}</>;
 }

@@ -11,14 +11,17 @@ export function Invitation() {
   const params = useSearchParams();
   const invitationId = params.get("id");
   const router = useRouter();
-  const { state, retry } = useSession();
+  const { state, retry, refreshSession } = useSession();
   const command = useSubmission();
   const returnTo = `/auth/invite/?id=${encodeURIComponent(invitationId || "")}`;
   const signInUrl = `/sign-in/?returnTo=${encodeURIComponent(returnTo)}`;
   async function accept() {
     if (!invitationId) return;
     const result = await command.run(invitationId, (key) =>
-      api.acceptInvitation({ invitationId }, key),
+      api.acceptInvitation({ invitationId }, key).then(async (result) => {
+        await refreshSession();
+        return result;
+      }),
     );
     if (result) router.replace(workspaceUrl(result.id));
   }

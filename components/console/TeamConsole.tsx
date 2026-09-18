@@ -6,16 +6,14 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import {
   ApiError,
   errorMessage,
-  isSignInRequired,
   operation,
-  workspaceUrl,
   type Session,
   type Workspace,
 } from "./api";
-import { AuthFrame, ConsoleFrame, ErrorNotice, LoadingPanel } from "./ConsoleFrame";
+import { ErrorNotice } from "./ConsoleFrame";
 import { useSession } from "./useConsole";
 import consoleStyles from "./console.module.css";
-import styles from "./sharing.module.css";
+import styles from "./workspace-views.module.css";
 
 type Role = "owner" | "admin" | "member";
 type Member = { personId: string; email: string; role: Role };
@@ -76,7 +74,7 @@ function selectedMutableRole(value: string): "admin" | "member" {
 function InviteForm({ workspaceId, onInvited }: { workspaceId: string; onInvited: (invitation: Invitation) => void }) {
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<"admin" | "member">("member");
-  const [state, setState] = useState<{ kind: "idle" | "pending" | "success" | "error"; message?: string }>({ kind: "idle" });
+  const [state, setState] = useState<{ kind: "idle" | "pending" } | { kind: "success" | "error"; message: string }>({ kind: "idle" });
   const errorRef = useRef<HTMLParagraphElement>(null);
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -93,15 +91,17 @@ function InviteForm({ workspaceId, onInvited }: { workspaceId: string; onInvited
     }
   }
   return (
-    <section className={styles.teamSection} aria-labelledby="invite-heading">
-      <div><h2 id="invite-heading">Invite a teammate</h2><p className={consoleStyles.muted}>They will receive an email to join this workspace.</p></div>
+    <section className={styles.invitePanel} aria-labelledby="invite-heading" id="invite-teammate">
+      <h2 id="invite-heading">Invite a teammate</h2>
+      <p>Send an email invitation to join this workspace.</p>
       <form className={styles.inviteForm} onSubmit={submit}>
-        <div className={consoleStyles.field}><label htmlFor="invite-email">Email</label><input id="invite-email" type="email" required autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} /></div>
-        <div className={styles.selectField}><label htmlFor="invite-role">Role</label><select id="invite-role" value={role} onChange={(event) => setRole(selectedMutableRole(event.target.value))}><option value="member">Member</option><option value="admin">Admin</option></select></div>
+        <div className={consoleStyles.field}><label htmlFor="invite-email">Email address</label><input id="invite-email" type="email" required autoComplete="email" placeholder="teammate@company.com" value={email} disabled={state.kind === "pending"} onChange={(event) => setEmail(event.target.value)} /></div>
+        <div className={styles.selectField}><label htmlFor="invite-role">Role</label><select id="invite-role" value={role} disabled={state.kind === "pending"} aria-describedby="invite-role-help" onChange={(event) => setRole(selectedMutableRole(event.target.value))}><option value="member">Member</option><option value="admin">Admin</option></select></div>
+        <button className={consoleStyles.primary} type="submit" disabled={state.kind === "pending"}>{state.kind === "pending" ? "Sending…" : "Send invitation"}</button>
         {state.kind === "error" && <p ref={errorRef} tabIndex={-1} className={consoleStyles.error} role="alert">{state.message}</p>}
         {state.kind === "success" && <p className={consoleStyles.success} role="status">{state.message}</p>}
-        <div className={consoleStyles.actions}><button className={consoleStyles.primary} type="submit" disabled={state.kind === "pending"}>{state.kind === "pending" ? "Sending…" : "Send invitation"}</button></div>
       </form>
+      <p className={styles.roleHelp} id="invite-role-help">{role === "member" ? "Members can use workspace apps and contribute to Library." : "Admins can also manage the team, external sharing, and public publishing."}</p>
     </section>
   );
 }
@@ -116,15 +116,22 @@ function MemberRow({ member, workspace, currentPersonId, busy, onRole, onRemove,
   const isSelf = member.personId === currentPersonId;
   return (
     <li className={styles.memberRow}>
-      <div><strong>{member.email}</strong>{isSelf && <small>You</small>}</div>
-      <span className={styles.roleText}>{roleLabel(member.role)}</span>
+      <div className={styles.memberIdentity}>
+        <span className={styles.memberAvatar} aria-hidden="true">{member.email.slice(0, 1)}</span>
+        <div><strong>{member.email}</strong><small>{roleLabel(member.role)}{isSelf ? " · You" : ""}</small></div>
+      </div>
       {administer && member.role !== "owner" ? (
         <div className={styles.memberControls}>
           <label><span className={styles.visuallyHidden}>Role for {member.email}</span><select disabled={busy} value={member.role} onChange={(event) => onRole(member.personId, selectedMutableRole(event.target.value))}><option value="member">Member</option><option value="admin">Admin</option></select></label>
-          {workspace.role === "owner" && !isSelf && <button className={consoleStyles.textButton} type="button" disabled={busy} onClick={() => onTransfer(member)}>Transfer ownership</button>}
-          {!isSelf && <button className={styles.dangerButton} type="button" disabled={busy} onClick={() => onRemove(member)}>Remove</button>}
+          {!isSelf && <details className={styles.memberMenu}>
+            <summary aria-label={`More actions for ${member.email}`}>More <span aria-hidden="true">⌄</span></summary>
+            <div>
+              {workspace.role === "owner" && <button className={consoleStyles.textButton} type="button" disabled={busy} onClick={() => onTransfer(member)}>Transfer ownership</button>}
+              <button className={styles.dangerButton} type="button" disabled={busy} onClick={() => onRemove(member)}>Remove teammate</button>
+            </div>
+          </details>}
         </div>
-      ) : <span className={styles.noControls}>{member.role === "owner" ? "Workspace owner" : ""}</span>}
+      ) : <span className={styles.roleText}>{member.role === "owner" ? "Workspace owner" : ""}</span>}
     </li>
   );
 }
@@ -134,11 +141,13 @@ function MemberConfirmation({
   busy,
   onConfirm,
   onCancel,
+  error,
 }: {
   confirmation: { action: "remove" | "transfer"; member: Member };
   busy: boolean;
   onConfirm: () => void;
   onCancel: () => void;
+  error?: string;
 }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const cancelRef = useRef<HTMLButtonElement>(null);
@@ -171,6 +180,7 @@ function MemberConfirmation({
           ? "They will immediately lose access to this workspace and its apps."
           : "You will become an admin. The new owner will control ownership transfers."}
       </p>
+      {error && <ErrorNotice message={error} />}
       <div className={consoleStyles.actions}>
         <button className={styles.dangerButton} type="button" disabled={busy} onClick={onConfirm}>
           {busy ? "Working…" : confirmation.action === "remove" ? "Remove teammate" : "Transfer ownership"}
@@ -183,6 +193,8 @@ function MemberConfirmation({
 
 function TeamContent({ session, workspace }: { session: Session; workspace: Workspace }) {
   const [state, setState] = useState<TeamState>({ kind: "loading" });
+  const [inviting, setInviting] = useState(false);
+  const { refreshSession } = useSession();
   const [attempt, setAttempt] = useState(0);
   const [busyPerson, setBusyPerson] = useState<string | null>(null);
   const [notice, setNotice] = useState<{ kind: "error" | "success"; message: string } | null>(null);
@@ -205,8 +217,9 @@ function TeamContent({ session, workspace }: { session: Session; workspace: Work
     setBusyPerson(personId); setNotice(null);
     try {
       await operation("members.setRole", { workspaceId: workspace.id, personId, role: nextRole }, () => undefined, { key: key() });
-      setState({ ...state, members: state.members.map((member) => member.personId === personId ? { ...member, role: nextRole } : member) });
+      setState((current) => current.kind === "ready" ? { ...current, members: current.members.map((member) => member.personId === personId ? { ...member, role: nextRole } : member) } : current);
       setNotice({ kind: "success", message: "Team role updated." });
+      if (personId === session.person.id) await refreshSession();
     } catch (error) { setNotice({ kind: "error", message: errorMessage(error) }); }
     finally { setBusyPerson(null); }
   }
@@ -218,12 +231,12 @@ function TeamContent({ session, workspace }: { session: Session; workspace: Work
     try {
       await operation(action === "remove" ? "members.remove" : "workspaces.transferOwnership", { workspaceId: workspace.id, personId: member.personId }, () => undefined, { key: key() });
       if (action === "remove") {
-        setState({ ...state, members: state.members.filter((item) => item.personId !== member.personId) });
+        setState((current) => current.kind === "ready" ? { ...current, members: current.members.filter((item) => item.personId !== member.personId) } : current);
         setNotice({ kind: "success", message: `${member.email} was removed from the workspace.` });
       } else {
-        setState({ ...state, members: state.members.map((item) => item.personId === member.personId ? { ...item, role: "owner" } : item.personId === session.person.id ? { ...item, role: "admin" } : item) });
-        setNotice({ kind: "success", message: `Ownership transferred to ${member.email}. Refreshing your workspace permissions…` });
-        window.location.reload();
+        setState((current) => current.kind === "ready" ? { ...current, members: current.members.map((item) => item.personId === member.personId ? { ...item, role: "owner" } : item.personId === session.person.id ? { ...item, role: "admin" } : item) } : current);
+        setNotice({ kind: "success", message: `Ownership transferred to ${member.email}.` });
+        await refreshSession();
       }
       setConfirmation(null);
     } catch (error) { setNotice({ kind: "error", message: errorMessage(error) }); }
@@ -231,36 +244,44 @@ function TeamContent({ session, workspace }: { session: Session; workspace: Work
   }
 
   return (
-    <ConsoleFrame session={session} workspace={workspace} active="team">
-      <nav className={consoleStyles.breadcrumb} aria-label="Breadcrumb"><Link href={workspaceUrl(workspace.id)}>Apps</Link><span aria-hidden="true">/</span><span>Team</span></nav>
-      <header className={consoleStyles.pageHeader}><div><h1>Team</h1><p>People who can work in {workspace.name}.</p></div></header>
+    <>
+      <header className={styles.pageHeader}>
+        <div><h1>Team</h1><p>The people you work with in {workspace.name}.</p></div>
+        {administer && <button type="button" className={consoleStyles.primary} aria-expanded={inviting} aria-controls="invite-teammate" onClick={() => setInviting((open) => !open)}>{inviting ? "Close invitation" : "Invite teammate"}</button>}
+      </header>
       {state.kind === "loading" && <><div className={consoleStyles.skeleton} aria-hidden="true" /><p role="status">Loading team…</p></>}
       {state.kind === "error" && <section className={styles.teamSection}><h2>{state.forbidden ? "Team access unavailable" : "Couldn't load the team"}</h2><ErrorNotice message={state.message} />{!state.forbidden && <button className={consoleStyles.secondary} type="button" onClick={() => { setState({ kind: "loading" }); setAttempt((value) => value + 1); }}>Try again</button>}</section>}
       {state.kind === "ready" && (
         <>
-          {notice?.kind === "error" && <ErrorNotice message={notice.message} />}
+          {notice?.kind === "error" && !confirmation && <ErrorNotice message={notice.message} />}
           {notice?.kind === "success" && <p className={consoleStyles.success} role="status">{notice.message}</p>}
-          {confirmation && <MemberConfirmation confirmation={confirmation} busy={busyPerson !== null} onConfirm={confirmMemberAction} onCancel={() => setConfirmation(null)} />}
-          <section className={styles.teamSection} aria-labelledby="members-heading"><div className={styles.teamHeading}><div><h2 id="members-heading">Members</h2><p className={consoleStyles.muted}>{state.members.length} {state.members.length === 1 ? "person" : "people"}</p></div></div>
-            <ul className={styles.memberList}>{state.members.map((member) => <MemberRow key={member.personId} member={member} workspace={workspace} currentPersonId={session.person.id} busy={busyPerson === member.personId} onRole={changeRole} onRemove={(member) => setConfirmation({ action: "remove", member })} onTransfer={(member) => setConfirmation({ action: "transfer", member })} />)}</ul>
+          {confirmation && <MemberConfirmation confirmation={confirmation} busy={busyPerson !== null} error={notice?.kind === "error" ? notice.message : undefined} onConfirm={confirmMemberAction} onCancel={() => { setConfirmation(null); setNotice(null); }} />}
+          {administer && inviting && <InviteForm workspaceId={workspace.id} onInvited={(invitation) => setState((current) => current.kind === "ready" ? { ...current, invitations: [invitation, ...current.invitations.filter((item) => item.email !== invitation.email)] } : current)} />}
+          <section className={styles.teamSection} aria-labelledby="members-heading">
+            <div className={styles.teamHeading}><h2 id="members-heading">Members</h2><span className={styles.count}>{state.members.length}</span></div>
+            <ul className={styles.memberList}>{state.members.map((member) => <MemberRow key={member.personId} member={member} workspace={workspace} currentPersonId={session.person.id} busy={busyPerson !== null} onRole={changeRole} onRemove={(member) => { setNotice(null); setConfirmation({ action: "remove", member }); }} onTransfer={(member) => { setNotice(null); setConfirmation({ action: "transfer", member }); }} />)}</ul>
           </section>
-          {administer && <InviteForm workspaceId={workspace.id} onInvited={(invitation) => setState((current) => current.kind === "ready" ? { ...current, invitations: [invitation, ...current.invitations.filter((item) => item.email !== invitation.email)] } : current)} />}
-          {administer && <section className={styles.teamSection} aria-labelledby="invitations-heading"><div><h2 id="invitations-heading">Invitations</h2><p className={consoleStyles.muted}>Pending and recent invitations for this workspace.</p></div>{state.invitations.length ? <ul className={styles.invitationList}>{state.invitations.map((invitation) => <li key={invitation.id}><div><strong>{invitation.email}</strong><small>Invited as {roleLabel(invitation.role)} · expires {new Date(invitation.expiresAt).toLocaleDateString()}</small></div><span className={consoleStyles.status}>{invitation.status}</span></li>)}</ul> : <p className={styles.emptyState}>No invitations have been sent.</p>}</section>}
+          {administer && <section className={styles.teamSection} aria-labelledby="invitations-heading">
+            <div className={styles.teamHeading}><h2 id="invitations-heading">Invitations</h2><span className={styles.count}>{state.invitations.length}</span></div>
+            {state.invitations.length ? <ul className={styles.invitationList}>{state.invitations.map((invitation) => <li key={invitation.id}><div><strong>{invitation.email}</strong><small>{roleLabel(invitation.role)} · expires {new Date(invitation.expiresAt).toLocaleDateString()}</small></div><span className={consoleStyles.status}>{invitation.status}</span></li>)}</ul> : <p className={styles.emptyState}>No invitations yet. Invite a teammate to give them access to your workspace.</p>}
+          </section>}
+          <details className={styles.roleGuide}>
+            <summary>What can each role do?</summary>
+            <dl><dt>Member</dt><dd>Use workspace apps and contribute to Library. App maintainers can also change and deploy their apps.</dd><dt>Admin</dt><dd>Manage team membership, external sharing, and public publishing.</dd><dt>Owner</dt><dd>Manage the workspace and transfer ownership to another teammate.</dd></dl>
+          </details>
         </>
       )}
-    </ConsoleFrame>
+    </>
   );
 }
 
 export function TeamConsole() {
   const params = useSearchParams();
   const workspaceId = params.get("workspace");
-  const { state, retry } = useSession();
-  const returnTo = workspaceId ? `/workspace/team/?workspace=${encodeURIComponent(workspaceId)}` : "/workspaces/";
-  if (state.kind === "loading") return <LoadingPanel />;
-  if (state.kind === "error") return <AuthFrame><h1>{isSignInRequired(state.error) ? "Sign in to manage your team" : "Couldn't load your workspaces"}</h1>{isSignInRequired(state.error) ? <><p className={consoleStyles.muted}>Use your email to return to your workspace.</p><Link className={consoleStyles.primary} href={`/sign-in/?returnTo=${encodeURIComponent(returnTo)}`}>Continue with email</Link></> : <><ErrorNotice message={errorMessage(state.error)} /><button className={consoleStyles.secondary} onClick={retry}>Try again</button></>}</AuthFrame>;
-  if (!workspaceId) return <AuthFrame><h1>Choose a workspace</h1><p className={consoleStyles.muted}>Open Team from a workspace to manage its members.</p><Link className={consoleStyles.primary} href="/workspaces/">Your workspaces</Link></AuthFrame>;
+  const { state } = useSession();
+  if (state.kind !== "ready") return null;
+  if (!workspaceId) return <><h1>Choose a workspace</h1><p className={consoleStyles.muted}>Open Team from a workspace to manage its members.</p><Link className={consoleStyles.primary} href="/workspaces/">Your workspaces</Link></>;
   const workspace = state.session.workspaces.find((item) => item.id === workspaceId);
-  if (!workspace) return <ConsoleFrame session={state.session}><h1>Workspace unavailable</h1><p className={consoleStyles.muted}>This workspace isn&apos;t available to you.</p><Link className={consoleStyles.primary} href="/workspaces/">Choose a workspace</Link></ConsoleFrame>;
+  if (!workspace) return <><h1>Workspace unavailable</h1><p className={consoleStyles.muted}>This workspace isn&apos;t available to you.</p><Link className={consoleStyles.primary} href="/workspaces/">Choose a workspace</Link></>;
   return <TeamContent key={workspace.id} session={state.session} workspace={workspace} />;
 }

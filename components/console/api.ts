@@ -198,6 +198,12 @@ function identity(value: unknown): Pick<Session, "person" | "session"> {
   };
 }
 
+const sessionFailureListeners = new Set<() => void>();
+export function onSessionFailure(listener: () => void) {
+  sessionFailureListeners.add(listener);
+  return () => { sessionFailureListeners.delete(listener); };
+}
+
 export async function operation<T>(
   name: string,
   input: unknown,
@@ -243,12 +249,14 @@ export async function operation<T>(
   const envelope = record(raw);
   if (envelope.status === "failed") {
     const failure = record(envelope.error);
-    throw new ApiError(
+    const error = new ApiError(
       string(failure.message),
       string(failure.code),
       failure.retryable === true,
       failure.details === undefined ? undefined : record(failure.details),
     );
+    if (!options.signal?.aborted && isSignInRequired(error)) sessionFailureListeners.forEach((listener) => listener());
+    throw error;
   }
   if (
     !response.ok ||
