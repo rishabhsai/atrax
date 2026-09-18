@@ -21,3 +21,7 @@ Main implementation: `4f2b1bf`. Production-compatible source: `372870a`, built i
 Published to https://atrax.run with Cloudflare Pages production deployment `94ce5808-204e-4ac2-a2dd-fb521571905f`, source `372870a`, branch `main`. Deployment URL: https://94ce5808.tarantula-9l0.pages.dev. The first upload encountered a connection failure before deployment creation; the retry succeeded with the same verified export.
 
 Verified 36 live routes, scripts, styles, and documentation files byte-for-byte against the export. In signed-in production Chrome, the new palette renders correctly, typing `launch-orders` filters two apps to one, and Apps → Library → Team navigation keeps the shell visible while each page loads its records. Library and Team data loaded successfully. No application errors were observed; an unrelated installed browser extension continues to report a MediaSession error.
+
+## Filter label clarification
+
+Renamed `I maintain` to `Apps I manage` at the user's request. Main commit: `9c47c5d`; production source: `1eb2c9e`; deployment: https://ae2b2cec.tarantula-9l0.pages.dev. Build, TypeScript, scoped ESLint, export hashes, and the 36-file live comparison passed. Verified the new label in the signed-in production browser.
