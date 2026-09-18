@@ -137,3 +137,17 @@ archway and workshop illustrations live in `public/images/console/`; use them on
 entry and empty-workspace screens. Hide entry artwork on narrow or short screens
 to keep the form in view. Illustrations are decorative, never a substitute for
 status text. The redesign preserves permissions, APIs, and deployment behavior.
+
+## Workspace color refinement, September 18
+
+Workspace navigation uses a dark olive background with warm cream text and a
+light sage current-page marker. The working canvas is pale sage. Paper panels
+hold records and form fields; sage groups navigation and catalog tools; clay
+marks Library headings and selected filters. Copper remains the primary action
+color. Small supporting illustrations retain the existing woven artwork.
+
+Shared roles live in `components/console/console.module.css`: `--sage`,
+`--sage-ink`, `--clay`, `--clay-ink`, and `--gold`. Sidebar and mobile navigation
+scope their own dark tokens so they cannot change the reading area. Apply the
+same palette to hover, focus, loading, empty, and mobile states. Keep status labels
+and icons alongside semantic colors.
