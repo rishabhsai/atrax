@@ -37,6 +37,7 @@ function DeviceRequest({
   const [attempt, setAttempt] = useState(0);
   const command = useSubmission();
   const invitationCommand = useSubmission();
+  const { refreshSession } = useSession();
   useEffect(() => {
     const controller = new AbortController();
     api.getDevice(userCode, controller.signal).then(
@@ -59,7 +60,10 @@ function DeviceRequest({
 
   async function acceptInvitation(invitation: Invitation) {
     const result = await invitationCommand.run(invitation.id, (key) =>
-      api.acceptInvitation({ invitationId: invitation.id }, key),
+      api.acceptInvitation({ invitationId: invitation.id }, key).then(async (workspace) => {
+        await refreshSession();
+        return workspace;
+      }),
     );
     if (result) setOnboardedWorkspace(result);
   }

@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { LibraryConsole } from "@/components/console/LibraryConsole";
-import { LoadingPanel } from "@/components/console/ConsoleFrame";
+import { PageLoading } from "@/components/console/ConsoleFrame";
 
 export const metadata = {
   title: "Library",
@@ -10,7 +10,7 @@ export const metadata = {
 
 export default function LibraryPage() {
   return (
-    <Suspense fallback={<LoadingPanel />}>
+    <Suspense fallback={<PageLoading />}>
       <LibraryConsole />
     </Suspense>
   );

@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { WorkspaceConsole } from "@/components/console/WorkspaceConsole";
-import { LoadingPanel } from "@/components/console/ConsoleFrame";
+import { PageLoading } from "@/components/console/ConsoleFrame";
 
 export const metadata = {
   title: "Apps",
@@ -9,7 +9,7 @@ export const metadata = {
 
 export default function WorkspacePage() {
   return (
-    <Suspense fallback={<LoadingPanel />}>
+    <Suspense fallback={<PageLoading />}>
       <WorkspaceConsole showApps />
     </Suspense>
   );

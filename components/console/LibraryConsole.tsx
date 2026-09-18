@@ -13,7 +13,6 @@ import {
   api,
   audienceLabel,
   errorMessage,
-  isSignInRequired,
   type LibraryDetail,
   type LibraryRevision,
   type LibrarySource,
@@ -22,10 +21,10 @@ import {
   type Workspace,
   type WorkspaceMember,
 } from "./api";
-import { AuthFrame, ConsoleFrame, ErrorNotice, LoadingPanel } from "./ConsoleFrame";
+import { ErrorNotice, PageLoading } from "./ConsoleFrame";
 import { useSession } from "./useConsole";
 import { ConsoleArtwork } from "./ConsoleArtwork";
-import styles from "./console.module.css";
+import styles from "./library-views.module.css";
 
 type LoadState<T> =
   | { kind: "loading" }
@@ -182,7 +181,9 @@ function EntryForm({
 
   return (
     <section className={styles.editor} aria-labelledby={existing ? "correct-entry" : "add-entry"}>
-      <h2 id={existing ? "correct-entry" : "add-entry"}>{existing ? "Correct this entry" : "Add an entry"}</h2>
+      <p className={styles.eyebrow}>Library / {existing ? "Edit entry" : "New entry"}</p>
+      <h1 id={existing ? "correct-entry" : "add-entry"}>{existing ? "Correct this entry" : "Add an entry"}</h1>
+      <p className={styles.muted}>{existing ? "Save a new revision. Previous versions stay in history." : "Save a policy, decision, or guidance your team can refer to."}</p>
       <form className={styles.form} onSubmit={submit}>
         <div className={styles.field}>
           <label htmlFor="library-title">Title</label>
@@ -199,7 +200,7 @@ function EntryForm({
             <input id="library-reason" required maxLength={1000} value={reason} onChange={(event) => setReason(event.target.value)} />
           </div>
         )}
-        <SourcesEditor sources={sources} onChange={setSources} />
+        <details className={styles.disclosure} open={sources.length > 0}><summary>Source revisions <span>{sources.length ? `${sources.length} cited` : "Optional"}</span></summary><SourcesEditor sources={sources} onChange={setSources} /></details>
         {error && <ErrorNotice message={error} />}
         {conflictRevisionId && (
           <div className={styles.conflict}>
@@ -273,13 +274,14 @@ function FileUploadForm({
     }
   }
   const accepted = capabilities.kind === "ready" ? capabilities.value.acceptedContentTypes : [];
-  return <section className={styles.editor} aria-labelledby="upload-file"><h2 id="upload-file">{detail ? "Replace file" : "Upload files"}</h2><form className={styles.form} onSubmit={submit}>
+  return <section className={styles.editor} aria-labelledby="upload-file"><p className={styles.eyebrow}>Library / {detail ? "Replace file" : "New file"}</p><h1 id="upload-file">{detail ? "Replace file" : "Upload a file"}</h1><p className={styles.muted}>{detail ? "The new file becomes the current revision. Earlier files stay in history." : "Add a document for your team to read and download."}</p><form className={styles.form} onSubmit={submit}>
     <div className={styles.field}>
       <label htmlFor="library-file">File</label>
       <input id="library-file" type="file" required accept={accepted.join(",")} disabled={capabilities.kind !== "ready" || saving} onChange={(event) => { setFile(event.target.files?.[0] ?? null); setError(null); }} />
       {capabilities.kind === "loading" && <small>Checking supported file types…</small>}
-      {capabilities.kind === "ready" && <small>Supported: {accepted.join(", ")}. Maximum {formatBytes(capabilities.value.maxBytes)}. Text is searchable only when the file is a supported UTF-8 text file up to {formatBytes(capabilities.value.searchableTextMaxBytes)}.</small>}
+      {capabilities.kind === "ready" && <small>Up to {formatBytes(capabilities.value.maxBytes)} per file.</small>}
       {file && <small>Selected {file.name} ({formatBytes(file.size)}).</small>}
+      {capabilities.kind === "ready" && <details className={styles.fileHelp}><summary>Supported files and search</summary><p>Supported file types: {accepted.join(", ")}. UTF-8 text files up to {formatBytes(capabilities.value.searchableTextMaxBytes)} are searchable. Other supported files are available to download.</p></details>}
     </div>
     <div className={styles.field}><label htmlFor="library-file-title">Library title</label><input id="library-file-title" maxLength={200} value={title} onChange={(event) => setTitle(event.target.value)} /><small>Leave blank to use the filename.</small></div>
     {detail && <div className={styles.field}><label htmlFor="library-file-reason">Replacement note</label><input id="library-file-reason" required maxLength={1000} value={reason} onChange={(event) => setReason(event.target.value)} /></div>}
@@ -332,7 +334,7 @@ function AccessEditor({
   }
   return (
     <section className={styles.editor} aria-labelledby="library-access">
-      <h2 id="library-access">Library access</h2>
+      <p className={styles.eyebrow}>Library / Access</p><h1 id="library-access">Who can read this item?</h1><p className={styles.itemContext}>{detail.item.title}</p>
       <p className={styles.muted}>Source permissions still apply. A person must be allowed to read every cited source before they can read derived guidance.</p>
       <form className={styles.form} onSubmit={submit}>
         <div className={styles.choiceGroup}>
@@ -394,7 +396,7 @@ function Detail({
     );
     return () => controller.abort();
   }, [workspace.id, itemId, revisionId, attempt]);
-  if (state.kind === "loading") return <><div className={styles.skeleton} aria-hidden="true" /><p role="status">Loading Library item…</p></>;
+  if (state.kind === "loading") return <PageLoading label="Loading Library item…" />;
   if (state.kind === "error") return <><ErrorNotice message={state.message} /><div className={styles.inlineNote}><button className={styles.secondary} onClick={() => setAttempt((value) => value + 1)}>Try again</button></div></>;
   const detail = state.value;
   const item = detail.item;
@@ -434,81 +436,114 @@ function Detail({
   if (replacing) return <FileUploadForm key={revision.id} workspaceId={workspace.id} detail={detail} onSaved={(saved) => { setReplacing(false); router.push(libraryUrl(workspace.id, saved.item.id, saved.revision.id)); }} onCancel={() => setReplacing(false)} />;
   if (access) return <AccessEditor workspaceId={workspace.id} detail={detail} onSaved={() => { setAccess(false); setAttempt((value) => value + 1); }} onCancel={() => setAccess(false)} />;
   return (
-    <>
-      <nav className={styles.breadcrumb} aria-label="Breadcrumb"><Link href={libraryUrl(workspace.id)}>Library</Link><span aria-hidden="true">/</span><span>{item.title}</span></nav>
+    <div className={styles.detail}>
+      <nav className={styles.breadcrumb} aria-label="Breadcrumb"><Link href={libraryUrl(workspace.id)}>← Library</Link><span aria-hidden="true">/</span><span>{revision.title}</span></nav>
       <header className={styles.pageHeader}>
         <div>
-          <h1>{item.title}</h1>
-          <p>{item.kind === "knowledge" ? "Knowledge entry" : item.kind} · {audienceLabel(item.audience)} · updated {dateTime(item.updatedAt)}</p>
+          <p className={styles.eyebrow}>{item.kind === "knowledge" ? "Knowledge entry" : "File"} · Version {revision.number}</p>
+          <h1>{revision.title}</h1>
+          <p>{audienceLabel(item.audience)} · Updated {dateTime(revision.createdAt)}</p>
         </div>
         <div className={styles.actions}>
           {item.kind === "knowledge" && current && item.status === "active" && <button className={styles.primary} onClick={() => setEditing(true)}>Edit entry</button>}
-          {item.kind === "file" && revision.file && <button className={styles.secondary} onClick={download}>Download original</button>}
-          {item.kind === "file" && current && item.status === "active" && <button className={styles.primary} onClick={() => setReplacing(true)}>Replace file</button>}
-          {canManage && item.status === "active" && <button className={styles.secondary} onClick={() => setAccess(true)}>Manage access</button>}
-          {canManage && item.status === "active" && <button className={styles.danger} onClick={archive} disabled={archiving}>{archiving ? "Archiving…" : "Archive"}</button>}
+          {item.kind === "file" && revision.file && <button className={styles.primary} onClick={download}>Download original</button>}
+          {item.kind === "file" && current && item.status === "active" && <button className={styles.secondary} onClick={() => setReplacing(true)}>Replace file</button>}
         </div>
       </header>
       {error && <ErrorNotice message={error} />}
-      {item.status !== "active" && <p className={styles.notice}>Archived items are retained for their history and are no longer included in active Library search.</p>}
-      {revision.id !== item.currentRevisionId && <p className={styles.notice}>You are reading revision {revision.number}. <Link href={libraryUrl(workspace.id, item.id)}>Read the active revision</Link>.</p>}
-      <dl className={styles.libraryMeta}>
-        <div><dt>Revision</dt><dd>Version {revision.number}{current ? " (active)" : ""}</dd></div>
-        <div><dt>Contributed by</dt><dd>{revision.author.email}{revision.author.agentLabel ? ` via ${revision.author.agentLabel}` : ""}</dd></div>
-        <div><dt>Updated</dt><dd><time dateTime={new Date(revision.createdAt).toISOString()}>{dateTime(revision.createdAt)}</time></dd></div>
-        <div><dt>Search status</dt><dd>{revision.indexingStatus === "ready" ? "Searchable" : revision.indexingStatus}</dd></div>
-        {revision.file && <><div><dt>Original file</dt><dd>{revision.file.filename}</dd></div><div><dt>File size</dt><dd>{formatBytes(revision.file.byteSize)}</dd></div></>}
-      </dl>
-      {item.kind === "knowledge" || revision.text ? <section className={styles.libraryContent} aria-labelledby="library-content-heading"><h2 id="library-content-heading">Content</h2><div>{revision.text}</div></section> : <section className={styles.libraryContent} aria-labelledby="library-content-heading"><h2 id="library-content-heading">Content</h2><p className={styles.muted}>This file is stored for download and is not searchable.</p></section>}
-      {revision.sourceRevisions.length > 0 && <section className={styles.librarySources} aria-labelledby="library-sources-heading"><h2 id="library-sources-heading">Sources</h2><p className={styles.muted}>This entry is derived from these exact revisions. Their current access rules also determine who can read this entry.</p><ul>{revision.sourceRevisions.map((source) => <li key={`${source.itemId}:${source.revisionId}`}><Link href={libraryUrl(workspace.id, source.itemId, source.revisionId)}>View cited revision <code>{source.revisionId}</code></Link></li>)}</ul></section>}
-      <section className={styles.libraryHistory} aria-labelledby="library-history-heading"><h2 id="library-history-heading">History</h2>
-        {history.kind === "loading" && <p role="status" className={styles.muted}>Loading history…</p>}
-        {history.kind === "error" && <ErrorNotice message={history.message} />}
-        {history.kind === "ready" && <ol className={styles.revisionList}>{history.value.map((entry) => <li key={entry.id}><Link href={libraryUrl(workspace.id, item.id, entry.id)} aria-current={entry.id === revision.id ? "page" : undefined}>Version {entry.number}</Link><span>{entry.author.email}{entry.author.agentLabel ? ` via ${entry.author.agentLabel}` : ""} · {dateTime(entry.createdAt)}</span><small>{entry.reason}</small></li>)}</ol>}
-      </section>
-      <div className={styles.inlineNote}><Link className={styles.secondary} href={libraryUrl(workspace.id)}>Back to Library</Link></div>
-    </>
+      {item.status !== "active" && <p className={styles.notice}>This item is archived. Its history is available, but it no longer appears in Library search.</p>}
+      {!current && <p className={styles.notice}>You are reading version {revision.number}. <Link href={libraryUrl(workspace.id, item.id)}>Read the current version</Link>.</p>}
+      <div className={styles.detailLayout}>
+        <div className={styles.readingColumn}>
+          <section className={styles.libraryContent} aria-labelledby="library-content-heading">
+            <h2 id="library-content-heading">{item.kind === "file" && revision.text ? "File text" : "Content"}</h2>
+            {item.kind === "knowledge" || revision.text ? <div>{revision.text}</div> : <div className={styles.downloadPrompt}><p>This file is available to download.</p><p className={styles.muted}>A text preview is not available for this file.</p>{revision.file && <button className={styles.secondary} onClick={download}>Download {revision.file.filename}</button>}</div>}
+          </section>
+          {revision.sourceRevisions.length > 0 && <details className={styles.disclosure}><summary>Sources <span>{revision.sourceRevisions.length} cited revisions</span></summary><div className={styles.disclosureBody}><p className={styles.muted}>This entry cites these exact revisions. Their access rules also apply to this entry.</p><ul className={styles.sourceLinks}>{revision.sourceRevisions.map((source, index) => <li key={`${source.itemId}:${source.revisionId}`}><Link href={libraryUrl(workspace.id, source.itemId, source.revisionId)}>Source {index + 1}<code>{source.revisionId}</code></Link></li>)}</ul></div></details>}
+          <details className={styles.disclosure} open={!current}>
+            <summary>Revision history <span>{history.kind === "ready" ? `${history.value.length} ${history.value.length === 1 ? "version" : "versions"}` : ""}</span></summary>
+            <div className={styles.disclosureBody}>
+              {history.kind === "loading" && <p role="status" className={styles.muted}>Loading history…</p>}
+              {history.kind === "error" && <ErrorNotice message={history.message} />}
+              {history.kind === "ready" && <ol className={styles.revisionList}>{history.value.map((entry) => <li key={entry.id}><Link href={libraryUrl(workspace.id, item.id, entry.id)} aria-current={entry.id === revision.id ? "page" : undefined}>Version {entry.number}{entry.id === item.currentRevisionId ? " · Current" : ""}</Link><span>{entry.author.email}{entry.author.agentLabel ? ` via ${entry.author.agentLabel}` : ""}</span><time dateTime={new Date(entry.createdAt).toISOString()}>{dateTime(entry.createdAt)}</time><p>{entry.reason}</p></li>)}</ol>}
+            </div>
+          </details>
+        </div>
+        <aside className={styles.itemAside} aria-label="Item details">
+          <h2>About this {item.kind === "file" ? "file" : "entry"}</h2>
+          <dl className={styles.libraryMeta}>
+            <div><dt>Contributed by</dt><dd>{revision.author.email}{revision.author.agentLabel && <span>via {revision.author.agentLabel}</span>}</dd></div>
+            <div><dt>Version</dt><dd>{revision.number}{current ? " · Current" : " · Previous"}</dd></div>
+            <div><dt>Search</dt><dd>{revision.indexingStatus === "ready" ? "Searchable" : revision.indexingStatus === "stored_without_text" ? "Stored, not searchable" : revision.indexingStatus}</dd></div>
+            {revision.file && <><div><dt>Original file</dt><dd>{revision.file.filename}</dd></div><div><dt>Size</dt><dd>{formatBytes(revision.file.byteSize)}</dd></div></>}
+          </dl>
+          <div className={styles.accessSummary}><h2>Access</h2><p>{audienceLabel(item.audience)}</p>{canManage && item.status === "active" && <button className={styles.secondary} onClick={() => setAccess(true)}>Manage access</button>}</div>
+          {canManage && item.status === "active" && <details className={styles.archiveDisclosure}><summary>Archive item</summary><p>Remove this item from browsing and search. Its history stays available.</p><button className={styles.danger} onClick={archive} disabled={archiving}>{archiving ? "Archiving…" : "Archive item"}</button></details>}
+        </aside>
+      </div>
+    </div>
   );
 }
 
 function Listing({ workspace }: { workspace: Workspace }) {
   const params = useSearchParams();
   const router = useRouter();
-  const initialQuery = params.get("q") ?? "";
-  const [query, setQuery] = useState(initialQuery);
+  const query = params.get("q") ?? "";
   const [filter, setFilter] = useState<"all" | "knowledge" | "file">("all");
-  const [state, setState] = useState<LoadState<LibrarySummary[]>>({ kind: "loading" });
+  const [result, setResult] = useState<{ query: string; state: LoadState<LibrarySummary[]> }>({ query, state: { kind: "loading" } });
   const [adding, setAdding] = useState<"entry" | "file" | null>(null);
   const [attempt, setAttempt] = useState(0);
   useEffect(() => {
     const controller = new AbortController();
     api.listLibrary(workspace.id, query.trim(), controller.signal).then(
-      (value) => setState({ kind: "ready", value }),
-      (failure: unknown) => !controller.signal.aborted && setState({ kind: "error", message: errorMessage(failure) }),
+      (value) => setResult({ query, state: { kind: "ready", value } }),
+      (failure: unknown) => !controller.signal.aborted && setResult({ query, state: { kind: "error", message: errorMessage(failure) } }),
     );
     return () => controller.abort();
   }, [workspace.id, query, attempt]);
   function updateQuery(value: string) {
-    setQuery(value);
     window.history.replaceState(window.history.state, "", changedUrl({ q: value || null }));
   }
   if (adding === "entry") return <EntryForm workspaceId={workspace.id} onSaved={(detail) => router.push(libraryUrl(workspace.id, detail.item.id, detail.revision.id))} onCancel={() => setAdding(null)} />;
   if (adding === "file") return <FileUploadForm workspaceId={workspace.id} onSaved={(detail) => router.push(libraryUrl(workspace.id, detail.item.id, detail.revision.id))} onCancel={() => setAdding(null)} />;
+  const state: LoadState<LibrarySummary[]> = result.query === query ? result.state : { kind: "loading" };
   const items = state.kind === "ready" ? state.value.filter((item) => filter === "all" || item.kind === filter) : [];
+  const counts = state.kind === "ready" ? { all: state.value.length, knowledge: state.value.filter((item) => item.kind === "knowledge").length, file: state.value.filter((item) => item.kind === "file").length } : null;
+  const emptyLibrary = state.kind === "ready" && !state.value.length && !query.trim();
   return (
-    <>
+    <div className={styles.catalog}>
       <header className={styles.pageHeader}>
-        <div><h1>Library</h1><p>Company files and guidance for your team.</p></div>
-        <div className={styles.actions}><button className={styles.secondary} onClick={() => setAdding("entry")}>Add entry</button><button className={styles.primary} onClick={() => setAdding("file")}>Upload files</button></div>
+        <div><p className={styles.eyebrow}>Company knowledge</p><h1>Library</h1><p>Files, decisions, and guidance your team shares.</p></div>
+        <div className={styles.actions}><button className={styles.secondary} onClick={() => setAdding("file")}>Upload a file</button><button className={styles.primary} onClick={() => setAdding("entry")}>Add entry</button></div>
       </header>
-      <div className={styles.libraryToolbar}>
-        <div className={`${styles.field} ${styles.search}`}><label htmlFor="library-search">Search company knowledge</label><input id="library-search" type="search" value={query} onChange={(event) => updateQuery(event.target.value)} /></div>
-        <div className={styles.filterGroup} aria-label="Library type"><button className={filter === "all" ? styles.filterActive : styles.secondary} aria-pressed={filter === "all"} onClick={() => setFilter("all")}>All</button><button className={filter === "knowledge" ? styles.filterActive : styles.secondary} aria-pressed={filter === "knowledge"} onClick={() => setFilter("knowledge")}>Entries</button><button className={filter === "file" ? styles.filterActive : styles.secondary} aria-pressed={filter === "file"} onClick={() => setFilter("file")}>Files</button></div>
-      </div>
-      {state.kind === "loading" && <><div className={styles.skeleton} aria-hidden="true" /><p role="status">Loading Library…</p></>}
-      {state.kind === "error" && <><ErrorNotice message={state.message} /><div className={styles.inlineNote}><button className={styles.secondary} onClick={() => setAttempt((value) => value + 1)}>Try again</button></div></>}
-      {state.kind === "ready" && (items.length ? <ul className={styles.libraryList}>{items.map((item) => <li key={item.id}><Link href={libraryUrl(workspace.id, item.id, item.revisionId)}><strong>{item.title}</strong><span>{item.kind === "knowledge" ? "Entry" : "File"}{item.file ? ` · ${item.file.filename}` : ""} · {audienceLabel(item.audience)}{item.sourceRevisions.length ? " · Derived from sources" : ""}</span>{item.snippet && <small>{item.snippet}</small>}<small>Updated {dateTime(item.updatedAt)} · {item.indexingStatus === "ready" ? "Searchable" : "Stored, not searchable"}</small></Link></li>)}</ul> : <section className={`${styles.empty} ${!query ? styles.emptyWithArt : ""}`}><div><h2>{query ? `No results for “${query}”.` : "Add the knowledge your team works from."}</h2><p>{query ? "Try a different search, or clear the search to browse all items." : "Upload a policy or reference document, or add written guidance."}</p>{query ? <button className={styles.secondary} onClick={() => updateQuery("")}>Clear search</button> : <div className={styles.actions}><button className={styles.secondary} onClick={() => setAdding("entry")}>Add an entry</button><button className={styles.primary} onClick={() => setAdding("file")}>Upload files</button></div>}</div>{!query && <ConsoleArtwork kind="library" />}</section>)}
-    </>
+      <section className={styles.catalogSurface} aria-label="Library catalog">
+        <div className={styles.libraryToolbar}>
+          <div className={`${styles.field} ${styles.search}`}><label htmlFor="library-search">Search Library</label><input id="library-search" type="search" placeholder="Search titles and content" value={query} onChange={(event) => updateQuery(event.target.value)} /></div>
+          <div className={styles.filterGroup} role="group" aria-label="Filter by item type">
+            <button className={filter === "all" ? styles.filterActive : styles.filterButton} aria-pressed={filter === "all"} onClick={() => setFilter("all")}>All items{counts && <span>{counts.all}</span>}</button>
+            <button className={filter === "knowledge" ? styles.filterActive : styles.filterButton} aria-pressed={filter === "knowledge"} onClick={() => setFilter("knowledge")}>Entries{counts && <span>{counts.knowledge}</span>}</button>
+            <button className={filter === "file" ? styles.filterActive : styles.filterButton} aria-pressed={filter === "file"} onClick={() => setFilter("file")}>Files{counts && <span>{counts.file}</span>}</button>
+          </div>
+        </div>
+        {state.kind === "loading" && <div className={styles.loading}><div className={styles.skeleton} aria-hidden="true" /><p role="status">{query ? "Searching Library…" : "Loading Library…"}</p></div>}
+        {state.kind === "error" && <div className={styles.loading}><ErrorNotice message={state.message} /><div className={styles.inlineNote}><button className={styles.secondary} onClick={() => { setResult({ query, state: { kind: "loading" } }); setAttempt((value) => value + 1); }}>Try again</button></div></div>}
+        {state.kind === "ready" && <>
+          {!emptyLibrary && <div className={styles.resultBar}><p role="status">{items.length} {items.length === 1 ? "item" : "items"}{query.trim() ? ` matching “${query.trim()}”` : ""}</p><span>Most recently updated</span></div>}
+          {items.length ? <ul className={styles.libraryList}>{[...items].sort((a, b) => b.updatedAt - a.updatedAt).map((item) => <li key={item.id}>
+            <Link className={styles.libraryRow} href={libraryUrl(workspace.id, item.id, item.revisionId)}>
+              <span className={styles.itemKind} aria-hidden="true">{item.kind === "knowledge" ? "Aa" : "↓"}</span>
+              <div className={styles.itemText}><strong>{item.title}</strong><span className={styles.rowMeta}>{item.kind === "knowledge" ? "Entry" : "File"} · {audienceLabel(item.audience)}{item.file ? ` · ${item.file.filename}` : ""}</span>{item.snippet && <p>{item.snippet}</p>}{item.sourceRevisions.length > 0 && <small>{item.sourceRevisions.length} cited {item.sourceRevisions.length === 1 ? "source" : "sources"}</small>}</div>
+              <div className={styles.itemUpdated}><time dateTime={new Date(item.updatedAt).toISOString()}>{new Date(item.updatedAt).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}</time><span>{item.indexingStatus === "ready" ? "Searchable" : item.indexingStatus === "stored_without_text" ? "Download only" : item.indexingStatus}</span></div>
+              <span className={styles.rowArrow} aria-hidden="true">↗</span>
+            </Link>
+          </li>)}</ul> : <section className={`${styles.empty} ${emptyLibrary ? styles.emptyWithArt : ""}`}>
+            <div><h2>{emptyLibrary ? "Your team’s knowledge starts here." : query.trim() ? "No matching items" : filter === "file" ? "No files yet" : "No entries yet"}</h2><p>{emptyLibrary ? "Add written guidance or upload a document for your team to use." : query.trim() ? "Try another search or choose a different type." : filter === "file" ? "Upload a policy, reference, or other team document." : "Save a decision, policy, or piece of guidance."}</p>
+              <div className={styles.actions}>{query.trim() ? <button className={styles.secondary} onClick={() => updateQuery("")}>Clear search</button> : <><button className={styles.primary} onClick={() => setAdding(!emptyLibrary && filter === "file" ? "file" : "entry")}>{!emptyLibrary && filter === "file" ? "Upload a file" : "Add an entry"}</button>{emptyLibrary && <button className={styles.secondary} onClick={() => setAdding("file")}>Upload a file</button>}</>}{!emptyLibrary && filter !== "all" && <button className={styles.secondary} onClick={() => setFilter("all")}>Show all types</button>}</div>
+            </div>{emptyLibrary && <ConsoleArtwork kind="library" />}
+          </section>}
+        </>}
+      </section>
+    </div>
   );
 }
 
@@ -517,10 +552,9 @@ export function LibraryConsole() {
   const requestedWorkspace = params.get("workspace");
   const itemId = params.get("item");
   const revisionId = params.get("revision");
-  const { state, retry } = useSession();
-  if (state.kind === "loading") return <LoadingPanel />;
-  if (state.kind === "error") return <AuthFrame><h1>{isSignInRequired(state.error) ? "Sign in to Library" : "Couldn’t open Library"}</h1>{isSignInRequired(state.error) ? <><p className={styles.muted}>Use your workspace email to continue.</p><Link className={styles.primary} href={`/sign-in/?returnTo=${encodeURIComponent(requestedWorkspace ? libraryUrl(requestedWorkspace, itemId ?? undefined, revisionId ?? undefined) : "/workspaces/")}`}>Continue with email</Link></> : <><ErrorNotice message={errorMessage(state.error)} /><div className={styles.inlineNote}><button className={styles.secondary} onClick={retry}>Try again</button></div></>}</AuthFrame>;
+  const { state } = useSession();
+  if (state.kind !== "ready") return null;
   const workspace = state.session.workspaces.find((entry) => entry.id === requestedWorkspace);
-  if (!workspace) return <ConsoleFrame session={state.session}><h1>Workspace unavailable</h1><p className={styles.muted}>This workspace isn’t available to you.</p><Link className={styles.primary} href="/workspaces/">Choose a workspace</Link></ConsoleFrame>;
-  return <ConsoleFrame session={state.session} workspace={workspace} active="library">{itemId ? <Detail workspace={workspace} session={state.session} itemId={itemId} revisionId={revisionId} /> : <Listing workspace={workspace} />}</ConsoleFrame>;
+  if (!workspace) return <><h1>Workspace unavailable</h1><p className={styles.muted}>This workspace isn’t available to you.</p><Link className={styles.primary} href="/workspaces/">Choose a workspace</Link></>;
+  return <>{itemId ? <Detail key={`${workspace.id}:${itemId}:${revisionId ?? "current"}`} workspace={workspace} session={state.session} itemId={itemId} revisionId={revisionId} /> : <Listing key={workspace.id} workspace={workspace} />}</>;
 }

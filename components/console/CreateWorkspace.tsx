@@ -3,8 +3,9 @@
 import { useId, useState, type FormEvent } from "react";
 import { api, type Workspace } from "./api";
 import { ErrorNotice } from "./ConsoleFrame";
-import { useSubmission } from "./useConsole";
+import { useSession, useSubmission } from "./useConsole";
 import styles from "./console.module.css";
+import views from "./workspace-views.module.css";
 
 type CreateWorkspaceProps = {
   onCreated: (workspace: Workspace) => void;
@@ -33,14 +34,20 @@ export function CreateWorkspace({
   const [slug, setSlug] = useState("");
   const [slugEdited, setSlugEdited] = useState(false);
   const command = useSubmission();
+  const { refreshSession } = useSession();
 
   async function create(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const input = { name: name.trim(), slug: slug.trim() };
     const result = await command.run(JSON.stringify(input), (key) =>
-      api.createWorkspace(input, key),
+      api.createWorkspace(input, key).then(async (workspace) => {
+        await refreshSession();
+        return workspace;
+      }),
     );
-    if (result) onCreated(result);
+    if (result) {
+      onCreated(result);
+    }
   }
 
   const nameId = `${fieldId}-name`;
@@ -48,12 +55,12 @@ export function CreateWorkspace({
   const slugHelpId = `${fieldId}-slug-help`;
   return (
     <section
-      className={variant === "inline" ? styles.inlineNote : styles.section}
+      className={variant === "inline" ? views.createInline : views.createWorkspace}
       aria-labelledby={`${fieldId}-heading`}
     >
       <h2 id={`${fieldId}-heading`}>{title}</h2>
       <p className={styles.muted}>{description}</p>
-      <form onSubmit={create} className={styles.form}>
+      <form onSubmit={create} className={views.createForm}>
         <div className={styles.field}>
           <label htmlFor={nameId}>Workspace name</label>
           <input
@@ -61,10 +68,11 @@ export function CreateWorkspace({
             required
             maxLength={100}
             autoComplete="organization"
+            placeholder="Your company or team"
             value={name}
             onChange={(event) => {
               setName(event.target.value);
-              if (!slugEdited) setSlug(workspaceSlug(event.target.value));
+              if (!slugEdited) setSlug(workspaceSlug(event.target.value).slice(0, 48));
             }}
           />
         </div>

@@ -1,32 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
-import { api, errorMessage, type Session } from "./api";
+import { useRef, useState } from "react";
+import { errorMessage } from "./api";
 
-type SessionState =
-  | { kind: "loading" }
-  | { kind: "ready"; session: Session }
-  | { kind: "error"; error: unknown };
-
-export function useSession() {
-  const [state, setState] = useState<SessionState>({ kind: "loading" });
-  const [attempt, setAttempt] = useState(0);
-  useEffect(() => {
-    const controller = new AbortController();
-    api.getSession(controller.signal).then(
-      (session) => setState({ kind: "ready", session }),
-      (error: unknown) => {
-        if (!controller.signal.aborted) setState({ kind: "error", error });
-      },
-    );
-    return () => controller.abort();
-  }, [attempt]);
-  const retry = useCallback(() => {
-    setState({ kind: "loading" });
-    setAttempt((value) => value + 1);
-  }, []);
-  return { state, retry };
-}
+export { useConsoleSession as useSession } from "./SessionProvider";
 
 type Submission =
   { kind: "idle" } | { kind: "pending" } | { kind: "error"; message: string };
