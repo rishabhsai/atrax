@@ -41,6 +41,34 @@ Be prepared to name the kind of engineering problem or team you would join and w
 
 **Your opening and project explanation.**
 
+The user supplied [their résumé](https://resume.rishabhsai.com/) and [personal site](https://www.rishabhsai.com/). Read September 18. These are self-reported background and outcomes; this preparation did not independently verify employment, analytics, revenue, financing, or a sale.
+
+The résumé lists AI engineering at Penn State and a remote data-science degree at IIT Madras, both with expected May 2028 graduation. It also lists selection for OpenAI Campus Leads and a Nas Company AI residency. Use these briefly to establish context, then spend the time on your work. Selection into programs is supporting evidence, not a substitute for explaining a project. [Résumé](https://resume.rishabhsai.com/)
+
+Choose these stories first:
+
+| Story | Why it belongs in this call | Details to prepare |
+| --- | --- | --- |
+| Cisco infrastructure simulation | Your experience page describes deterministic hardware/platform fixtures, generic-server coordination with seven engineers, and a 60% reduction against a planned implementation timeline. This gives you a technical decision and collaboration story. | Explain the production need in plain language, one change you personally owned, why the testing approach mattered, the original estimate and actual elapsed time, and how responsibilities were divided. Discuss only information you may share. [Experience](https://www.rishabhsai.com/experience) |
+| PDFSpacer | The projects page reports 1,200+ monthly student users for a focused PDF utility. This is an opportunity to discuss discovering a problem, getting users, and observing use. | How you found the problem, your contribution, the acquisition channel, the month and analytics definition behind the number, repeat use, and a change prompted by feedback. [Projects](https://www.rishabhsai.com/projects) |
+| Atrax | The live product supplies a concrete example of your current ambition and interest in infrastructure for agent-built software. | Why you chose it, what you understand deeply, what you delegated, what you learned, and the customer assumption you are testing next. Keep the demo brief. |
+
+Keep Share-Pen as a possible substitute for PDFSpacer if you can tell a specific, permitted story about building, financing, and selling it. Your homepage reports those events, but does not establish financing amount, sale consideration, what transferred, or your collaborators' roles. Clarify them before using the sale as a headline. [Homepage](https://www.rishabhsai.com/)
+
+NotionBench is a useful technical backup if evaluation comes up. The projects page reports 38 tasks, eight agent configurations, and 890 program-graded rollouts. Explain task selection, how grading works, what a result taught you, and the benchmark's limitations. Do not turn the call into a tour of the entire project list. [Projects](https://www.rishabhsai.com/projects)
+
+An opening to adapt after confirming it reflects your motivation:
+
+> I'm studying AI engineering at Penn State. This summer I worked on infrastructure simulation at Cisco, including ways to test platform behavior before relying on physical hardware. Outside internships, I've built tools like PDFSpacer, and I'm now building Atrax to help teams run the internal apps they create with coding agents. I'm exploring both continuing as a founder and joining an early team. I want to take responsibility for difficult technical problems and get better at building things people rely on.
+
+Before the call, reconcile these public claims:
+
+- The résumé and site call Atrax's $20K in AWS credits funding. Say "$20K in AWS credits" and report any cash investment separately. Credits are not revenue or cash raised. [Résumé](https://resume.rishabhsai.com/)
+- The résumé describes 250+ monthly Comet downloads; the experience page says 250+ without a period. Establish the time window and attribution before quoting the number. [Résumé](https://resume.rishabhsai.com/), [experience](https://www.rishabhsai.com/experience)
+- The projects page still describes no-account hosted deployments. Current Atrax behavior requires sign-in at first hosted deployment; local creation needs no sign-in. Use the shipped behavior in your explanation. [Projects](https://www.rishabhsai.com/projects)
+
+These are preparation notes, not edits to the résumé or personal website.
+
 Prepare a 45- to 60-second introduction in your own words:
 
 > I'm [current role or background]. I got interested in [specific problem] when [actual experience]. I started building Atrax, a cloud for small businesses using coding agents to make internal apps. I've taken it to [verified shipping milestone], and the hardest part I worked through was [specific technical or customer challenge]. I'm now trying to learn [important unresolved question]. I'm interested in Alpha because [concrete help or environment]. I'm exploring both building Atrax and joining an early team where I could take responsibility for [specific kind of work].
