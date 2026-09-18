@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useEffect, useRef } from "react";
+import styles from "../home.module.css";
 
 const pointerMediaQuery =
   "(prefers-reduced-motion: no-preference) and (hover: hover) and (pointer: fine)";
@@ -50,8 +51,14 @@ function trackPointer({ atmosphere, hero }: PointerTrackingTarget) {
     const bounds = hero.getBoundingClientRect();
     if (!bounds.width || !bounds.height) return;
 
-    pointerX = clamp(((event.clientX - bounds.left) / bounds.width - 0.5) * 24, 12);
-    pointerY = clamp(((event.clientY - bounds.top) / bounds.height - 0.5) * 16, 8);
+    pointerX = clamp(
+      ((event.clientX - bounds.left) / bounds.width - 0.5) * 24,
+      12,
+    );
+    pointerY = clamp(
+      ((event.clientY - bounds.top) / bounds.height - 0.5) * 16,
+      8,
+    );
 
     if (frame === undefined) frame = window.requestAnimationFrame(flushPointer);
   }
@@ -86,16 +93,12 @@ function trackPointer({ atmosphere, hero }: PointerTrackingTarget) {
   };
 }
 
-/**
- * Decorative layers for the home hero. The parent stylesheet translates the
- * tree and petal layers from the --pointer-x and --pointer-y custom properties.
- */
 export function HeroAtmosphere() {
   const atmosphereRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const atmosphere = atmosphereRef.current;
-    const hero = atmosphere?.closest<HTMLElement>(".home-hero");
+    const hero = atmosphere?.closest("section");
 
     if (!atmosphere || !hero) return;
 
@@ -103,12 +106,15 @@ export function HeroAtmosphere() {
   }, []);
 
   return (
-    <div className="hero-atmosphere" aria-hidden="true" ref={atmosphereRef}>
-      <div className="home-trees">
-        <Image src="/images/hero-ink-trees.webp" alt="" fill sizes="100vw" preload />
-      </div>
-      <div className="hero-petals">
-        {Array.from({ length: 10 }, (_, index) => <span key={index} className="hero-petal"><i /></span>)}
+    <div className={styles.atmosphere} aria-hidden="true" ref={atmosphereRef}>
+      <div className={styles.landscape}>
+        <Image
+          src="/images/home/landscape-hero.webp"
+          alt=""
+          fill
+          sizes="100vw"
+          preload
+        />
       </div>
     </div>
   );
