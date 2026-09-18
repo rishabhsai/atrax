@@ -7,7 +7,11 @@
   justify-content: space-between;
   align-items: flex-start;
   gap: 24px;
-  padding-bottom: 28px;
+  padding: 24px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--sage);
+  margin-bottom: 20px;
 }
 .header > div {
   min-width: 0;
@@ -164,7 +168,7 @@
   .header {
     flex-direction: column;
     gap: 16px;
-    padding-bottom: 20px;
+    padding: 20px;
   }
   .navigation {
     gap: 22px;
