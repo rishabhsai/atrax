@@ -18,7 +18,7 @@ Atrax is a cloud for internal software at small businesses. Existing coding agen
 
 An account identifies a person. A workspace owns its apps, Library, and membership. CLI and MCP are interfaces to the same authorized operations. GitHub retains source hosting and code collaboration.
 
-Secrets and Automation remain planned. Hosted agents, scheduled work, and automatic document synchronization are deferred. The approved behavior is recorded in [notes/launch-scope.md](./notes/launch-scope.md).
+Secrets manages encrypted credentials and grants to trusted app backends, separately from Library. Automation, hosted agents, scheduled work, and automatic document synchronization remain deferred. The approved behavior is recorded in [notes/launch-scope.md](./notes/launch-scope.md).
 
 ## Brand Personality
 
@@ -33,7 +33,7 @@ Do not look like a generic AI-generated SaaS landing page. Avoid decorative 3D c
 1. Lead with the short promise, one terminal installer, and a direct link for agents to read the guide.
 2. Keep one clear concept for each job. Automation is the planned capability for scheduled and background execution. Ordinary request-driven actions belong to apps.
 3. Write for a small company choosing whether it can ship this week.
-4. Make every public feature traceable to a real CLI command, runtime behavior, or documented roadmap status. Shared credentials, hosted agents, and automatic external-document synchronization remain planned.
+4. Make every public feature traceable to a real CLI command, runtime behavior, or documented roadmap status. Hosted agents and automatic external-document synchronization remain planned.
 5. Let coding agents complete the same workflow a person can complete in the interface.
 
 ## Accessibility & Inclusion
@@ -54,11 +54,17 @@ copy feedback, the direct agent guide, and the local-start/quickstart note.
 The homepage tells the full capability story with distinct compositions. Apps
 uses a woven frame on database layers, Database is the adjoining compact strip,
 Access uses a braided boundary on dark olive, Library uses a fabric-bound folio,
-and Actions pairs a clearly labeled interactive workflow with interwoven threads.
+and Actions uses a wide illustration of interwoven threads. Connected-app examples belong in the documentation.
 Navigation scrolls to these sections. Documentation contains implementation
 details. Existing product deep links remain available.
 
 Motion adds gentle pointer depth to the hero, a brief entrance, one-time artwork
-reveals, and a sliding workflow indicator. It never hides essential content or
-runs indefinitely. Respect reduced motion and touch input. The console uses real
-state and stays separate from the illustrated marketing workflow.
+reveals, and understated link feedback. It never hides essential content or
+runs indefinitely. Respect reduced motion and touch input. The closing action
+returns to the hero's installer and copyable prompt.
+
+Carry the paper, copper, olive, and woven visual family through supporting pages,
+documentation, and the workspace console. Entry and empty screens can use new
+artwork. Working screens prioritize readable records, access controls, and forms.
+The console only shows real state. Documentation distinguishes hosted features
+from the unreleased Secrets, operations summary, and recipient-only sharing work.

@@ -94,13 +94,14 @@ permission boundary, example label, and control remains real HTML.
   and separate captions for team and guest access.
 - Library: an open woven folio opposite the explanation and a labeled saved
   preference example.
-- Actions: a three-step illustrated order workflow above a wide thread image.
-  Buttons change the explanation and active indicator, without performing work.
-- Closing: a simple agent-guide link and compact footer.
+- Actions: a heading, short explanation, and wide thread image. Keep the detailed
+  Inventory and Orders workflow in documentation.
+- Closing: return to the hero's installer and prompt controls, then a compact footer.
 
 Sharing copy explains that a guest invitation adds access without removing the
 team, and app use does not itself permit editing code. Automation remains labeled
-planned. Do not claim Secrets is planned, or claim an unverified hosted rollout.
+planned. Secrets is implemented in the next release candidate; mark it upcoming
+until the matching hosted service and CLI are published.
 
 ## Motion and interaction
 
@@ -109,7 +110,7 @@ pointer. Text and controls stay still. Reset on pointer leave. Coalesce writes
 with animation frames and remove listeners on cleanup.
 
 Use one-time artwork reveals on entry, a brief hero arrival, understated link
-feedback, and a sliding indicator in the workflow. No perpetual floating or
+feedback. No perpetual floating or
 scroll hijacking. Content stays visible if JavaScript fails. Reduced-motion
 preferences disable entrances, pointer depth, and spatial transitions, including
 when the preference changes while the page is open.
@@ -121,8 +122,18 @@ guide is the agent view; do not duplicate the homepage behind a view toggle.
 
 ## Other public routes and console
 
-Existing product deep links and their botanical artwork remain available.
+Existing product deep links remain available and use the same woven artwork,
+warm paper, copper actions, and Inter typography as the homepage. Supporting
+pages use either an illustrated introduction or a compact technical introduction.
 Homepage capability navigation uses section anchors and documentation links.
-Docs retain their navigation and technical detail. The workspace console retains
-its own design and only displays real state. This redesign does not change its
-permissions, APIs, or deployment behavior.
+
+Docs prioritize reading. Keep the desktop directory, a collapsible mobile
+directory, section links, previous/next guides, and machine-readable exports.
+Code blocks scroll independently and can receive keyboard focus.
+
+The console uses dark olive navigation, paper work areas, copper primary actions,
+and 44px form controls. Keep data views quiet and render real state. New woven
+archway and workshop illustrations live in `public/images/console/`; use them on
+entry and empty-workspace screens. Hide entry artwork on narrow or short screens
+to keep the form in view. Illustrations are decorative, never a substitute for
+status text. The redesign preserves permissions, APIs, and deployment behavior.

@@ -1,11 +1,12 @@
+import { SupportHero } from "../../components/SupportHero";
+import styles from "../../components/support.module.css";
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ChipGrid } from "../../components/ChipGrid";
 import { Reveal } from "../../components/Reveal";
 import { SpecTable } from "../../components/SpecTable";
-import { ProductConsole, ProductMark } from "../../components/Visuals";
+import { ProductMark } from "../../components/Visuals";
 import { productOrder, products } from "../../lib/content";
 
 type PageProps = {
@@ -40,55 +41,34 @@ export default async function ProductPage({ params }: PageProps) {
   const available = product.availability === "available";
 
   return (
-    <main>
-      <section className="product-hero">
-        <div className="product-art" aria-hidden="true">
-          <Image src={`/images/products/${product.slug}.webp`} alt="" fill sizes="100vw" preload />
-        </div>
-        <div className="shell product-hero-grid">
-          <div className="product-intro">
-            <div className="product-kicker">
-              <ProductMark type={product.slug} />
-              <span>
-                {product.number} / {product.name}
-              </span>
-              <small className={`status status-${product.availability}`}>
-                {product.availability}
-              </small>
-            </div>
-            <h1>{product.title}</h1>
-            <p>{product.summary}</p>
-            <div className="button-row">
-              <Link
-                className="button button-dark"
-                href={`/docs/${product.slug}`}
-              >
-                Read {product.name} docs <span aria-hidden="true">→</span>
-              </Link>
-              <Link className="button button-outline-dark" href="/#products">
-                All products
-              </Link>
-            </div>
-          </div>
-          <ProductConsole type={product.slug} />
-        </div>
-      </section>
+    <main className={styles.page}>
+      <SupportHero
+        eyebrow={`${product.name} · ${product.availability}`}
+        title={product.title}
+        description={product.summary}
+        artwork={product.slug === "access" ? "access" : product.slug === "library" ? "library" : product.slug === "apps" || product.slug === "database" ? "apps" : "threads"}
+      >
+        <Link className="button button-dark" href={`/docs/${product.slug}`}>
+          Read {product.name} docs <span aria-hidden="true">→</span>
+        </Link>
+        <Link className="text-link" href="/#products">All products</Link>
+      </SupportHero>
 
-      <section className="product-boundary">
-        <div className="shell">
+      <section className={styles.boundary}>
+        <div className={styles.shell}>
           <p>{product.boundary}</p>
         </div>
       </section>
 
-      <section className="section shell product-capabilities">
-        <div className="section-split">
-          <Reveal className="split-copy">
+      <section className={`${styles.section} ${styles.shell}`}>
+        <div className={styles.split}>
+          <Reveal className={styles.copy}>
             <h2>
               {available
                 ? `What you can do with ${product.name}.`
                 : "What comes later."}
             </h2>
-            <div className="capability-list">
+            <div className={styles.capabilities}>
               {product.features.map(([name, copy], index) => (
                 <article key={name}>
                   <span>0{index + 1}</span>
@@ -98,7 +78,7 @@ export default async function ProductPage({ params }: PageProps) {
               ))}
             </div>
           </Reveal>
-          <Reveal className="product-spec" delay={120}>
+          <Reveal className={styles.spec} delay={120}>
             <SpecTable
               caption={
                 available
@@ -127,9 +107,9 @@ export default async function ProductPage({ params }: PageProps) {
         </div>
       </section>
 
-      <section className="code-section">
-        <div className="shell code-section-grid">
-          <div className="split-copy">
+      <section className={styles.codeSection}>
+        <div className={`${styles.shell} ${styles.codeGrid}`}>
+          <div className={styles.copy}>
             <h2>
               {available
                 ? "Use this from the CLI or your agent."
@@ -150,8 +130,8 @@ export default async function ProductPage({ params }: PageProps) {
         </div>
       </section>
 
-      <section className="section shell related-products">
-        <div className="section-intro">
+      <section className={`${styles.section} ${styles.shell} ${styles.related}`}>
+        <div className={styles.intro}>
           <h2>Related products</h2>
         </div>
         <div>

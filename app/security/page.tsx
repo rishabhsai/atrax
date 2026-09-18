@@ -1,3 +1,5 @@
+import { SupportHero } from "../components/SupportHero";
+import styles from "../components/support.module.css";
 import Link from "next/link";
 import { ChipGrid } from "../components/ChipGrid";
 import { Reveal } from "../components/Reveal";
@@ -33,27 +35,18 @@ const boundaries = [
 
 export default function SecurityPage() {
   return (
-    <main>
-      <section className="page-hero page-hero-dark">
-        <div className="shell page-hero-grid">
-          <div>
-            <h1>Your company&apos;s apps start company-only.</h1>
-            <p>
-              A new app is available to workspace members. Outside access is a
-              separate decision. People, agents, and connected apps follow the
-              same current permission checks.
-            </p>
-            <div className="button-row">
-              <Link className="button button-orange" href="/docs/security">
-                Read the security model <span aria-hidden="true">→</span>
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
-      <section className="section shell security-now">
-        <div className="section-split">
-          <Reveal className="split-copy">
+    <main className={styles.page}>
+      <SupportHero
+        eyebrow="Security"
+        title="Your company’s apps start company-only."
+        description="A new app is available to workspace members. Outside access is a separate decision. People, agents, and connected apps follow the same current permission checks."
+        artwork="access"
+      >
+        <Link className="button button-dark" href="/docs/security">Read the security model <span aria-hidden="true">→</span></Link>
+      </SupportHero>
+      <section className={`${styles.section} ${styles.shell}`}>
+        <div className={styles.split}>
+          <Reveal className={styles.copy}>
             <h2>Sharing an app should be a deliberate choice.</h2>
             <p>
               Select a smaller coworker audience for a sensitive app. Invite a
@@ -94,7 +87,7 @@ export default function SecurityPage() {
             />
           </Reveal>
         </div>
-        <div className="security-ledger security-ledger-below">
+        <div className={styles.ledger}>
           {boundaries.map(([title, copy], index) => (
             <p key={title}>
               <span>0{index + 1}</span>
@@ -104,8 +97,8 @@ export default function SecurityPage() {
           ))}
         </div>
       </section>
-      <section className="final-cta">
-        <div className="shell final-cta-grid">
+      <section className={styles.cta}>
+        <div className={`${styles.shell} ${styles.ctaGrid}`}>
           <div>
             <h2>See where every check happens.</h2>
           </div>

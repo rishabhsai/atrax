@@ -1,3 +1,5 @@
+import { SupportHero } from "../../components/SupportHero";
+import styles from "../../components/support.module.css";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -34,30 +36,24 @@ export default async function SolutionPage({ params }: PageProps) {
   if (!solution) notFound();
 
   return (
-    <main>
-      <section className="page-hero page-hero-dark">
-        <div className="shell page-hero-grid">
-          <div>
-            <h1>{solution.title}</h1>
-            <p>{solution.summary}</p>
-            <div className="button-row">
-              <Link className="button button-orange" href={solution.docs}>
-                {solution.docsLabel} <span aria-hidden="true">→</span>
-              </Link>
-              <Link className="button button-outline-light" href="/solutions">
-                All use cases
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
+    <main className={styles.page}>
+      <SupportHero
+        eyebrow={solution.name}
+        title={solution.title}
+        description={solution.summary}
+      >
+        <Link className="button button-dark" href={solution.docs}>
+          {solution.docsLabel} <span aria-hidden="true">→</span>
+        </Link>
+        <Link className="text-link" href="/solutions">All use cases</Link>
+      </SupportHero>
 
-      <section className="section shell example-detail">
-        <div className="section-split">
-          <Reveal className="split-copy">
+      <section className={`${styles.section} ${styles.shell}`}>
+        <div className={styles.split}>
+          <Reveal className={styles.copy}>
             <h2>{solution.example}</h2>
             <p>{solution.short}</p>
-            <ol className="step-list">
+            <ol className={styles.steps}>
               {solution.steps.map((step, index) => (
                 <li key={step}>
                   <span>0{index + 1}</span>
@@ -89,8 +85,8 @@ export default async function SolutionPage({ params }: PageProps) {
         </div>
       </section>
 
-      <section className="example-stack">
-        <div className="shell">
+      <section className={styles.stack}>
+        <div className={styles.shell}>
           <div>
             {solution.stack.map((slug) => (
               <Link href={`/products/${slug}`} key={slug}>
@@ -107,8 +103,8 @@ export default async function SolutionPage({ params }: PageProps) {
         </div>
       </section>
 
-      <section className="final-cta">
-        <div className="shell final-cta-grid">
+      <section className={styles.cta}>
+        <div className={`${styles.shell} ${styles.ctaGrid}`}>
           <div>
             <h2>{solution.docsLabel}.</h2>
           </div>

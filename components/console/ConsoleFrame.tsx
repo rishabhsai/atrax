@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, type ReactNode } from "react";
 import type { Session, Workspace } from "./api";
+import { ConsoleArtwork } from "./ConsoleArtwork";
 import styles from "./console.module.css";
 
 type ActiveDestination = "apps" | "library" | "team";
@@ -78,7 +79,10 @@ export function AuthFrame({ children }: { children: ReactNode }) {
       <Link href="/" className={styles.brand}>
         <span aria-hidden="true">A</span> atrax
       </Link>
-      <section className={styles.authPanel}>{children}</section>
+      <div className={styles.authLayout}>
+        <ConsoleArtwork kind="entry" />
+        <section className={styles.authPanel}>{children}</section>
+      </div>
       <p className={styles.authFooter}>
         <Link href="/docs/quickstart/">Help getting started</Link>
       </p>

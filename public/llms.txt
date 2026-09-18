@@ -13,10 +13,12 @@ Cloud for your company’s apps. Company-only by default; existing agents use th
 - [Database](https://atrax.run/docs/database/index.md): Persistent structured data for each app.
 - [Access](https://atrax.run/docs/access/index.md): Verified company access, app sharing, and revocable agent sessions.
 - [Library](https://atrax.run/docs/library/index.md): Company files and guidance that authorized people and agents can share.
+- [Secrets](https://atrax.run/docs/secrets/index.md): Credential storage and app bindings prepared for the next release.
 - [Actions](https://atrax.run/docs/actions/index.md): Named app actions that preserve the employee’s permissions.
 - [MCP](https://atrax.run/docs/mcp/index.md): Use your existing agent through the official MCP stdio protocol.
 - [Automation](https://atrax.run/docs/automation/index.md): Hosted agents and scheduled automation are planned.
 - [Security model](https://atrax.run/docs/security/index.md): Identity and permissions stay outside uploaded app code.
-- [Feature status](https://atrax.run/docs/status/index.md): The first launch focuses on a complete company app workflow.
+- [App operations](https://atrax.run/docs/operations/index.md): Inspect deployments and recover code or data, with availability for the upcoming console.
+- [Feature status](https://atrax.run/docs/status/index.md): What you can use now, what is awaiting rollout, and what remains planned.
 
 - [Operation schemas](https://atrax.run/operations.json)
