@@ -2,7 +2,7 @@
 
 :root {
   color-scheme: light;
-  --site-header-height: 55px;
+  --site-header-height: 72px;
   --orange: oklch(0.69 0.2 42);
   --orange-dark: oklch(0.56 0.19 38);
   --orange-light: oklch(0.91 0.07 69);
@@ -54,7 +54,7 @@ html {
 }
 
 body {
-  min-width: 320px;
+  min-width: 0;
   margin: 0;
   background: var(--paper);
   color: var(--ink);
@@ -4307,30 +4307,6 @@ h3 {
 
 /* The public entry point keeps the agent handoff at the center. */
 .site-header, .site-footer { --focus-ring: var(--orange-dark); }
-/* Include the navigation in the first screen; grow naturally on short screens. */
-.home-hero { position: relative; isolation: isolate; overflow: hidden; display: grid; align-items: center; min-height: calc(100svh - var(--site-header-height)); }
-.home-trees { position: absolute; inset: 0 0 auto; aspect-ratio: 3 / 1; z-index: -1; pointer-events: none; mask-image: linear-gradient(to bottom, black 70%, transparent); }
-.home-trees img { object-fit: contain; object-position: center top; mix-blend-mode: multiply; }
-/* Ten small petals, animated by the compositor and confined to the edges. */
-.hero-petals { position: absolute; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }
-.hero-petal { --start: 3%; --drift: 36px; --duration: 21s; --delay: -4s; position: absolute; top: -24px; left: var(--start); height: calc(100% + 48px); width: 12px; animation: petal-fall var(--duration) linear var(--delay) infinite; }
-.hero-petal i { display: block; width: 10px; height: 15px; border-radius: 80% 15% 70% 35%; background: oklch(0.78 0.085 35 / 0.65); animation: petal-turn 7s ease-in-out var(--delay) infinite alternate; }
-.hero-petal:nth-child(2) { --start: 10%; --drift: -30px; --duration: 25s; --delay: -17s; }
-.hero-petal:nth-child(3) { --start: 16%; --drift: 18px; --duration: 29s; --delay: -8s; }
-.hero-petal:nth-child(4) { --start: 7%; --drift: 50px; --duration: 32s; --delay: -24s; }
-.hero-petal:nth-child(5) { --start: 20%; --drift: -42px; --duration: 24s; --delay: -20s; }
-.hero-petal:nth-child(6) { --start: 96%; --drift: -32px; --duration: 23s; --delay: -12s; }
-.hero-petal:nth-child(7) { --start: 88%; --drift: 30px; --duration: 28s; --delay: -3s; }
-.hero-petal:nth-child(8) { --start: 82%; --drift: -15px; --duration: 31s; --delay: -22s; }
-.hero-petal:nth-child(9) { --start: 93%; --drift: -48px; --duration: 26s; --delay: -18s; }
-.hero-petal:nth-child(10) { --start: 78%; --drift: 40px; --duration: 30s; --delay: -10s; }
-.hero-petal:nth-child(3n) i { width: 7px; height: 11px; background: oklch(0.7 0.055 70 / 0.5); }
-@keyframes petal-fall { 0% { transform: translate3d(0, -2%, 0); opacity: 0; } 8%, 85% { opacity: 1; } 100% { transform: translate3d(var(--drift), 100%, 0); opacity: 0; } }
-@keyframes petal-turn { from { transform: translateX(-8px) rotate(-35deg) rotateY(0); } to { transform: translateX(8px) rotate(100deg) rotateY(65deg); } }
-@media (prefers-reduced-motion: reduce) { .hero-petals { display: none; } .hero-petal, .hero-petal i { animation: none; } }
-.home-intro { padding-block: 72px; text-align: center; }
-.home-intro h1 { max-width: 900px; margin: 0 auto 24px; font-size: clamp(40px, 5.2vw, 70px); line-height: 1.08; letter-spacing: -0.055em; }
-.home-summary { max-width: 560px; margin: 0 auto; font-size: 19px; line-height: 1.65; text-wrap: pretty; }
 .agent-handoff { max-width: 760px; margin: 36px auto 0; }
 .agent-terminal { --focus-ring: var(--orange-light); overflow: hidden; border: 1px solid var(--line); border-radius: 10px; background: var(--ink); color: var(--paper); text-align: left; }
 .agent-terminal-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-inline: 16px; border-bottom: 1px solid var(--line); }
@@ -4351,23 +4327,12 @@ h3 {
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
 .agent-guide-note { margin: 18px 0 0; color: var(--muted); font-size: 13px; text-align: center; }
 .agent-guide-note a { display: inline-block; color: var(--ink); text-decoration: underline; text-underline-offset: 4px; }
-.home-start-note { margin: 12px 0 0; color: var(--muted); font-size: 13px; }
-.home-start-note a { display: inline-block; padding-block: 8px; margin-left: 8px; color: var(--ink); text-decoration: underline; text-underline-offset: 4px; }
 @media (max-width: 640px) {
-  .home-intro { padding-block: 56px; }
-  .home-intro h1 { max-width: 340px; font-size: 44px; }
-  .home-summary { font-size: 17px; max-width: 340px; }
-  .home-trees { height: 290px; aspect-ratio: auto; mask-image: none; }
-  .hero-petal:nth-child(n+3):nth-child(-n+5), .hero-petal:nth-child(n+8) { display: none; }
-  .hero-petal { --drift: 8px; }
-  .hero-petal:nth-child(2) { --start: 3%; --drift: -8px; }
-  .hero-petal:nth-child(7) { --start: 96%; --drift: -8px; }
   .product-art { height: 180px; mask-image: linear-gradient(black, transparent); }
   .product-art img { opacity: 0.65; }
   .product-hero-grid { text-align: left; gap: 36px; }
   .product-intro { width: 100%; }
   .product-kicker, .product-hero .button-row { justify-content: flex-start; }
-  .home-trees img { width: 130% !important; max-width: none; left: -15% !important; object-fit: contain; object-position: center top; opacity: 0.7; }
   .agent-handoff { margin-top: 28px; }
   .agent-terminal-bar { padding-inline: 12px; gap: 8px; }
   .agent-clients { gap: 12px; }
@@ -4375,7 +4340,6 @@ h3 {
   .agent-copy > span:last-child { display: none; }
   .agent-terminal-command { padding: 20px 16px; gap: 10px; }
   .agent-guide-note { max-width: 280px; margin-inline: auto; }
-  .home-start-note a { margin-left: 0; }
 }
 
 @media (max-width: 640px) {
@@ -4390,12 +4354,4 @@ h3 {
   .agent-terminal-bar { padding-inline: 10px; }
   .agent-clients { gap: 8px; }
   .agent-clients button { font-size: 11px; }
-}
-
-/* Decorative motion stays separate from text and controls. */
-.hero-atmosphere { --pointer-x: 0px; --pointer-y: 0px; position: absolute; inset: 0; z-index: -1; pointer-events: none; }
-.hero-atmosphere .home-trees { transform: translate3d(var(--pointer-x), var(--pointer-y), 0); transition: transform 450ms var(--ease-out); }
-.hero-atmosphere .hero-petals { transform: translate3d(calc(var(--pointer-x) * -1.8), calc(var(--pointer-y) * -1.2), 0); transition: transform 550ms var(--ease-out); }
-@media (prefers-reduced-motion: reduce), (pointer: coarse) {
-  .hero-atmosphere .home-trees, .hero-atmosphere .hero-petals, .product-index > a:hover .product-mark, .product-index > a:focus-visible .product-mark, .product-index > a:hover h3, .product-index > a:hover .product-index-arrow { transform: none; transition: none; }
 }

@@ -42,4 +42,23 @@ Meet WCAG 2.2 AA contrast and keyboard requirements. Preserve meaning without co
 
 ## Approved public homepage
 
-The headline is “A cloud for everyone.” The explanation is “Build with your agent. Atrax runs your apps, keeps their data, and connects your team.” Keep a simple centered reading order, the selected ink trees at the edges, and the five current capability links directly below the hero at `/#products`. MCP appears under For agents and Automation under Planned. Each capability links to its own detail page; there is no separate product index. Use general capability language, without decorative eyebrows or example-led storytelling. The hero fills the first viewport including navigation. One terminal-style block copies the `/agents.sh` installer, with compact Codex, Claude Code, Cursor, and Prompt options. Below it, a short sentence directs agents to `/agents.md`. Keep “Start locally, no account needed.” and the quickstart link.
+The September 17 landscape and woven direction supersedes the ink-tree design.
+The headline is "A cloud for everyone." The explanation is "Build with your agent.
+Atrax runs your apps, keeps their data, and connects your team."
+
+The connected landscape frames a centered introduction and the real terminal
+installer. The hero fills the first viewport including navigation, and grows on
+short screens. Preserve Codex, Claude Code, Cursor, and Prompt choices, truthful
+copy feedback, the direct agent guide, and the local-start/quickstart note.
+
+The homepage tells the full capability story with distinct compositions. Apps
+uses a woven frame on database layers, Database is the adjoining compact strip,
+Access uses a braided boundary on dark olive, Library uses a fabric-bound folio,
+and Actions pairs a clearly labeled interactive workflow with interwoven threads.
+Navigation scrolls to these sections. Documentation contains implementation
+details. Existing product deep links remain available.
+
+Motion adds gentle pointer depth to the hero, a brief entrance, one-time artwork
+reveals, and a sliding workflow indicator. It never hides essential content or
+runs indefinitely. Respect reduced motion and touch input. The console uses real
+state and stays separate from the illustrated marketing workflow.
