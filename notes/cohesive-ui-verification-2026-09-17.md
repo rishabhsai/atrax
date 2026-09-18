@@ -47,3 +47,32 @@ documentation changes. The main workspace keeps the unreleased 0.3.0 functionali
 and receives the same styling. Release build and deployment verification are
 recorded below after completion. No backend or CLI publication is part of this
 visual release.
+
+## Published release
+
+- Main implementation commit: `47cf52d`.
+- Production source commit: `3f68808`, built in the isolated release worktree.
+- Cloudflare Pages production deployment:
+  `https://d2753fb8.tarantula-9l0.pages.dev`, serving `https://atrax.run`.
+- `npm run build` completed with 49 exported HTML pages. All seven existing
+  rendered-HTML and agent-onboarding tests passed.
+- Checked 2,445 local references across every exported HTML page. None were
+  missing. The export contains no local test API endpoint, preserves the released
+  operation registry and CLI 0.2.1 installer, and excludes the unreleased Secrets
+  console route.
+- Hashed 349 export files before upload and verified the same hashes afterward.
+  Homepage SHA-256 is
+  `534ea938753b5a88717f05e12f19a6d2d7f1e380f0392edb4b41d991f97ea05c`.
+- Compared 22 live pages/assets with the export. Twenty-one were byte-identical.
+  Cloudflare masks the developers page's example email and inserts its decoder
+  script. Reversing only that observed transformation produced the exact build.
+  Chrome displayed the original command correctly, without application errors.
+- Verified the published sign-in page and loaded illustration on the live domain.
+- The closing homepage action returned to `#hero`; the hero occupied 924px plus
+  its 72px header in a 996px viewport. Prompt copying reported success.
+- In the production export at 320px, sign-in kept the form visible without
+  horizontal scrolling, focused the required email field on empty submission,
+  and showed the recovery message for an incomplete confirmation link. No
+  production email was requested.
+
+Backend, CLI, and migration rollout remain separate from this production update.
