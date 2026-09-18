@@ -29,7 +29,10 @@ function gatewayBindings(env,job,artifact,{candidate}) {
     {type:'r2_bucket',name:'ARTIFACTS',bucket_name:env.ARTIFACT_BUCKET},
     {type:'service',name:'DOOR',service:env.CONTROL_PLANE_NAME,entrypoint:'Door'},
   ];
-  if(!candidate&&job.mode!=='preview') bindings.push({type:'service',name:'LIBRARY',service:env.CONTROL_PLANE_NAME,entrypoint:'Library'});
+  if(!candidate&&job.mode!=='preview') bindings.push(
+    {type:'service',name:'LIBRARY',service:env.CONTROL_PLANE_NAME,entrypoint:'Library'},
+    {type:'service',name:'SECRETS',service:env.CONTROL_PLANE_NAME,entrypoint:'Secrets'},
+  );
   if(artifact.runtime) bindings.push({type:'service',name:'RUNTIME',service:candidate ? job.candidateRuntime : job.runtimeName,entrypoint:'AppRuntime'});
   if(!candidate&&job.mode!=='preview') for(const [alias,target] of Object.entries(job.dependencies)) bindings.push({type:'service',name:`DEP_${alias.replaceAll('-','_').toUpperCase()}`,service:target.gateway,entrypoint:'TargetGateway'});
   return bindings;
@@ -520,7 +523,7 @@ async function validateActionAccess(env,app,actions,access={}) {
     if(!actions.some(action=>action.name===name)||!policy||!['workspace','selected'].includes(policy.audience)||Object.keys(policy).some(key=>!['audience','personIds','deniedPersonIds'].includes(key))) throw new OperationError('invalid_input',400,'Invalid initial action audience');
     if(await env.CP_DB.prepare('SELECT revision FROM action_policies WHERE app_id=? AND action_name=?').bind(app.app_id,name).first()) throw new OperationError('policy_revision_required',409,'Use action-access revision checks to change an existing policy');
     const selected=policy.personIds ?? [],denied=policy.deniedPersonIds ?? [];
-    if(policy.audience==='selected'&&!selected.length||policy.audience==='workspace'&&selected.length) throw new OperationError('invalid_input',400,'Selected audiences need people; workspace audiences cannot list selected people');
+    if(policy.audience==='workspace'&&selected.length) throw new OperationError('invalid_input',400,'Workspace audiences cannot list selected people');
     if(Array.isArray(selected)&&Array.isArray(denied)&&selected.some(id=>denied.includes(id))) throw new OperationError('invalid_input',400,'A person cannot be selected and denied for the same action');
     for(const ids of [selected,denied]) {
       if(!Array.isArray(ids)||ids.length>1000||ids.some(id=>typeof id!=='string')||new Set(ids).size!==ids.length) throw new OperationError('invalid_input',400,'Action audiences need unique person IDs');

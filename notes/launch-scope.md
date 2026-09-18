@@ -4,6 +4,14 @@ Terminology updated September 16, 2026 to match `CONTEXT.md`. The scope below re
 
 ## Agreed scope
 
+### September 17 expansion
+
+The next source candidate adds shared Secrets and the app operations console. Workspace admins manage encrypted credentials separately from Library and grant trusted app backends named bindings. App actions retrieve current values through request-scoped authority. Management responses return metadata only. Rotation and revocation apply to future retrievals without redeploying; previews cannot receive live credentials.
+
+App operations shows recorded deployments, failures, releases, database snapshots, and action counts. It supports code rollback and explicit database restore as different operations. These additions require their matching CLI, control-plane migration/key, and site rollout before they are available on the hosted service.
+
+Recipient-only app use can select zero workspace viewers and explicitly grant an external guest. Maintainers retain management and private-candidate permissions independently of live app-use access. Workspace-wide access remains the default for a new app.
+
 A new user can create an app without signing in, run it locally, sign in at the first hosted deployment, deploy into a workspace without a Cloudflare account, preserve its data, and share it with a teammate.
 
 Hosted apps belong to the workspace from their first deployment. This supersedes the earlier anonymous-deploy-and-claim onboarding proposal. There is no separate claim step in the new launch flow.

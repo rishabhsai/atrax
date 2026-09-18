@@ -141,7 +141,7 @@ atrax deploy --json`,
     summary:
       '"We don\'t use blue in our brand." An authorized agent can save that preference in Library. People and agents can find it again, see who added it, and correct it when the guidance changes.',
     boundary:
-      "Keep policies, documents, terminology, and decisions in Library. It does not store API keys, credentials, or secrets; shared credential management is planned separately.",
+      "Keep policies, documents, terminology, and decisions in Library. Manage API keys and credentials separately in Secrets, and grant them to trusted app backends.",
     features: [
       [
         "Remember company decisions",
@@ -338,7 +338,7 @@ export const solutions = {
     prompt: "Share this prototype with our client, using their email address.",
     outcome:
       "The recipient proves control of the invited email before opening the app. Their grant covers this app, without making them a workspace member.",
-    note: "Inviting a guest does not remove existing company access. To limit a review, also narrow the app audience and review other guest grants and public publishing. These are separate operations, and at least one workspace member must retain app access.",
+    note: "Inviting a guest does not remove existing company access. For a recipient-only review, select no workspace viewers, turn off public web, and remove other guest grants and invitations. Maintainers retain management permissions without access to the live app.",
     docs: "/docs/access",
     docsLabel: "Read the sharing guide",
     steps: [
@@ -387,7 +387,7 @@ export const solutions = {
     prompt: "Remember that we don't use blue in our company's designs.",
     outcome:
       "Your agent adds a knowledge entry with attribution. A future agent can find that guidance through an authorized Library search and correct it when the policy changes.",
-    note: "Library stores company knowledge, not API keys, credentials, or secrets. Your agent must use its tools to save or retrieve it; Atrax does not automatically import conversations or run a hosted agent. Shared credential management is planned separately.",
+    note: "Library stores company knowledge. Manage API keys and credentials in Secrets. Your agent uses tools to save or retrieve knowledge; Atrax does not automatically import conversations or run a hosted agent.",
     docs: "/docs/mcp",
     docsLabel: "Connect your agent",
     steps: [

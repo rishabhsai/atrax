@@ -59,7 +59,11 @@ export function sharingSummary(result) {
     `Invitation: ${invitation.id} (${invitation.status}) for ${invitation.email}`,
     `Actions granted by this invitation: ${result.actionNames.join(', ') || 'none'}`,
     `Public static web access: ${audience.publicWeb ? 'public, anyone can open the web pages' : 'private, sign-in required'}.`,
-    `Workspace access remains in effect (${audience.workspace.policy==='workspace' ? 'workspace-wide' : 'selected people'}).`,
+    audience.workspace.policy==='workspace'
+      ? 'Workspace access remains in effect (workspace-wide).'
+      : audience.workspace.people.length
+        ? 'Workspace access remains in effect (selected people).'
+        : 'Workspace access is restricted; no workspace member can open the live app.',
     `Workspace people who can open the app: ${people}`,
     `Accepted guests: ${guests}`,
     `Pending invitations: ${pending}`,

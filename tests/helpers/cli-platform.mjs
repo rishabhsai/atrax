@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
-import { createHash } from "node:crypto";
+import { createHash, randomBytes } from "node:crypto";
 import { createServer } from "node:http";
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -24,6 +24,7 @@ export async function createCliPlatform(t) {
         await bundlePlatform("control-plane/src/index.js"),
         {
           CP_DB: { type: "d1", id: "library-cli-test-db" },
+          SECRETS_ENCRYPTION_KEY: { type: "json", value: randomBytes(32).toString("base64") },
           LIBRARY_FILES: { type: "r2", name: "library-cli-files" },
           CONSOLE_ORIGIN: { type: "json", value: "https://console.atrax.test" },
           EMAIL_FROM: { type: "json", value: "test@atrax.test" },
@@ -143,7 +144,7 @@ export async function createCliPlatform(t) {
     return { status: response.status, body: await response.json() };
   }
 
-  async function run(person, args, {json = true} = {}) {
+  async function run(person, args, {json = true, input = ""} = {}) {
     const child = spawn(process.execPath, [cli, ...args, ...(json ? ["--json"] : [])], {
       cwd: directory,
       env: {
@@ -152,8 +153,9 @@ export async function createCliPlatform(t) {
         ATRAX_CONFIG_DIR: configs[person],
         NO_COLOR: "1",
       },
-      stdio: ["ignore", "pipe", "pipe"],
+      stdio: ["pipe", "pipe", "pipe"],
     });
+    child.stdin.end(input);
     let stdout = "";
     let stderr = "";
     child.stdout.setEncoding("utf8");

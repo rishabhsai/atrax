@@ -86,6 +86,21 @@ npx wrangler pages deploy out --project-name tarantula --branch workspace-launch
 
 ## Deploy production
 
+### Secrets rollout
+
+Apply migration `0016_workspace_secrets.sql` before deploying a control plane that records invocation environments. Provision a separate `SECRETS_ENCRYPTION_KEY` for each environment using a protected random 32-byte key encoded as base64. Store an operator recovery copy before uploading it through `wrangler secret put`; keep the value out of commands, logs, and source control.
+
+```bash
+npx wrangler secret put SECRETS_ENCRYPTION_KEY --config control-plane/wrangler.jsonc --env staging
+npx wrangler secret put SECRETS_ENCRYPTION_KEY --config control-plane/wrangler.jsonc --env ''
+```
+
+Run only the command for the intended environment. Existing values depend on that key. Do not replace it without a separately verified re-encryption procedure; master-key rollover is not implemented. Customer credential rotation is a different operation and needs no app deployment.
+
+The new gateway connects to the `Secrets` control-plane entrypoint only for live deployments. Existing apps acquire the runtime method and gateway binding when rebuilt and normally deployed with the matching CLI. Retain `atrax.lock.json` so the update preserves app identity/data. Prove a disposable credential can be granted, used by a live action, rotated, and revoked, and that previews remain denied. Never use a real third-party credential for this smoke test.
+
+Build and publish the matching CLI and skill before publishing onboarding files that require the new commands. Run `npm run test:published` after the registry serves that exact version. This post-publication suite keeps the real registry installation and bundled-skill comparison; `npm test` verifies the source candidate before publication. The source-only verification notes are not a hosted release record.
+
 Use the default Worker configuration. Review the pending migration list, including the authorized prototype retirement. Keep the existing production provider secret.
 
 ```bash

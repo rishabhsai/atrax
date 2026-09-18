@@ -1,6 +1,6 @@
 {
   "name": "atrax",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "private": true,
   "bin": {
     "atrax": "bin/atrax.mjs"
@@ -18,7 +18,8 @@
     "package:cli": "node scripts/package-cli.mjs",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",
     "prebuild": "node scripts/generate-docs.mjs",
-    "build:control-plane": "node scripts/build-control-plane.mjs"
+    "build:control-plane": "node scripts/build-control-plane.mjs",
+    "test:published": "node --test tests/integration/agent-onboarding-published.test.mjs"
   },
   "dependencies": {
     "@cfworker/json-schema": "4.1.1",

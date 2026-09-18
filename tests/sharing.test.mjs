@@ -149,6 +149,22 @@ test('maintainers replace app access with optimistic, idempotent writes',{timeou
   assert.equal(afterConcurrent.body.result.access.revision,3);
 });
 
+test('selected access may intentionally contain no workspace users while maintenance remains assigned',{timeout:30000},async t=>{
+  const api=await platform(t);
+  const appAccess=await api.call('apps.access.set',{appId,audience:'selected',personIds:[],expectedRevision:1},people.maintainer,'empty-app-audience');
+  assert.equal(appAccess.response.status,200,JSON.stringify(appAccess.body));
+  assert.deepEqual(appAccess.body.result.access.personIds,[]);
+  const managed=await api.call('apps.get',{appId},people.maintainer);
+  assert.equal(managed.response.status,200,JSON.stringify(managed.body));
+  assert.deepEqual(managed.body.result.capabilities,{canOpen:false,maintain:true,manageAccess:true,canManageMaintainers:true});
+  assertFailure(await api.call('apps.get',{appId},people.alice),403,'forbidden');
+
+  const actionAccess=await api.call('actions.access.set',{appId,actionName,audience:'selected',personIds:[],deniedPersonIds:[],expectedRevision:1},people.maintainer,'empty-action-audience');
+  assert.equal(actionAccess.response.status,200,JSON.stringify(actionAccess.body));
+  assert.deepEqual(actionAccess.body.result.access.personIds,[]);
+  assert.equal(actionAccess.body.result.access.audience,'selected');
+});
+
 test('maintainers and workspace admins can hand off app maintenance',{timeout:30000},async t=>{
   const api=await platform(t);
   await api.db.batch([
@@ -167,6 +183,10 @@ test('maintainers and workspace admins can hand off app maintenance',{timeout:30
   assert.equal(adminView.response.status,200,JSON.stringify(adminView.body));
   assert.deepEqual(adminView.body.result.capabilities,{canOpen:false,maintain:false,manageAccess:false,canManageMaintainers:true});
   assert.equal(adminView.body.result.release,undefined,'management metadata does not disclose app actions without app access');
+  const maintainerView=await api.call('apps.get',{appId},people.maintainer);
+  assert.equal(maintainerView.response.status,200,JSON.stringify(maintainerView.body));
+  assert.equal(maintainerView.body.result.capabilities.canOpen,false);
+  assert.deepEqual(maintainerView.body.result.release.actions.map(action=>action.name),[actionName],'maintainers can inspect the release without live app use');
   const adminAccess=await api.call('apps.access.get',{appId},people.admin);
   assert.equal(adminAccess.response.status,200,JSON.stringify(adminAccess.body));
   assert.deepEqual(adminAccess.body.result.access.maintainerPersonIds,[people.maintainer.id]);

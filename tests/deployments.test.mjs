@@ -80,6 +80,7 @@ async function platform(t,{template='static'}={}) {
 
 test('a company member deploys a validated artifact through durable progress and a real private gateway check',async t=>{
   const api=await platform(t);
+  await api.db.prepare("UPDATE apps SET audience='selected' WHERE app_id=?").bind(api.app.id).run();
   const input={appId:api.app.id,releaseId:api.release.id,expectedReleaseId:null};
   assert.equal((await api.call('deployments.start',input,'member')).status,403);
   const {deployment}=await api.okay('deployments.start',input,'owner','first-deploy');
@@ -97,7 +98,8 @@ test('a company member deploys a validated artifact through durable progress and
   assert.equal(api.provider.databases.size,0,'Static apps do not provision a database');
   const gateway=api.provider.workers.get((await api.db.prepare('SELECT gateway_name FROM apps WHERE app_id=?').bind(api.app.id).first()).gateway_name);
   assert.equal(gateway.source,api.gatewaySource,'Provider receives the same trusted gateway tested locally');
-  const live=await candidate.fetch(api.app.url,{headers:{Authorization:`Bearer ${api.tokens.member}`}});assert.equal(live.status,200);
+  const live=await candidate.fetch(api.app.url,{headers:{Authorization:`Bearer ${api.tokens.member}`}});assert.equal(live.status,403);
+  const maintainerLive=await candidate.fetch(api.app.url,{headers:{Authorization:`Bearer ${api.tokens.owner}`}});assert.equal(maintainerLive.status,403,'deployment authority does not imply live app use');
   assert.equal((await api.db.prepare("SELECT active FROM app_hosts WHERE kind='candidate'").first()).active,0);
 });
 

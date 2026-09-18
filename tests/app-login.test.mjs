@@ -208,6 +208,36 @@ async function addMember(api,owner,member) {
   assert.equal(accepted.response.status,200,JSON.stringify(accepted.body));
 }
 
+test('a maintainer outside an empty live audience can sign in only to a candidate',{timeout:30000},async t=>{
+  const api=await platform(t);
+  const owner=await api.signIn('owner@example.com');
+  const joinedAt=Date.now();
+  await api.db.batch([
+    api.db.prepare('INSERT INTO workspaces(workspace_id,name,slug,created_by,created_at) VALUES(?,?,?,?,?)').bind(workspaceId,'Paper Company',workspaceId,owner.person.id,joinedAt),
+    api.db.prepare("INSERT INTO workspace_members(workspace_id,person_id,role,status,joined_at) VALUES(?,?,'owner','active',?)").bind(workspaceId,owner.person.id,joinedAt),
+  ]);
+  await provisionApp(api.db,owner.person.id);
+  await api.db.prepare("UPDATE apps SET audience='selected' WHERE app_id=?").bind(appId).run();
+
+  const candidateNavigation=await api.fetchHost(`${candidateOrigin}/review`,{headers:{accept:'text/html'}});
+  assert.equal(candidateNavigation.status,302);
+  const candidateDestination=new URL(candidateNavigation.headers.get('location'));
+  const candidateState=candidateDestination.searchParams.get('state');
+  const candidateLoginCookie=cookieValue(candidateNavigation.headers,'__Host-atrax_app_login');
+  const candidateLogin=await api.operation('apps.login',{appId,state:candidateState,hostname:new URL(candidateOrigin).host},owner.cookie);
+  assert.equal(candidateLogin.response.status,200,JSON.stringify(candidateLogin.body));
+  const candidateCallback=await api.fetchHost(candidateLogin.body.result.redirectUrl,{headers:{cookie:candidateLoginCookie}});
+  assert.equal(candidateCallback.status,302,await candidateCallback.clone().text());
+  const candidateAppCookie=cookieValue(candidateCallback.headers,'__Host-atrax_app');
+  assert.equal((await api.fetchHost(`${candidateOrigin}/`,{headers:{cookie:candidateAppCookie}})).status,200);
+
+  const liveNavigation=await api.fetchHost(`${appOrigin}/`,{headers:{accept:'text/html'}});
+  const liveDestination=new URL(liveNavigation.headers.get('location'));
+  const liveLogin=await api.operation('apps.login',{appId,state:liveDestination.searchParams.get('state'),hostname:new URL(appOrigin).host},owner.cookie);
+  assert.equal(liveLogin.response.status,403);
+  assert.equal(liveLogin.body.error.code,'forbidden');
+});
+
 test('real control-plane login issues a host-only app session and rechecks current membership',{timeout:30000},async t=>{
   const api=await platform(t);
   const owner=await api.signIn('owner@example.com');

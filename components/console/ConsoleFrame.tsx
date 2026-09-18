@@ -5,7 +5,7 @@ import { useEffect, useRef, type ReactNode } from "react";
 import type { Session, Workspace } from "./api";
 import styles from "./console.module.css";
 
-type ActiveDestination = "apps" | "library" | "team";
+type ActiveDestination = "apps" | "library" | "team" | "secrets";
 
 function WorkspaceLinks({
   session,
@@ -49,6 +49,16 @@ function WorkspaceLinks({
             onClick={onNavigate}
           >
             Library
+          </Link>
+        )}
+        {workspace && ["owner", "admin"].includes(workspace.role) && (
+          <Link
+            href={`/workspace/secrets/?workspace=${encodeURIComponent(workspace.id)}`}
+            aria-current={active === "secrets" ? "page" : undefined}
+            className={active === "secrets" ? styles.navActive : undefined}
+            onClick={onNavigate}
+          >
+            Secrets
           </Link>
         )}
         {workspace && (

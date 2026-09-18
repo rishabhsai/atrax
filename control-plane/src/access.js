@@ -129,11 +129,12 @@ export async function authorizeCall(env,input) {
   const app=await getApp(env,input.appId);
   const release=await env.CP_DB.prepare('SELECT * FROM releases WHERE release_id=? AND app_id=?').bind(input.releaseId,input.appId).first();
   if(!release) throw new OperationError('not_found',404,'App release not found');
-  let actor,parent=null,unpublishedPreview=false;
+  let actor,parent=null,unpublishedPreview=false,environment='preview',previewMembership=null;
   if(input.kind==='http') {
     const facts=input.request ?? {};
     const host=await env.CP_DB.prepare('SELECT * FROM app_hosts WHERE hostname=? AND app_id=? AND active=1').bind(facts.host,app.app_id).first();
     if(!host || (host.kind!=='live' && host.release_id!==input.releaseId)) throw new OperationError('forbidden',403,'App host does not match its registered release');
+    environment=host.kind==='live'?'live':'preview';
     if(input.publicAsset===true) {
       if(input.actionName!==null || !['GET','HEAD'].includes(facts.method) || input.requireMaintenance) {
         throw new OperationError('forbidden',403,'Public authorization is limited to app assets.');
@@ -142,7 +143,6 @@ export async function authorizeCall(env,input) {
         return {public:true,workspaceId:app.workspace_id,allowedActions:[]};
       }
     }
-    input.requireMaintenance ||= host.kind!=='live';
     unpublishedPreview=host.kind!=='live';
     const headers=new Headers();
     if(input.credential?.kind==='bearer') headers.set('authorization',`Bearer ${input.credential.token}`);
@@ -158,18 +158,24 @@ export async function authorizeCall(env,input) {
         if(actor && !['GET','HEAD'].includes(facts.method) && facts.origin!==`${new URL(app.url).protocol}//${facts.host}`) throw new OperationError('forbidden',403,'Action origin does not match this app');
       }
     }
+    if(unpublishedPreview) previewMembership=await requireMaintainer(env,app,actor);
   } else if(input.kind==='child') {
     ({actor,parent}=await resolveParentInvocation(env,input.parentInvocationId,input.sourceAppId));
+    environment=parent.environment;
     if(parent.workspace_id!==app.workspace_id) throw new OperationError('forbidden',403,'App calls cannot cross workspaces');
     const sourceRelease=await env.CP_DB.prepare('SELECT manifest_json FROM releases WHERE release_id=?').bind(parent.release_id).first();
     const dependencies=Object.values(JSON.parse(sourceRelease.manifest_json).dependencies ?? {});
     if(!dependencies.some(value=>value.appId===app.app_id)) throw new OperationError('forbidden',403,'This app dependency was not declared');
     if(parent.depth>=8) throw new OperationError('action_chain_too_deep',409,'This action chain is too deep');
   } else throw new OperationError('invalid_input',400,'Invalid authorization request');
-  const access=await assertAppAccess(env,app,actor);
-  if(input.requireMaintenance) await requireMaintainer(env,app,actor);
   const descriptors=JSON.parse(release.actions_json);
   const authorization={...actor,workspaceId:app.workspace_id,invocationId:null,rootInvocationId:null,depth:parent ? parent.depth+1 : 0,idempotencyKey:input.idempotencyKey ?? null,...(parent ? {sourceAppId:parent.app_id} : {})};
+  if(input.requireMaintenance) {
+    if(input.kind!=='http'||input.actionName!==null) throw new OperationError('forbidden',403,'Maintenance authorization is limited to app checks');
+    if(!previewMembership) await requireMaintainer(env,app,actor);
+    return {...authorization,allowedActions:[]};
+  }
+  const access=previewMembership ? {kind:'member',role:previewMembership.role} : await assertAppAccess(env,app,actor);
   if(input.actionName === null) {
     const allowedActions=[];
     for(const descriptor of descriptors) {
@@ -183,7 +189,7 @@ export async function authorizeCall(env,input) {
   if(descriptor.effect==='write' && (typeof input.idempotencyKey!=='string'||input.idempotencyKey.length<1||input.idempotencyKey.length>200)) throw new OperationError('idempotency_key_required',400,'Write actions need an idempotency key');
   const invocationId=crypto.randomUUID();
   const rootInvocationId=parent?.root_invocation_id ?? invocationId;
-  await env.CP_DB.prepare(`INSERT INTO invocations(invocation_id,root_invocation_id,parent_invocation_id,session_id,person_id,app_id,release_id,source_app_id,action_name,idempotency_key,depth,status,started_at,expires_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,'running',?,?)`).bind(invocationId,rootInvocationId,parent?.invocation_id ?? null,actor.session.id,actor.person.id,app.app_id,release.release_id,parent?.app_id ?? null,descriptor.name,input.idempotencyKey ?? null,authorization.depth,Date.now(),Date.now()+30_000).run();
+  await env.CP_DB.prepare(`INSERT INTO invocations(invocation_id,root_invocation_id,parent_invocation_id,session_id,person_id,app_id,release_id,source_app_id,action_name,idempotency_key,depth,status,started_at,expires_at,environment) VALUES(?,?,?,?,?,?,?,?,?,?,?,'running',?,?,?)`).bind(invocationId,rootInvocationId,parent?.invocation_id ?? null,actor.session.id,actor.person.id,app.app_id,release.release_id,parent?.app_id ?? null,descriptor.name,input.idempotencyKey ?? null,authorization.depth,Date.now(),Date.now()+30_000,environment).run();
   return {...authorization,invocationId,rootInvocationId};
 }
 export async function exchangeAppCode(env,{appId,code,state,callbackUrl}) {
@@ -197,8 +203,8 @@ export async function exchangeAppCode(env,{appId,code,state,callbackUrl}) {
   if(!proof) throw new OperationError('invalid_code',400,'App sign-in expired or was already used');
   const actor=await actorBySession(env,proof.session_id);
   if(actor.session.kind!=='browser') throw new OperationError('forbidden',403,'App sign-in requires a browser session');
-  await assertAppAccess(env,app,actor);
   if(host.kind!=='live') await requireMaintainer(env,app,actor);
+  else await assertAppAccess(env,app,actor);
   const token=randomSecret(),sessionId=crypto.randomUUID(),expiresAt=actor.session.expiresAt;
   const admission='EXISTS(SELECT 1 FROM app_login_codes c JOIN sessions parent ON parent.session_id=c.session_id WHERE c.code_hash=? AND c.consumed_at IS NULL AND c.expires_at>? AND parent.revoked_at IS NULL AND parent.expires_at>?)';
   const results=await env.CP_DB.batch([

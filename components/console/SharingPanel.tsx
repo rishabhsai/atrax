@@ -293,10 +293,6 @@ function ActionPolicy({ appId, actionName, members }: { appId: string; actionNam
 
   async function save() {
     if (state.kind !== "ready" || !draft) return;
-    if (draft.audience === "selected" && !draft.personIds.length) {
-      setNotice({ kind: "error", message: "Choose at least one person for selected access." });
-      return;
-    }
     setSaving(true);
     setNotice(null);
     try {
@@ -386,10 +382,6 @@ export function SharingPanel({ appId, workspaceId, actionNames, canManageAccess,
 
   async function saveAppAccess() {
     if (state.kind !== "ready" || !audienceDraft) return;
-    if (audienceDraft.audience === "selected" && !audienceDraft.personIds.length) {
-      setNotice({ kind: "error", message: "Choose at least one person for selected access." });
-      return;
-    }
     await saveSharedRevision("access", "apps.access.set", { appId, ...audienceDraft, expectedRevision: state.access.revision });
   }
 

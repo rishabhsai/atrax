@@ -2,7 +2,7 @@
 set -eu
 
 package_name='atrax-cloud'
-package_version='0.2.1'
+package_version='0.3.0'
 client=''
 
 fail() {

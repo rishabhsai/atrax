@@ -1,6 +1,6 @@
 # Atrax
 
-Atrax is a cloud for internal software at small businesses. A workspace holds your team's apps, Library, and membership. People use the apps; existing agents build and operate them through the CLI or MCP.
+Atrax is a cloud for internal software at small businesses. A workspace holds your team's apps, Library, Secrets, and membership. People use the apps; existing agents build and operate them through the CLI or MCP.
 
 - Site and docs: [atrax.run](https://atrax.run)
 - Source: [github.com/rishabhsai/atrax](https://github.com/rishabhsai/atrax)
@@ -39,8 +39,10 @@ The CLI returns structured output with the app and workspace identifiers and its
 - **Actions:** typed app-to-app calls with current permission checks and stable business keys for writes.
 - **Library:** revisioned company guidance and immutable file versions. Text, Markdown, CSV, and JSON are searchable; PDFs are stored and downloadable. Files are limited to 10 MiB.
 - **MCP:** connect an existing agent through the official stdio protocol with a named session and the same workspace permissions.
+- **Secrets:** admins manage encrypted credentials and grant them to trusted app backends. Values are written through stdin; rotation and revocation apply on the next retrieval.
+- **App operations:** inspect deployment history and recorded action calls, roll back code, and manage database snapshots separately from data restore.
 
-Shared secrets, hosted agents, scheduled automation, automatic document synchronization, and third-party connectors are deferred from this launch.
+Secrets and the expanded operations console are implemented in the 0.3.0 source candidate and pending hosted rollout. The published CLI is still 0.2.1. Hosted agents, scheduled automation, automatic document synchronization, and third-party connectors remain deferred.
 
 ## Use the CLI and MCP
 

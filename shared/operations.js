@@ -6,6 +6,7 @@ import {libraryFileOperations} from './library-file-operations.js';
 import {actionOperations} from './action-operations.js';
 import {externalSharingOperations} from './external-sharing-operations.js';
 import {recoveryOperations} from './recovery-operations.js';
+import {secretsOperations} from './secrets-operations.js';
 /** Public operation inventory shared by HTTP, CLI, MCP, and documentation. */
 const string = {type:'string',minLength:1};
 const email = {type:'string',minLength:3,maxLength:254};
@@ -20,6 +21,7 @@ export const operations = {
   ...actionOperations,
   ...externalSharingOperations,
   ...recoveryOperations,
+  ...secretsOperations,
   'auth.email.start':define('Send a sign-in link to your email address.','write',object({email,returnTo:string,purpose:{enum:['sign_in']}},['email']),true),
   'auth.email.verify':define('Verify a single-use email proof and start a browser session.','write',object({challengeId:string,secret:string}),true),
   'auth.device.start':define('Start sign-in for a CLI or existing agent.','write',object({clientName:string,agentLabel:string},['clientName']),true),

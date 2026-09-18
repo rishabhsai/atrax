@@ -10,11 +10,13 @@ The first launch focuses on a complete company app workflow.
 - Share with coworkers, appoint maintainers, and restrict named actions.
 - Connect Inventory and Orders with reliable business retries.
 - Contribute and correct Library guidance; upload files manually or through the CLI.
+- Manage encrypted Secrets and grant them to trusted app backends.
+- Inspect recorded app operations and recover code or database snapshots separately.
 - Use your existing agent through MCP with the same permissions.
 
 ## Deferred
 
 - Hosted agents and scheduled automation.
 - Automatic external-document synchronization.
-- Third-party OAuth connectors and general vault management.
+- Third-party OAuth connectors.
 - Source hosting, pull requests, and other GitHub replacement features.

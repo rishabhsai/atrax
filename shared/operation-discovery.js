@@ -33,6 +33,7 @@ export function describeOperation(name) {
   return {
     name, description: definition.description, effect: definition.effect,
     inputSchema: definition.inputSchema,
+    ...(definition.sensitiveInput ? {sensitiveInput: definition.sensitiveInput,cliInput: 'Pipe JSON through --stdin. Keep credential values out of command arguments and client logs.'} : {}),
     authentication: {required: !definition.anonymous, identity: definition.anonymous ? 'anonymous_identity_flow' : 'current_session', permission: 'Current person, session, membership, and resource permissions are checked by the server.'},
     scope: scope(name, definition),
     agent: {directTool: !reason, ...(reason ? {reason} : {})},

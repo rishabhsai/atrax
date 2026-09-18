@@ -84,9 +84,6 @@ function selectedAudience(audience,personIds) {
   if(audience==='workspace' && personIds.length) {
     throw new OperationError('invalid_input',400,'A workspace audience cannot include selected people.');
   }
-  if(audience==='selected' && !personIds.length) {
-    throw new OperationError('invalid_input',400,'A selected audience needs at least one person.');
-  }
 }
 
 

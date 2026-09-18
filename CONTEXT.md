@@ -99,7 +99,7 @@ _Avoid_: Conversation archive
 A saved item of company knowledge with attribution and revision history. Authorized contributors can correct it for future work.
 
 **Secrets**:
-The planned capability for company credentials such as API keys and passwords, distinct from Library.
+The capability for company credentials such as API keys and passwords, distinct from Library. Workspace admins manage credentials and grant named bindings to trusted app backends. Agents manage references with the same permissions; management operations return metadata only.
 _Avoid_: Library entry, company knowledge
 
 **Shared secret**:

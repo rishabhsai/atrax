@@ -114,6 +114,21 @@ export class ActionContext extends RpcTarget {
     throw new GatewayError('library_contract_error', 502, 'Library returned an invalid result');
   }
 
+  async secret(bindingName) {
+    return rpcResult(async()=>{
+      this.#use();
+      if(typeof bindingName!=='string'||!/^[A-Z][A-Z0-9_]{0,63}$/.test(bindingName)) {
+        throw new GatewayError('invalid_input',400,'Invalid credential binding name');
+      }
+      if(!this.#env.SECRETS) throw new GatewayError('secrets_unavailable',403,'Workspace credentials are unavailable in this environment');
+      return unwrapRpc(await this.#env.SECRETS.get({
+        parentInvocationId:this.#authorization.invocationId,
+        sourceAppId:this.#env.APP_ID,
+        bindingName,
+      }));
+    });
+  }
+
   close() {
     this.#closed = true;
     this.#authorization = null;

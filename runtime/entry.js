@@ -17,7 +17,7 @@ export class AppRuntime extends WorkerEntrypoint {
     // Identity here is descriptive. Only the gateway-held capability carries authority.
     return action.handler(input, {
       db: this.env.DB,
-      secrets: this.env,
+      secrets: {get: async bindingName => unwrapRpc(await capability.secret(bindingName))},
       actor: caller,
       actions: { call: async (target, actionName, value, options) => unwrapRpc(await capability.call(target, actionName, value, options)) },
       knowledge: {

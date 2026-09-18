@@ -5,22 +5,40 @@ import {spawn} from 'node:child_process';
 import {buildApp,findAppRoot} from './build.mjs';
 import {validateName} from '../shared/app-contract.js';
 import {operation,controlOrigin,saveCredentials,readCredentials,clearCredentials} from './client.mjs';
+import {operations} from '../shared/operations.js';
 
 const packageRoot = resolve(dirname(fileURLToPath(import.meta.url)),'..');
-const help = `Atrax — cloud for your company's apps\n\n  atrax setup [install|inspect|update|remove] --client claude-code|codex|cursor\n  atrax new <name> [--template chat|static|inventory|orders]  Create an app\n  atrax init <name> --assets <directory>   Connect an existing frontend\n  atrax build                             Validate one deployable artifact\n  atrax dev [--port 8787]                  Run locally; data survives restarts\n  atrax login [--agent <name>]             Connect your Atrax account\n  atrax logout                            Revoke this CLI session\n  atrax workspace list                    List your workspaces\n  atrax workspace create <name> --slug <slug> --key <stable-key>\n  atrax workspace use <id>                 Select a workspace\n  atrax deploy [--dry-run] [--access file] Deploy to your workspace\n  atrax share <email> [--app <id>] [--actions name1,name2]\n  atrax link <app-id>                     Observe the current live release\n  atrax library upload <file> --workspace <id> --key <stable-key>\n  atrax library replace <item> <file> --workspace <id> --revision <current-revision> --reason <correction> --key <stable-key>\n  atrax library download <item> --workspace <id> --out <file>\n  atrax mcp [--workspace <id>]             Connect an existing agent over MCP\n  atrax operations list|inspect <name>    Inspect the installed operation contract\n  atrax recipes list|show <id>             Read executable agent workflows\n  atrax call <operation> --input '<json>' [--key <stable-key>]\n\nUse --json for structured output. Local development needs no account.\nFor safely retryable writes, supply --key and reuse it with identical input.\nWithout --key, each invocation generates a new key. A changed request needs a new key.\nDeploy saves its artifact and step keys; rerun atrax deploy to resume that attempt.\n`;
+const help = `Atrax — cloud for your company's apps\n\n  atrax setup [install|inspect|update|remove] --client claude-code|codex|cursor\n  atrax new <name> [--template chat|static|inventory|orders]  Create an app\n  atrax init <name> --assets <directory>   Connect an existing frontend\n  atrax build                             Validate one deployable artifact\n  atrax dev [--port 8787]                  Run locally; data survives restarts\n  atrax login [--agent <name>]             Connect your Atrax account\n  atrax logout                            Revoke this CLI session\n  atrax workspace list                    List your workspaces\n  atrax workspace create <name> --slug <slug> --key <stable-key>\n  atrax workspace use <id>                 Select a workspace\n  atrax deploy [--dry-run] [--access file] Deploy to your workspace\n  atrax share <email> [--app <id>] [--actions name1,name2]\n  atrax link <app-id>                     Observe the current live release\n  atrax library upload <file> --workspace <id> --key <stable-key>\n  atrax library replace <item> <file> --workspace <id> --revision <current-revision> --reason <correction> --key <stable-key>\n  atrax library download <item> --workspace <id> --out <file>\n  atrax secrets list                      List credential metadata\n  atrax secrets create <name> --stdin --key <stable-key>\n  atrax secrets update <id> --revision <n> --name <name> --description <description> --key <stable-key>\n  atrax secrets set-apps <id> --revision <n> --apps <app-id>:API_KEY --key <stable-key>\n  atrax secrets rotate <id> --revision <n> --stdin --key <stable-key>\n  atrax secrets revoke <id> --revision <n> --key <stable-key>\n  atrax mcp [--workspace <id>]             Connect an existing agent over MCP\n  atrax operations list|inspect <name>    Inspect the installed operation contract\n  atrax recipes list|show <id>             Read executable agent workflows\n  atrax call <operation> [--input '<json>' | --stdin] [--key <stable-key>]\n\nUse --json for structured output. Local development needs no account.\nFor safely retryable writes, supply --key and reuse it with identical input.\nWithout --key, each invocation generates a new key. A changed request needs a new key.\nDeploy saves its artifact and step keys; rerun atrax deploy to resume that attempt.\n`;
 function parse(args) {
   const options = {};
   const positional = [];
   for (let i=0;i<args.length;i++) {
     if (!args[i].startsWith('--')) { positional.push(args[i]); continue; }
     const flag = args[i].slice(2);
-    if (['json','dry-run','yes'].includes(flag)) {options[flag]=true; continue;}
-    if (!['template','assets','actions','migrations','port','agent','slug','input','key','workspace','title','type','revision','reason','out','access','app','client'].includes(flag)) throw new Error(`Unknown option: --${flag}`);
+    if (['json','dry-run','yes','stdin'].includes(flag)) {options[flag]=true; continue;}
+    if (!['template','assets','actions','migrations','port','agent','slug','input','key','workspace','title','type','revision','reason','out','access','app','client','apps','name','description'].includes(flag)) throw new Error(`Unknown option: --${flag}`);
     if (flag === 'client' && options.client !== undefined) throw Object.assign(new Error('Choose exactly one --client.'),{code:'client_ambiguous'});
     if (!args[i+1] || args[i+1].startsWith('--')) throw new Error(`--${flag} needs a value`);
     options[flag]=args[++i];
   }
   return {options,positional};
+}
+async function operationInput(name,options) {
+  if(options.stdin && options.input!==undefined) throw new Error('Choose --stdin or --input, not both.');
+  if(!options.stdin && operations[name]?.sensitiveInput?.length) throw new Error('This operation contains a credential. Pipe JSON with --stdin or use atrax secrets create/rotate --stdin.');
+  let source=options.input??'{}';
+  if(options.stdin) {
+    if(process.stdin.isTTY) throw new Error('Pipe the operation JSON through stdin.');
+    const chunks=[];let size=0;
+    const maximum=operations[name]?.maxBodyBytes??65536;
+    for await(const chunk of process.stdin) {
+      size+=chunk.length;
+      if(size>maximum) throw new Error('Operation input is too large.');
+      chunks.push(chunk);
+    }
+    source=Buffer.concat(chunks).toString('utf8');
+  }
+  try {return JSON.parse(source);} catch {throw new Error('Operation input must be valid JSON.');}
 }
 async function createApp(name,options) {
   validateName(name);
@@ -29,7 +47,7 @@ async function createApp(name,options) {
   const root = resolve(name);
   try {await access(root); throw new Error(`Directory already exists: ${name}`);} catch(error) {if(error.code !== 'ENOENT') throw error;}
   await cp(join(packageRoot,'templates',template),root,{recursive:true});
-  for (const file of ['atrax.json','package.json','README.md','AGENTS.md']) {
+  for (const file of ['atrax.json','package.json','README.md','AGENTS.md','public/index.html']) {
     try {const source=await readFile(join(root,file),'utf8'); await writeFile(join(root,file),source.replaceAll('__APP_NAME__',name));} catch(error) {if(error.code !== 'ENOENT') throw error;}
   }
   try {await cp(join(root,'gitignore'),join(root,'.gitignore'));} catch(error) {if(error.code !== 'ENOENT') throw error;}
@@ -78,6 +96,9 @@ export async function main(args = process.argv.slice(2)) {
       case 'library': {
         const {libraryCommand}=await import('./library.mjs');result=await libraryCommand(p,options);break;
       }
+      case 'secrets': {
+        const {secretsCommand}=await import('./secrets.mjs');result=await secretsCommand(p,options);break;
+      }
       case 'new': result=await createApp(p[0],options);break;
       case 'init': {
         const {initializeApp}=await import('./init.mjs');
@@ -113,7 +134,7 @@ export async function main(args = process.argv.slice(2)) {
       }
       case 'call': {
         if (!p[0]) throw new Error('Supply an operation name');
-        result=await operation(p[0],JSON.parse(options.input ?? '{}'),{key:options.key});break;
+        result=await operation(p[0],await operationInput(p[0],options),{key:options.key});break;
       }
       case 'share': {
         const {shareApp,sharingSummary}=await import('./sharing.mjs');

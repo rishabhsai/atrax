@@ -5,7 +5,7 @@ import {join} from 'node:path';
 import test from 'node:test';
 import {createCliPlatform, succeeded, failed} from './helpers/cli-platform.mjs';
 
-const tables = ['workspaces', 'workspace_members', 'workspace_operation_receipts', 'library_items', 'library_revisions', 'library_file_versions', 'library_operation_receipts', 'apps', 'app_maintainers', 'operation_receipts', 'activity'];
+const tables = ['workspaces', 'workspace_members', 'workspace_operation_receipts', 'library_items', 'library_revisions', 'library_file_versions', 'library_operation_receipts', 'apps', 'app_maintainers', 'operation_receipts', 'activity', 'workspace_secrets', 'secret_app_grants', 'secret_operation_receipts'];
 async function snapshot(api) {
   const rows = {};
   for (const table of tables) rows[table] = (await api.db.prepare(`SELECT * FROM ${table} ORDER BY rowid`).all()).results;
@@ -25,9 +25,9 @@ function lastResult(api, operation, key) {
   return call.body.result;
 }
 
-async function interrupted(api, args, operation, key, person = 'owner') {
+async function interrupted(api, args, operation, key, person = 'owner', options = {}) {
   api.loseResponse(operation);
-  const error = failed(await api.run(person, args), 'operation_outcome_unknown');
+  const error = failed(await api.run(person, args, options), 'operation_outcome_unknown');
   assert.deepEqual(error.details, {operation, key});
   assert.match(error.message, /may have completed/);
   assert.ok(error.message.includes(`--key ${key}`));
@@ -38,6 +38,10 @@ test('documented write shortcuts and generic call forward the exact supplied key
   const api = await createCliPlatform(t);
   await writeFile(join(api.directory, 'brand.md'), 'Use green.');
   await writeFile(join(api.directory, 'brand-v2.md'), 'Use forest green.');
+  await writeFile(join(api.directory, 'payments.key'), 'disposable-payments-v1', {mode: 0o600});
+  await writeFile(join(api.directory, 'payments-next.key'), 'disposable-payments-v2', {mode: 0o600});
+  const createdApp = await api.call('apps.create', {workspaceId: 'company', name: 'Payments', slug: 'payments'});
+  assert.equal(createdApp.status, 200, JSON.stringify(createdApp.body));
   const docs = await readFile(new URL('../docs/cli-writes.md', import.meta.url), 'utf8');
   const commands = docs.split('\n').filter(line => line.startsWith('atrax '));
   const expected = new Map([
@@ -45,23 +49,39 @@ test('documented write shortcuts and generic call forward the exact supplied key
     ['library upload', 'library.file.upload'],
     ['library replace', 'library.file.replace'],
     ['call library.entry.create', 'library.entry.create'],
+    ['secrets create', 'secrets.create'],
+    ['secrets update', 'secrets.update'],
+    ['secrets set-apps', 'secrets.setApps'],
+    ['secrets rotate', 'secrets.rotate'],
+    ['secrets revoke', 'secrets.revoke'],
   ]);
   assert.equal(commands.length, expected.size, 'each documented write needs a forwarding case');
   const help = await api.run('owner', ['help'], {json: false});
   const helpWrites = help.stdout.split('\n').filter(line => /^\s+atrax .*--key/.test(line));
   assert.equal(helpWrites.length, expected.size, 'every keyed help shortcut is exercised');
-  let uploaded;
+  let uploaded, secret;
   for (const command of commands) {
-    const substituted = command.replaceAll('<workspace-id>', 'company').replaceAll('<item-id>', uploaded?.item.id ?? '').replaceAll('<current-revision-id>', uploaded?.revision.id ?? '');
+    const substituted = command.replaceAll('<workspace-id>', 'company').replaceAll('<item-id>', uploaded?.item.id ?? '').replaceAll('<current-revision-id>', uploaded?.revision.id ?? '').replaceAll('<secret-id>', secret?.id ?? '').replaceAll('<secret-revision>', String(secret?.revision ?? '')).replaceAll('<app-id>', createdApp.body.result.app.id);
     const args = substituted.match(/"[^"]*"|'[^']*'|\S+/g).map(part => /^['"]/.test(part) ? part.slice(1, -1) : part).slice(1);
+    let input = '';
+    const redirect = args.indexOf('<');
+    if (redirect !== -1) {
+      assert.equal(redirect, args.length - 2, 'stdin redirect ends the documented command');
+      input = await readFile(join(api.directory, args[redirect + 1]));
+      args.splice(redirect);
+    }
     const shortcut = args.slice(0, 2).join(' ');
     const operation = expected.get(shortcut);
     assert.ok(operation, `Missing forwarding test for ${shortcut}`);
     const keyIndex = args.indexOf('--key');
     assert.notEqual(keyIndex, -1, `${shortcut} must document a stable key`);
-    const result = succeeded(await api.run('owner', args.filter(arg => arg !== '--json')));
+    const result = succeeded(await api.run('owner', args.filter(arg => arg !== '--json'), {input}));
     assert.deepEqual(result, lastResult(api, operation, args[keyIndex + 1]));
     if (operation === 'library.file.upload') uploaded = result;
+    if (operation.startsWith('secrets.')) {
+      secret = result.secret;
+      assert.equal(JSON.stringify(result).includes('disposable-payments-'), false);
+    }
     assert.ok(helpWrites.some(line => line.includes(`atrax ${args[0]} ${args[0] === 'call' ? '<operation>' : args[1]}`)));
     expected.delete(shortcut);
   }
@@ -201,4 +221,56 @@ test('generic call replays a completed app write only while the caller remains a
   const afterRevocation = await snapshot(api);
   failed(await api.run('member', args), 'forbidden');
   assert.deepEqual(await snapshot(api), afterRevocation);
+});
+
+test('Secrets write shortcuts reconcile lost responses without repeating ciphertext, grants, or activity', {timeout: 60_000}, async t => {
+  const api = await createCliPlatform(t);
+  const app = await api.call('apps.create', {workspaceId: 'company', name: 'Signing', slug: 'signing'});
+  assert.equal(app.status, 200, JSON.stringify(app.body));
+  const original = 'disposable-original-value\n';
+  const replacement = 'disposable-replacement-value\n';
+  const create = ['secrets', 'create', 'Signing', '--stdin', '--key', 'secret-create-v1'];
+  let result = await interrupted(api, create, 'secrets.create', 'secret-create-v1', 'owner', {input: original});
+  const initial = result;
+  let beforeRetry = await snapshot(api);
+  assert.deepEqual(succeeded(await api.run('owner', create, {input: original})), result);
+  assert.deepEqual(await snapshot(api), beforeRetry);
+  failed(await api.run('owner', create, {input: replacement}), 'idempotency_conflict');
+  assert.deepEqual(await snapshot(api), beforeRetry);
+  const secretId = result.secret.id;
+  const mutations = [
+    {command: 'update', operation: 'secrets.update', key: 'secret-update-v1', args: ['--name', 'Signer', '--description', 'Shared signing credential']},
+    {command: 'set-apps', operation: 'secrets.setApps', key: 'secret-grant-v1', args: ['--apps', `${app.body.result.app.id}:SIGNING_KEY`]},
+    {command: 'rotate', operation: 'secrets.rotate', key: 'secret-rotate-v2', args: ['--stdin'], input: replacement},
+    {command: 'revoke', operation: 'secrets.revoke', key: 'secret-revoke-v1', args: []},
+  ];
+  let revokeArgs;
+  for (const mutation of mutations) {
+    const revision = result.secret.revision;
+    const args = ['secrets', mutation.command, secretId, '--revision', String(revision), ...mutation.args, '--key', mutation.key];
+    const options = {input: mutation.input ?? ''};
+    result = await interrupted(api, args, mutation.operation, mutation.key, 'owner', options);
+    assert.equal(result.secret.revision, revision + 1);
+    beforeRetry = await snapshot(api);
+    assert.deepEqual(succeeded(await api.run('owner', args, options)), result);
+    assert.deepEqual(await snapshot(api), beforeRetry);
+    if (mutation.command === 'rotate') {
+      failed(await api.run('owner', args, {input: original}), 'idempotency_conflict');
+      assert.deepEqual(await snapshot(api), beforeRetry);
+    }
+    if (mutation.command === 'revoke') revokeArgs = args;
+  }
+  assert.equal(result.secret.status, 'revoked');
+  assert.deepEqual(result.secret.apps, []);
+  assert.equal(beforeRetry.workspace_secrets[0].ciphertext, null);
+  assert.equal(beforeRetry.secret_app_grants.length, 0);
+  assert.equal(beforeRetry.secret_operation_receipts.length, 5);
+  assert.equal(beforeRetry.activity.filter(event => event.operation.startsWith('secrets.')).length, 5);
+  assert.deepEqual(succeeded(await api.run('owner', create, {input: original})), initial);
+  assert.deepEqual(await snapshot(api), beforeRetry);
+  for (const value of [original.trim(), replacement.trim()]) assert.equal(JSON.stringify(beforeRetry).includes(value), false);
+  await api.db.prepare("UPDATE workspace_members SET role='member' WHERE workspace_id='company' AND person_id='owner'").run();
+  const demoted = await snapshot(api);
+  failed(await api.run('owner', revokeArgs), 'forbidden');
+  assert.deepEqual(await snapshot(api), demoted);
 });

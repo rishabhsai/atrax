@@ -18,7 +18,7 @@ Atrax is a cloud for internal software at small businesses. Existing coding agen
 
 An account identifies a person. A workspace owns its apps, Library, and membership. CLI and MCP are interfaces to the same authorized operations. GitHub retains source hosting and code collaboration.
 
-Secrets and Automation remain planned. Hosted agents, scheduled work, and automatic document synchronization are deferred. The approved behavior is recorded in [notes/launch-scope.md](./notes/launch-scope.md).
+Secrets manages encrypted credentials and grants to trusted app backends, separately from Library. Automation, hosted agents, scheduled work, and automatic document synchronization remain deferred. The approved behavior is recorded in [notes/launch-scope.md](./notes/launch-scope.md).
 
 ## Brand Personality
 
@@ -33,7 +33,7 @@ Do not look like a generic AI-generated SaaS landing page. Avoid decorative 3D c
 1. Lead with the short promise, one terminal installer, and a direct link for agents to read the guide.
 2. Keep one clear concept for each job. Automation is the planned capability for scheduled and background execution. Ordinary request-driven actions belong to apps.
 3. Write for a small company choosing whether it can ship this week.
-4. Make every public feature traceable to a real CLI command, runtime behavior, or documented roadmap status. Shared credentials, hosted agents, and automatic external-document synchronization remain planned.
+4. Make every public feature traceable to a real CLI command, runtime behavior, or documented roadmap status. Hosted agents and automatic external-document synchronization remain planned.
 5. Let coding agents complete the same workflow a person can complete in the interface.
 
 ## Accessibility & Inclusion

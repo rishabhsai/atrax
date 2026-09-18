@@ -11,4 +11,5 @@ const worker={fetch:handleRequest};
 export default worker;
 export {Door} from './access.js';
 export {Library} from './library.js';
+export {Secrets} from './secrets.js';
 export {DeploymentCoordinator} from './deployments.js';

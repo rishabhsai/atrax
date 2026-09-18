@@ -70,6 +70,24 @@
       },
       "anonymous": false
     },
+    "apps.operations.get": {
+      "description": "Inspect recent deployments, releases, database backups, and recorded action calls. Requires an app maintainer.",
+      "effect": "read",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "appId": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "appId"
+        ],
+        "additionalProperties": false
+      },
+      "anonymous": false
+    },
     "apps.login": {
       "description": "Start a browser session for an app you can access.",
       "effect": "write",
@@ -1671,6 +1689,230 @@
           "backupId",
           "expectedReleaseId",
           "confirmation"
+        ],
+        "additionalProperties": false
+      },
+      "anonymous": false
+    },
+    "secrets.list": {
+      "description": "List workspace credential metadata and app grants. Values are never returned. Workspace admins only.",
+      "effect": "read",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "workspaceId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          }
+        },
+        "required": [
+          "workspaceId"
+        ],
+        "additionalProperties": false
+      },
+      "anonymous": false
+    },
+    "secrets.create": {
+      "sensitiveInput": [
+        "value"
+      ],
+      "description": "Store an encrypted workspace credential. Returns metadata only. Workspace admins only.",
+      "effect": "write",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "workspaceId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "pattern": "\\S"
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 1000
+          },
+          "value": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 16384
+          }
+        },
+        "required": [
+          "workspaceId",
+          "name",
+          "value"
+        ],
+        "additionalProperties": false
+      },
+      "anonymous": false
+    },
+    "secrets.update": {
+      "description": "Update credential metadata from its current revision. Workspace admins only.",
+      "effect": "write",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "workspaceId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "secretId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "baseRevision": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "pattern": "\\S"
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 1000
+          }
+        },
+        "required": [
+          "workspaceId",
+          "secretId",
+          "baseRevision",
+          "name",
+          "description"
+        ],
+        "additionalProperties": false
+      },
+      "anonymous": false
+    },
+    "secrets.rotate": {
+      "sensitiveInput": [
+        "value"
+      ],
+      "description": "Replace a credential value for its granted apps without redeploying. Workspace admins only.",
+      "effect": "write",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "workspaceId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "secretId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "baseRevision": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "value": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 16384
+          }
+        },
+        "required": [
+          "workspaceId",
+          "secretId",
+          "baseRevision",
+          "value"
+        ],
+        "additionalProperties": false
+      },
+      "anonymous": false
+    },
+    "secrets.setApps": {
+      "description": "Replace the app grants for a credential. Each binding grants trusted backend code access during live actions. Workspace admins only.",
+      "effect": "write",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "workspaceId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "secretId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "baseRevision": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "apps": {
+            "type": "array",
+            "maxItems": 100,
+            "uniqueItems": true,
+            "items": {
+              "type": "object",
+              "properties": {
+                "appId": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 200
+                },
+                "bindingName": {
+                  "type": "string",
+                  "pattern": "^[A-Z][A-Z0-9_]{0,63}$"
+                }
+              },
+              "required": [
+                "appId",
+                "bindingName"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "workspaceId",
+          "secretId",
+          "baseRevision",
+          "apps"
+        ],
+        "additionalProperties": false
+      },
+      "anonymous": false
+    },
+    "secrets.revoke": {
+      "description": "Permanently revoke a credential, erase its stored value, and remove all app grants. Workspace admins only.",
+      "effect": "write",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "workspaceId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "secretId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "baseRevision": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "required": [
+          "workspaceId",
+          "secretId",
+          "baseRevision"
         ],
         "additionalProperties": false
       },

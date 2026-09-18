@@ -12,6 +12,7 @@ The console presents real workspace, app, Library, and team state. The public si
 | Apps | `/workspace/?workspace=<id>` | Find and open the workspace's permitted apps |
 | App details | `/workspace/app/?appId=<id>` | App overview, release, actions, access, maintainers, guests, and public web |
 | Library | `/workspace/library/?workspace=<id>` | Company files and knowledge entries |
+| Secrets | `/workspace/secrets/?workspace=<id>` | Admin credential management and grants to trusted app backends |
 | Library item/history | The Library route with `item` and optional `revision` query values | Read and correct knowledge or inspect file versions |
 | Team | `/workspace/team/?workspace=<id>` | Membership, invitations, roles, and ownership transfer |
 
@@ -47,7 +48,7 @@ A person can have permission to use an app without permission to maintain it, or
 
 ## Library and Team
 
-Library contains files and knowledge entries. Company knowledge describes its contents; shared context describes their use by apps and agents. Files and entries retain attribution, revisions, and source permissions. Current operational records belong to apps. Secrets is a separate planned capability.
+Library contains files and knowledge entries. Company knowledge describes its contents; shared context describes their use by apps and agents. Files and entries retain attribution, revisions, and source permissions. Current operational records belong to apps. Secrets is a separate admin destination for credential values and app grants; values cannot be revealed after storage.
 
 Team contains members and invitations. Owner, Admin, Member, Maintainer, and Guest retain their glossary meanings. Removing membership revokes current workspace access. An account may remain valid in other workspaces.
 

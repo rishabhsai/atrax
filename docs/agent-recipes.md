@@ -158,7 +158,7 @@ Expected CLI result fields: `appId`, `url`, `invitation.id`, `audience.publicWeb
 
 Use `invitation.id` as `<guest-invitation-id>`.
 
-The recipient opens the invitation email, signs in with guest@example.com, and accepts it in the browser. Another email cannot accept it. Workspace access remains in effect; this command does not make the app public.
+The recipient opens the invitation email, signs in with guest@example.com, and accepts it in the browser. Another email cannot accept it. Workspace access remains in effect; this command does not make the app public. For a guest-only request, inspect the published actions and grant every action the app UI needs. Read apps.access.get, then set apps.access.set to audience selected with an empty personIds list and the observed revision. Read apps.guests.list, revoke every other active guest, cancel every pending invitation for another email, and unpublish public web access if enabled. Read the sharing state again before reporting success: publicWeb must be false, selected workspace people must be empty, there must be no other active guest, and there must be no pending invitation for another email. Maintainers retain management authority without live app access.
 
 Equivalent MCP tool call:
 

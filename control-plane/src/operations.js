@@ -6,6 +6,7 @@ import {handleSharingOperation} from './sharing.js';
 import {handleActionOperation} from './actions.js';
 import {handleExternalSharingOperation} from './external-sharing.js';
 import {handleRecoveryOperation} from './recovery.js';
+import {handleSecretsOperation} from './secrets.js';
 import {Validator} from '@cfworker/json-schema';
 import {operations} from '../../shared/operations.js';
 import {authenticateRequest,handleIdentityOperation} from './identity.js';
@@ -60,13 +61,14 @@ export async function handleOperationRequest(request,env) {
     const actor=await authenticateRequest(request,env);
     if(!definition.anonymous && !actor) throw new OperationError('unauthorized',401,'Sign in to continue');
     const context={env,request,actor,operationId,idempotencyKey:request.headers.get('Idempotency-Key')};
-    const handled=await handleIdentityOperation(name,input,context) ?? await handleWorkspaceOperation(name,input,context) ?? await handleAppOperation(name,input,context) ?? await handleLibraryOperation(name,input,context) ?? await handleReleaseOperation(name,input,context) ?? await handleDeploymentOperation(name,input,context) ?? await handleSharingOperation(name,input,context) ?? await handleActionOperation(name,input,context) ?? await handleExternalSharingOperation(name,input,context) ?? await handleRecoveryOperation(name,input,context);
+    const handled=await handleIdentityOperation(name,input,context) ?? await handleWorkspaceOperation(name,input,context) ?? await handleAppOperation(name,input,context) ?? await handleLibraryOperation(name,input,context) ?? await handleReleaseOperation(name,input,context) ?? await handleDeploymentOperation(name,input,context) ?? await handleSharingOperation(name,input,context) ?? await handleActionOperation(name,input,context) ?? await handleExternalSharingOperation(name,input,context) ?? await handleRecoveryOperation(name,input,context) ?? await handleSecretsOperation(name,input,context);
     if(!handled) throw new OperationError('not_found',404,'Unknown operation');
     if(handled.headers) for(const [key,value] of new Headers(handled.headers)) headers.append(key,value);
     return respond({status:'succeeded',result:handled.result});
   } catch(error) {
     if(error instanceof OperationError) return respond({status:'failed',error:{code:error.code,message:error.message,retryable:error.status>=500,...(error.details ? {details:error.details} : {})}},error.status);
-    console.error(JSON.stringify({operationId,event:'operation.failed',message:error.message}));
+    // Unexpected exceptions may contain request values or provider bodies.
+    console.error(JSON.stringify({operationId,event:'operation.failed'}));
     return respond({status:'failed',error:{code:'internal_error',message:'The operation could not finish. Retry with the same key.',retryable:true}},500);
   }
 }

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   api,
   appOverviewUrl,
@@ -22,7 +22,9 @@ import {
 } from "./ConsoleFrame";
 import { useSession } from "./useConsole";
 import { ExternalSharingPanel } from "./ExternalSharingPanel";
+import { AppOperations } from "./AppOperations";
 import { SharingPanel } from "./SharingPanel";
+import operationStyles from "./app-operations.module.css";
 import styles from "./console.module.css";
 
 type AppState =
@@ -33,6 +35,10 @@ type AppState =
 function AppContent({ appId, session }: { appId: string; session: Session }) {
   const [state, setState] = useState<AppState>({ kind: "loading" });
   const [attempt, setAttempt] = useState(0);
+  const reloadApp = useCallback(() => {
+    setState({ kind: "loading" });
+    setAttempt((value) => value + 1);
+  }, []);
   useEffect(() => {
     const controller = new AbortController();
     api.getApp(appId, controller.signal).then(
@@ -110,7 +116,15 @@ function AppContent({ appId, session }: { appId: string; session: Session }) {
         </div>
         <div>
           <dt>App access</dt>
-          <dd>{audienceLabel(app.audience)}</dd>
+          <dd>
+            {audienceLabel(app.audience)}
+            {capabilities.canManageMaintainers && (
+              <>
+                <br />
+                <a href="#app-access">Review people and maintainers</a>
+              </>
+            )}
+          </dd>
         </div>
         <div>
           <dt>Workspace</dt>
@@ -128,41 +142,12 @@ function AppContent({ appId, session }: { appId: string; session: Session }) {
         </div>
       </dl>
       {capabilities.maintain && (
-        <section className={styles.section}>
-          <h2>Current release</h2>
-          {release ? (
-            <dl className={styles.details}>
-              <div>
-                <dt>Release</dt>
-                <dd>
-                  <code>{release.id}</code>
-                </dd>
-              </div>
-              <div>
-                <dt>Deployed</dt>
-                <dd>
-                  <time dateTime={new Date(release.createdAt).toISOString()}>
-                    {new Date(release.createdAt).toLocaleString()}
-                  </time>
-                </dd>
-              </div>
-              <div>
-                <dt>Artifact</dt>
-                <dd>
-                  <code>{release.hash}</code>
-                </dd>
-              </div>
-            </dl>
-          ) : (
-            <p className={styles.muted}>
-              No active release has been published.
-            </p>
-          )}
-          <p className={styles.muted}>
-            Deploy updates from the app&apos;s project using the Atrax CLI.
-          </p>
-          <Link href="/docs/quickstart/">Deployment instructions</Link>
-        </section>
+        <AppOperations
+          appId={app.id}
+          appStatus={app.status}
+          activeReleaseId={app.activeReleaseId}
+          onAppChanged={reloadApp}
+        />
       )}
       {capabilities.canOpen && release && (
         <section className={styles.section}>
@@ -183,30 +168,29 @@ function AppContent({ appId, session }: { appId: string; session: Session }) {
           )}
         </section>
       )}
-      <SharingPanel
-        appId={app.id}
-        workspaceId={app.workspaceId}
-        actionNames={release?.actions.map((action) => action.name) ?? []}
-        canManageAccess={capabilities.manageAccess}
-        canManageMaintainers={capabilities.canManageMaintainers}
-        onAppAccessSaved={(audience) =>
-          setState({
-            kind: "ready",
-            detail: { ...state.detail, app: { ...app, audience } },
-          })
-        }
-      />
-      <ExternalSharingPanel
-        appId={app.id}
-        appName={app.name}
-        appUrl={app.url}
-        activeReleaseId={app.activeReleaseId}
-        role={workspace?.role}
-        onChange={() => {
-          setState({ kind: "loading" });
-          setAttempt((value) => value + 1);
-        }}
-      />
+      <div id="app-access" className={operationStyles.accessAnchor}>
+        <SharingPanel
+          appId={app.id}
+          workspaceId={app.workspaceId}
+          actionNames={release?.actions.map((action) => action.name) ?? []}
+          canManageAccess={capabilities.manageAccess}
+          canManageMaintainers={capabilities.canManageMaintainers}
+          onAppAccessSaved={(audience) =>
+            setState({
+              kind: "ready",
+              detail: { ...state.detail, app: { ...app, audience } },
+            })
+          }
+        />
+        <ExternalSharingPanel
+          appId={app.id}
+          appName={app.name}
+          appUrl={app.url}
+          activeReleaseId={app.activeReleaseId}
+          role={workspace?.role}
+          onChange={reloadApp}
+        />
+      </div>
     </ConsoleFrame>
   );
 }

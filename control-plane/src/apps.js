@@ -2,6 +2,7 @@ import {getApp,requireMembership,requireMaintainer,requireMaintainerAssignmentAu
 import {OperationError} from './identity-errors.js';
 import {hashSecret,randomSecret} from './identity.js';
 import {canonicalJson,validateName} from '../../shared/app-contract.js';
+import {getAppOperations} from './app-operations.js';
 
 export function appView(row) {return {id:row.app_id,workspaceId:row.workspace_id,name:row.name,slug:row.slug,url:row.url,status:row.status,audience:row.audience,activeReleaseId:row.active_release_id,createdAt:row.created_at,updatedAt:row.updated_at};}
 export async function actorStillAuthorized(env,actor,workspaceId) {
@@ -71,7 +72,7 @@ async function get(input,{env,actor}) {
   }
   let access=null;
   try {access=await assertAppAccess(env,app,actor);} catch(error) {if(error.code!=='forbidden' || !canManageMaintainers) throw error;}
-  const release=access && app.active_release_id ? await env.CP_DB.prepare('SELECT release_id,artifact_hash,created_at,actions_json FROM releases WHERE release_id=?').bind(app.active_release_id).first() : null;
+  const release=(access||maintain) && app.active_release_id ? await env.CP_DB.prepare('SELECT release_id,artifact_hash,created_at,actions_json FROM releases WHERE release_id=?').bind(app.active_release_id).first() : null;
   let actions;
   if(release) {
     const descriptors=JSON.parse(release.actions_json);
@@ -93,12 +94,12 @@ async function get(input,{env,actor}) {
 async function login(input,{env,actor}) {
   if(actor.session.kind!=='browser') throw new OperationError('forbidden',403,'Open this app from a signed-in browser');
   const app=await getApp(env,input.appId);
-  await assertAppAccess(env,app,actor);
   const code=randomSecret();
   const hostname=input.hostname ?? new URL(app.url).host;
   const host=await env.CP_DB.prepare('SELECT * FROM app_hosts WHERE hostname=? AND app_id=? AND active=1').bind(hostname,app.app_id).first();
   if(!host) throw new OperationError('forbidden',403,'App host is not registered');
   if(host.kind!=='live') await requireMaintainer(env,app,actor);
+  else await assertAppAccess(env,app,actor);
   const callback=new URL('/__atrax/auth/callback',`${new URL(app.url).protocol}//${hostname}`);
   await env.CP_DB.prepare('INSERT INTO app_login_codes(code_hash,app_id,session_id,state_hash,callback,expires_at) VALUES(?,?,?,?,?,?)').bind(await hashSecret(code),app.app_id,actor.session.id,await hashSecret(input.state),callback.href,Date.now()+60_000).run();
   callback.searchParams.set('code',code);callback.searchParams.set('state',input.state);
@@ -108,6 +109,7 @@ export async function handleAppOperation(name,input,context) {
   if(name==='apps.create') return create(input,context);
   if(name==='apps.list') return list(input,context);
   if(name==='apps.get') return get(input,context);
+  if(name==='apps.operations.get') return getAppOperations(input,context);
   if(name==='apps.login') return login(input,context);
   return null;
 }

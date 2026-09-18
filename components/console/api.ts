@@ -82,6 +82,43 @@ export type ExternalGuestAccess = {
   grantableActionNames: string[];
 };
 
+export type OperationFailure = { code: string; message: string; retryable: boolean };
+export type DeploymentJob = {
+  id: string; status: string; phase: string; releaseId: string;
+  candidateUrl: string | null; error: OperationFailure | null;
+};
+export type AppOperationsData = {
+  app: { status: string; activeReleaseId: string | null };
+  database: { present: boolean };
+  deployments: (DeploymentJob & {
+    kind: "deploy" | "rollback" | "restore"; mode: "live" | "preview";
+    createdAt: number; updatedAt: number; createdBy: string;
+  })[];
+  releases: { id: string; hash: string; createdAt: number; createdBy: string; rollbackEligible: boolean }[];
+  backups: {
+    id: string; releaseId: string; status: string; phase: string; createdAt: number; updatedAt: number;
+    snapshotCreatedAt: number | null; size: number | null; error: OperationFailure | null;
+  }[];
+  usage: {
+    windowHours: number; since: number; until: number; total: number; succeeded: number;
+    failed: number; running: number; interrupted: number;
+    byAction: { actionName: string; total: number; succeeded: number; failed: number; running: number; interrupted: number }[];
+  };
+};
+export type RestorePlan = {
+  backupId: string; releaseId: string; expectedReleaseId: string;
+  originalDatabaseId: string; snapshotCreatedAt: number; snapshotCompletedAt: number;
+  connectedAppIds: string[]; retainsOriginalDatabase: true; warning: string;
+};
+export type RestoreConfirmation = {
+  originalDatabaseId: string; snapshotCreatedAt: number; connectedAppIds: string[]; retainOriginalDatabase: true;
+};
+export type SecretGrant = { appId: string; bindingName: string };
+export type WorkspaceSecret = {
+  id: string; workspaceId: string; name: string; description: string; status: "active" | "revoked";
+  revision: number; apps: SecretGrant[]; createdBy: string; createdAt: number; updatedAt: number;
+};
+
 export class ApiError extends Error {
   constructor(
     message: string,
@@ -251,7 +288,71 @@ function libraryDetail(value: unknown): LibraryDetail {
   const result = record(value); return { item: libraryItem(result.item), revision: libraryRevision(result.revision) };
 }
 
+function operationFailure(value: unknown): OperationFailure | null {
+  if (value === null || value === undefined) return null;
+  const item = record(value);
+  return { code: string(item.code), message: string(item.message), retryable: item.retryable === true };
+}
+function deploymentJob(value: unknown): DeploymentJob {
+  const item = record(value);
+  return { id: string(item.id), status: string(item.status), phase: string(item.phase), releaseId: string(item.releaseId), candidateUrl: item.candidateUrl == null ? null : appUrl(item.candidateUrl), error: operationFailure(item.error) };
+}
+function appOperations(value: unknown): AppOperationsData {
+  const result = record(value), usage = record(result.usage), app = record(result.app);
+  return {
+    app: { status: string(app.status), activeReleaseId: app.activeReleaseId === null ? null : string(app.activeReleaseId) },
+    database: { present: record(result.database).present === true },
+    deployments: array(result.deployments).map(value => {
+      const item = record(value);
+      if (item.kind !== "deploy" && item.kind !== "rollback" && item.kind !== "restore") throw new ApiError("Unknown deployment kind.", "invalid_response", true);
+      if (item.mode !== "live" && item.mode !== "preview") throw new ApiError("Unknown deployment environment.", "invalid_response", true);
+      return { ...deploymentJob(item), kind: item.kind, mode: item.mode, createdAt: timestamp(item.createdAt), updatedAt: timestamp(item.updatedAt), createdBy: string(item.createdBy) };
+    }),
+    releases: array(result.releases).map(value => {
+      const item = record(value);
+      return { id: string(item.id), hash: string(item.hash), createdAt: timestamp(item.createdAt), createdBy: string(item.createdBy), rollbackEligible: item.rollbackEligible === true };
+    }),
+    backups: array(result.backups).map(value => {
+      const item = record(value);
+      return { id: string(item.id), releaseId: string(item.releaseId), status: string(item.status), phase: string(item.phase), createdAt: timestamp(item.createdAt), updatedAt: timestamp(item.updatedAt), snapshotCreatedAt: item.snapshotCreatedAt === null ? null : timestamp(item.snapshotCreatedAt), size: item.size === null ? null : timestamp(item.size), error: operationFailure(item.error) };
+    }),
+    usage: {
+      windowHours: timestamp(usage.windowHours), since: timestamp(usage.since), until: timestamp(usage.until),
+      total: timestamp(usage.total), succeeded: timestamp(usage.succeeded), failed: timestamp(usage.failed), running: timestamp(usage.running), interrupted: timestamp(usage.interrupted),
+      byAction: array(usage.byAction).map(value => {
+        const item = record(value);
+        return { actionName: string(item.actionName), total: timestamp(item.total), succeeded: timestamp(item.succeeded), failed: timestamp(item.failed), running: timestamp(item.running), interrupted: timestamp(item.interrupted) };
+      }),
+    },
+  };
+}
+function restorePlan(value: unknown): RestorePlan {
+  const item = record(record(value).plan);
+  if (item.retainsOriginalDatabase !== true) throw new ApiError("The restore plan must retain the original database.", "invalid_response", true);
+  return { backupId: string(item.backupId), releaseId: string(item.releaseId), expectedReleaseId: string(item.expectedReleaseId), originalDatabaseId: string(item.originalDatabaseId), snapshotCreatedAt: timestamp(item.snapshotCreatedAt), snapshotCompletedAt: timestamp(item.snapshotCompletedAt), connectedAppIds: array(item.connectedAppIds).map(string), retainsOriginalDatabase: true, warning: string(item.warning) };
+}
+function workspaceSecret(value: unknown): WorkspaceSecret {
+  const item = record(value);
+  if (item.status !== "active" && item.status !== "revoked") throw new ApiError("Unknown credential status.", "invalid_response", true);
+  return { id: string(item.id), workspaceId: string(item.workspaceId), name: string(item.name), description: string(item.description), status: item.status, revision: timestamp(item.revision), createdBy: string(item.createdBy), createdAt: timestamp(item.createdAt), updatedAt: timestamp(item.updatedAt), apps: array(item.apps).map(value => { const grant = record(value); return { appId: string(grant.appId), bindingName: string(grant.bindingName) }; }) };
+}
+
 export const api = {
+  listSecrets: (workspaceId: string, signal?: AbortSignal) => operation("secrets.list", { workspaceId }, value => array(record(value).secrets).map(workspaceSecret), { signal }),
+  createSecret: (input: { workspaceId: string; name: string; description: string; value: string }, key: string) => operation("secrets.create", input, value => workspaceSecret(record(value).secret), { key }),
+  updateSecret: (input: { workspaceId: string; secretId: string; baseRevision: number; name: string; description: string }, key: string) => operation("secrets.update", input, value => workspaceSecret(record(value).secret), { key }),
+  rotateSecret: (input: { workspaceId: string; secretId: string; baseRevision: number; value: string }, key: string) => operation("secrets.rotate", input, value => workspaceSecret(record(value).secret), { key }),
+  setSecretApps: (input: { workspaceId: string; secretId: string; baseRevision: number; apps: SecretGrant[] }, key: string) => operation("secrets.setApps", input, value => workspaceSecret(record(value).secret), { key }),
+  revokeSecret: (input: { workspaceId: string; secretId: string; baseRevision: number }, key: string) => operation("secrets.revoke", input, value => workspaceSecret(record(value).secret), { key }),
+  getAppOperations: (appId: string, signal?: AbortSignal) => operation("apps.operations.get", { appId }, appOperations, { signal }),
+  getDeployment: (appId: string, deploymentId: string, signal?: AbortSignal) => operation("deployments.get", { appId, deploymentId }, value => deploymentJob(record(value).deployment), { signal }),
+  rollbackApp: (input: { appId: string; releaseId: string; expectedReleaseId: string }, key: string) => operation("deployments.rollback", input, value => deploymentJob(record(value).deployment), { key }),
+  verifyDeployment: (input: { appId: string; deploymentId: string }, key: string) => operation("deployments.verify", input, value => deploymentJob(record(value).deployment), { key }),
+  resumeDeployment: (input: { appId: string; deploymentId: string }, key: string) => operation("deployments.resume", input, value => deploymentJob(record(value).deployment), { key }),
+  createBackup: (input: { appId: string; expectedReleaseId: string }, key: string) => operation("backups.create", input, value => deploymentJob(record(value).backup), { key }),
+  resumeBackup: (input: { appId: string; backupId: string }, key: string) => operation("backups.resume", input, value => deploymentJob(record(value).backup), { key }),
+  planRestore: (appId: string, backupId: string, signal?: AbortSignal) => operation("data.restore.plan", { appId, backupId }, restorePlan, { signal }),
+  startRestore: (input: { appId: string; backupId: string; expectedReleaseId: string; confirmation: RestoreConfirmation }, key: string) => operation("data.restore.start", input, value => deploymentJob(record(value).deployment), { key }),
   listLibrary: (workspaceId: string, query: string, signal?: AbortSignal) => operation(query ? "library.search" : "library.list", { workspaceId, ...(query ? {query} : {}), limit: 100 }, value => array(record(value).items).map(value => { const row = record(value); return { ...libraryItem(row), revisionId: string(row.revisionId), sourceRevisions: sources(row.sourceRevisions), snippet: typeof row.snippet === "string" ? row.snippet : null, ...(row.file === undefined ? {} : { file: libraryFile(row.file) }) }; }), { signal }),
   getLibrary: (workspaceId: string, itemId: string, revisionId?: string, signal?: AbortSignal) => operation("library.get", { workspaceId, itemId, ...(revisionId ? { revisionId } : {}) }, libraryDetail, { signal }),
   libraryHistory: (workspaceId: string, itemId: string, signal?: AbortSignal) => operation("library.history", {workspaceId,itemId}, value => array(record(value).revisions).map(libraryRevision), {signal}),

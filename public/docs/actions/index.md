@@ -13,4 +13,4 @@ atrax call actions.call --key order-42 --input '{"appId":"<orders-id>","actionNa
 
 ## Limits
 
-A request capability has bounded lifetime, depth, and call count and closes when the invocation ends. Preview environments do not receive bindings to live apps. Third-party OAuth connectors and a general company secrets vault are separate future work.
+A request capability has bounded lifetime, depth, and call count and closes when the invocation ends. Preview environments do not receive bindings to live apps or credentials. Workspace admins manage credentials through Secrets; third-party OAuth connectors remain separate future work.

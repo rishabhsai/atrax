@@ -33,6 +33,7 @@ export const actions = {
 - actor: descriptive person/session identity, command key, and invocation chain. It contains no session bearer token.
 - actions.call(alias,name,input,{key}): a declared dependency, acting as the current employee.
 - knowledge.search/get/create/revise: permitted Library operations in the current workspace.
+- secrets.get(bindingName): retrieve a credential granted to this trusted backend during a live action. Previews and ordinary local development do not receive live credentials.
 
 ## Declare another app
 
