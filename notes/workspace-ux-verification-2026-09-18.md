@@ -18,4 +18,8 @@ Apps has search, a maintained-app filter, separate Open and Manage actions, and 
 
 Production UI source is commit b1839cb on the 0.2.1-compatible release branch. Its isolated export is /private/tmp/atrax-workspace-export/out. The CLI remains pinned to 0.2.1. No backend or CLI deployment is part of this change. Main's unreleased 0.3 Operations and Secrets UI remains in source and is not included in this production export.
 
-Production URL and final live verification are recorded after upload.
+Published to https://atrax.run with Cloudflare Pages production deployment `82199e60-d870-4853-b036-a23c611bec04`, source `b1839cb`, branch `main`. Deployment URL: https://82199e60.tarantula-9l0.pages.dev.
+
+Verified 36 live routes, scripts, styles, and documentation files byte-for-byte against the committed export. Checked the signed-in production workspace in Chrome: workspace switching, Apps → Library → Team → Apps navigation, and the real app Access controls all load successfully. No application JavaScript errors were observed; the existing unrelated auto-PiP browser extension reports its own MediaSession error.
+
+Main integration was also exercised against the local fixture: Operations retains the existing usage, deployment history, and recovery controls; Secrets loads within the persistent shell. No production data or access settings were changed during browser verification.
