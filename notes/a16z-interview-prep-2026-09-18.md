@@ -12,12 +12,29 @@ Alpha is run by Speedrun with EO Ventures. It has a Founder Track for building a
 
 Joe Garcia's official biography identifies him as a talent partner for a16z Speedrun. His title does not establish which Alpha track he has in mind for you. [Joe Garcia's a16z biography](https://a16z.com/author/joe-garcia/)
 
-This invitation does not establish a main Speedrun accelerator interview or investment offer. Track preference remains unconfirmed. Nothing here claims an unpublished interview rubric or predicts acceptance.
+This invitation does not establish a main Speedrun accelerator interview or investment offer. The user is exploring both Alpha tracks and wants the conversation to demonstrate competence, ambition, and the judgment that makes someone worth backing. Nothing here claims an unpublished interview rubric or predicts acceptance.
+
+**The impression to support with evidence.**
+
+Make it easy for Joe to see how you work. Prepare one concrete example for each quality rather than describing yourself with a list of adjectives:
+
+| Quality | Evidence to prepare |
+| --- | --- |
+| Competence | Explain a working part of Atrax, a decision you owned, a failure you understood, and how the fix was verified. Go one level deeper when asked. |
+| Ambition | Describe a meaningful problem you want to take responsibility for, why it matters to you, and the next step you are already taking. |
+| Judgment and learning | Explain a real assumption you changed, the evidence that changed it, and a tradeoff you can defend. |
+| Trustworthiness | Be accurate about what is live, who contributed, how you used coding agents, and what remains unknown. Describe an instance of following through or taking responsibility when something went wrong. |
+
+Exploring both tracks is the stated preference. Explain the standard by which you would choose. A possible answer, to adapt only where true:
+
+> I'm exploring both. I'm building Atrax and want to find out whether I can turn it into a business people rely on. I'd also consider joining an early team where I could take real responsibility for a difficult problem and learn from people I respect. I want to use this conversation to understand where my work and goals fit best.
+
+Be prepared to name the kind of engineering problem or team you would join and what would make you commit to Atrax full-time. Specific interests make this a considered choice. Do not promise availability or invent a technical ownership story. Coding-agent assistance is part of the development process; explain your actual decisions, understanding, and verification work.
 
 **Five facts to fill before the call.**
 
 1. Your builder background: education or graduation date, current work, two strong projects, your personal contribution, and one example of starting something without being asked.
-2. Your preference: building Atrax full-time, joining a portfolio startup, or genuinely exploring both. State why. Do not pretend to want a job if your goal is to found a company, or invent certainty if you are undecided.
+2. Your choice criteria: you are exploring both founding and joining a startup. Identify what attracts you to each, which problems you want to work on, and what evidence or opportunity would make you choose.
 3. Your availability: current commitments, realistic full-time start date, San Francisco availability, and relevant work-authorization facts. Confirm the booked call's time, time zone, and duration.
 4. Atrax's customer evidence as of September 24: external organizations, recurring use, paying customers or revenue, customer conversations, and the actual workflow people need. Unknown is different from zero; founder workspaces and verification apps are not customers.
 5. Your next goal and requested help: the specific milestone you want to reach and the obstacle where Alpha could help. Keep team, ownership, prior funding, and personal runway facts available if relevant, without making a fundraising ask the default opening.
@@ -26,7 +43,7 @@ This invitation does not establish a main Speedrun accelerator interview or inve
 
 Prepare a 45- to 60-second introduction in your own words:
 
-> I'm [current role or background]. I got interested in [specific problem] when [actual experience]. I started building Atrax, a cloud for small businesses using coding agents to make internal apps. I've taken it to [verified shipping milestone], and the hardest part I worked through was [specific technical or customer challenge]. I'm now trying to learn [important unresolved question]. I'm interested in Alpha because [concrete help or environment], and my current preference is [Founder Track, Talent Track, or honest uncertainty].
+> I'm [current role or background]. I got interested in [specific problem] when [actual experience]. I started building Atrax, a cloud for small businesses using coding agents to make internal apps. I've taken it to [verified shipping milestone], and the hardest part I worked through was [specific technical or customer challenge]. I'm now trying to learn [important unresolved question]. I'm interested in Alpha because [concrete help or environment]. I'm exploring both building Atrax and joining an early team where I could take responsibility for [specific kind of work].
 
 Do not memorize placeholders as a script. Choose one personal detail that explains why you keep working on this. A claim about your motivation needs your own experience, not an invented founder story.
 
