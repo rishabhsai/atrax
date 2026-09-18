@@ -109,7 +109,7 @@ function AppDirectory({ workspaceId, onCreate }: { workspaceId: string; onCreate
     const url = new URL(window.location.href);
     if (value) url.searchParams.set("q", value);
     else url.searchParams.delete("q");
-    window.history.replaceState(window.history.state, "", url);
+    window.history.replaceState(null, "", url);
   }
   useEffect(() => {
     const controller = new AbortController();

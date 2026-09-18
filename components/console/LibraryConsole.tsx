@@ -502,7 +502,7 @@ function Listing({ workspace }: { workspace: Workspace }) {
     return () => controller.abort();
   }, [workspace.id, query, attempt]);
   function updateQuery(value: string) {
-    window.history.replaceState(window.history.state, "", changedUrl({ q: value || null }));
+    window.history.replaceState(null, "", changedUrl({ q: value || null }));
   }
   if (adding === "entry") return <EntryForm workspaceId={workspace.id} onSaved={(detail) => router.push(libraryUrl(workspace.id, detail.item.id, detail.revision.id))} onCancel={() => setAdding(null)} />;
   if (adding === "file") return <FileUploadForm workspaceId={workspace.id} onSaved={(detail) => router.push(libraryUrl(workspace.id, detail.item.id, detail.revision.id))} onCancel={() => setAdding(null)} />;
