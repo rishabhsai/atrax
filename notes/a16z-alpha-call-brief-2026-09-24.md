@@ -54,9 +54,41 @@ Other context: Vercel launched "Enterprise Apps and Agents" in June 2026 for Okt
 
 ## Demo
 
-Keep it to 60–90 seconds and only if asked. Use the Inventory + Orders example on the live release: show stock, create an order, show the reservation and the reduced stock, and state that the data is demo data.
+Keep it to 60–90 seconds and only if asked. Every screen says "Demo data"; say so out loud too.
 
-Known hazards from the September 18 review: don't run a fresh `atrax new --template chat` (released 0.2.1 starter copy), and don't start agent connection from the browser's "Connect an agent" page. **Improvement, if time allows:** rename the demo apps and reseed them with card-business data (for example sealed boxes and graded cards) so the demo tells the same story as the origin.
+The live demo is in the **Card Shop** workspace, set up September 24:
+- **Card Inventory:** https://card-inventory-d93f17de.atrax.run. Nine graded singles, sealed products and supplies.
+- **Card Orders:** https://card-orders-be14c3ef.atrax.run. Two existing orders: 1 × Mew ex CGC 9.5 (eBay) and 2 × 151 Booster Bundle (Local show).
+- **Library:** three example policies (buying, listing, pricing).
+- **Source:** `examples/card-shop/`.
+
+Script:
+1. **Console, Card Shop → Apps.** "Two tools we built with our coding agent. Both are private to the workspace."
+2. **Card Inventory.** Charizard ex PSA 10 has 3 available.
+3. **Card Orders.** Create 1 × Charizard for "Jordan K." on Whatnot. The row reads "Reserved 1 × Charizard ex … from Card Inventory."
+4. **Refresh Card Inventory.** Charizard now shows 2. "Orders called Inventory's `stock.reserve` action with my permissions. A retry never double-sells." Proven: the same order was sent twice and stock moved once.
+5. **Library.** "The pricing and buying rules live here. Any agent on the team reads them before it builds the next tool."
+6. If asked about agents, open `atrax.run/auth/device/`. It now walks through install → `atrax login --agent` → MCP.
+
+Hazards:
+- **Chat starter.** The published CLI 0.2.1 chat starter still has the old "public" copy. The quickstart now starts from the Inventory starter, and CLI 0.2.2 with the fix is ready to publish (see below). Don't run `atrax new --template chat` live.
+- **Transient deploy error.** The first Card Orders deploy failed once with `provider_rejected` and succeeded on `atrax deploy` resume. If a live deploy fails, say "it resumes" and rerun.
+- **Old apps.** The Atrax workspace still holds `launch-inventory` and `launch-orders`. There's no delete operation, so demo from Card Shop.
+
+## Shipped September 24
+
+- **Live site, from `release/alpha-polish-20260924`.** Built from a committed isolated export; live hashes match.
+  - The homepage names small businesses.
+  - The About page tells the card-business origin.
+  - `/auth/device/` is a full "Connect an agent" guide.
+  - Public-web copy is accurate.
+  - Guest invites show what each action does.
+  - The quickstart uses the Inventory starter and says "Apps I manage."
+- **Same fixes on `feat/workspace-launch`.** Cherry-picked.
+- **CLI 0.2.2, prepared on `release/cli-0.2.2` in `/private/tmp/atrax-cli-022`.**
+  - Fixes the chat starter copy and name substitution.
+  - Publishing needs `npm login`. Then run `npm run package:cli && npm publish ./dist-npm --access=public`.
+  - After publishing, bump the site pins (`node scripts/generate-agent-onboarding.mjs`, the three lines in `app/lib/docs.ts`, `node scripts/generate-docs.mjs`) and redeploy.
 
 ## Questions for Joe
 
