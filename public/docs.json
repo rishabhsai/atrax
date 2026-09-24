@@ -19,9 +19,10 @@
         {
           "heading": "Install Atrax",
           "paragraphs": [
-            "Use Node.js 22.13 or newer with npm. Install the published CLI, then choose your local agent for the bundled skill. Supported clients are claude-code, codex, and cursor. Start a fresh agent session after setup. Local development needs no account."
+            "Use Node.js 22.13 or newer with npm. Install the published CLI, then choose your local agent for the bundled skill. Supported clients are claude-code, codex, and cursor. Start a fresh agent session after setup. Local development needs no account.",
+            "The Inventory starter is a small stock list with its own database and named actions."
           ],
-          "code": "curl -fsSL https://atrax.run/agents.sh | sh -s -- --client codex\natrax new team-chat --template chat\ncd team-chat\natrax dev"
+          "code": "curl -fsSL https://atrax.run/agents.sh | sh -s -- --client codex\natrax new inventory --template inventory\ncd inventory\natrax dev"
         },
         {
           "heading": "Deploy to your workspace",
@@ -36,7 +37,7 @@
           "heading": "Use your workspace in the browser",
           "paragraphs": [
             "Sign in at https://atrax.run/sign-in/ and choose a workspace. The workspace menu switches teams; Apps, Library, and Team stay available while you move between pages.",
-            "In Apps, search by name or select I maintain. Open app takes you to the live tool. Manage opens its overview, Access controls for coworkers and maintainers, and Sharing controls for guests and public web. Your permissions determine which controls are available.",
+            "In Apps, search by name or select Apps I manage. Open app takes you to the live tool. Manage opens its overview, Access controls for coworkers and maintainers, and Sharing controls for guests and public web. Your permissions determine which controls are available.",
             "Create an app gives you a prompt for your coding agent and the deployment steps. In Library, use Add entry for written guidance or Upload a file for a document. Open an item to review its content, sources, revision history, and access.",
             "Use Sign out at the bottom of the workspace menu to end the current browser session. On smaller screens, open Menu to find workspace navigation."
           ]
@@ -217,7 +218,8 @@
       "sections": [
         {
           "heading": "Run it",
-          "code": "atrax new team-chat --template chat\ncd team-chat\natrax dev"
+          "code": "atrax new team-chat --template chat\ncd team-chat\natrax dev",
+          "note": "In atrax-cloud 0.2.1, this starter's page shows __APP_NAME__ instead of your app name and wrongly describes the chat as public and login-free. A deployed app is company-only by default. For a first app, use the Inventory starter in the Quickstart until a corrected CLI is published."
         },
         {
           "heading": "Use it",
