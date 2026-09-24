@@ -14,6 +14,8 @@ import {
 import { AuthFrame, ErrorNotice, LoadingPanel } from "./ConsoleFrame";
 import { CreateWorkspace } from "./CreateWorkspace";
 import { useSession, useSubmission } from "./useConsole";
+import { AgentCommand } from "../../app/components/AgentCommand";
+import views from "./workspace-views.module.css";
 import styles from "./console.module.css";
 
 type RequestState =
@@ -252,17 +254,69 @@ function DeviceRequest({
   );
 }
 
-export function DeviceApproval() {
-  const params = useSearchParams();
+function ConnectionGuide() {
   const router = useRouter();
-  const [code, setCode] = useState(params.get("code") || "");
-  const selectedCode = params.get("code") || "";
-  const { state, retry } = useSession();
-  const returnTo = `/auth/device/?code=${encodeURIComponent(code)}`;
+  const [code, setCode] = useState("");
   function selectCode(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     router.replace(`/auth/device/?code=${encodeURIComponent(code.trim())}`);
   }
+  return (
+    <>
+      <h1>Connect an agent</h1>
+      <p className={styles.muted}>
+        Your coding agent uses the Atrax CLI and acts with your permissions.
+        Give each agent its own named connection.
+      </p>
+      <div className={views.guideSteps}>
+        <h2><span>1</span> Install Atrax for your agent</h2>
+        <p>Run the setup command in your terminal, or copy the prompt into your agent.</p>
+        <AgentCommand />
+        <h2><span>2</span> Start the connection</h2>
+        <p>Run this in your terminal. It opens this page with a code to review.</p>
+        <pre tabIndex={0} aria-label="Connection command"><code>atrax login --agent &quot;My coding agent&quot;</code></pre>
+        <h2><span>3</span> Use Atrax from your agent</h2>
+        <p>
+          After you connect, start a fresh agent session so it loads the Atrax
+          skill. For MCP, choose a workspace and configure your client to run{" "}
+          <code>atrax mcp --workspace &lt;workspace-id&gt;</code>.{" "}
+          <Link href="/docs/mcp/">MCP setup guide</Link>
+        </p>
+      </div>
+      <form className={`${styles.form} ${styles.inlineNote}`} onSubmit={selectCode}>
+        <div className={styles.field}>
+          <label htmlFor="device-code">Already have a code? Enter it from your terminal</label>
+          <input
+            id="device-code"
+            className={styles.code}
+            required
+            value={code}
+            onChange={(event) => setCode(event.target.value)}
+            autoComplete="off"
+            autoCapitalize="characters"
+            spellCheck={false}
+          />
+        </div>
+        <button className={styles.primary} type="submit">
+          Review request
+        </button>
+      </form>
+    </>
+  );
+}
+
+export function DeviceApproval() {
+  const params = useSearchParams();
+  const router = useRouter();
+  const selectedCode = params.get("code") || "";
+  const { state, retry } = useSession();
+  const returnTo = `/auth/device/?code=${encodeURIComponent(selectedCode)}`;
+  if (!selectedCode)
+    return (
+      <AuthFrame>
+        <ConnectionGuide />
+      </AuthFrame>
+    );
   if (state.kind === "loading") return <LoadingPanel />;
   if (state.kind === "error")
     return (
@@ -294,40 +348,12 @@ export function DeviceApproval() {
     );
   return (
     <AuthFrame>
-      {selectedCode ? (
-        <DeviceRequest
-          key={selectedCode}
-          userCode={selectedCode}
-          session={state.session}
-          changeCode={() => router.replace("/auth/device/")}
-        />
-      ) : (
-        <>
-          <h1>Connect your CLI</h1>
-          <p className={styles.muted}>
-            Enter the code shown in your terminal to review its connection
-            request.
-          </p>
-          <form className={styles.form} onSubmit={selectCode}>
-            <div className={styles.field}>
-              <label htmlFor="device-code">Code from your terminal</label>
-              <input
-                id="device-code"
-                className={styles.code}
-                required
-                value={code}
-                onChange={(event) => setCode(event.target.value)}
-                autoComplete="off"
-                autoCapitalize="characters"
-                spellCheck={false}
-              />
-            </div>
-            <button className={styles.primary} type="submit">
-              Review request
-            </button>
-          </form>
-        </>
-      )}
+      <DeviceRequest
+        key={selectedCode}
+        userCode={selectedCode}
+        session={state.session}
+        changeCode={() => router.replace("/auth/device/")}
+      />
     </AuthFrame>
   );
 }
