@@ -71,7 +71,7 @@ Script:
 6. If asked about agents, open `atrax.run/auth/device/`. It now walks through install → `atrax login --agent` → MCP.
 
 Hazards:
-- **Chat starter.** The published CLI 0.2.1 chat starter still has the old "public" copy. The quickstart now starts from the Inventory starter, and CLI 0.2.2 with the fix is ready to publish (see below). Don't run `atrax new --template chat` live.
+- **Chat starter.** Fixed. `atrax-cloud@0.2.2` is published and the site installs it. A clean install from `atrax.run/agents.sh` creates a correctly named, private chat app. A signed-out visitor to the deployed chat gets 401 on the page and its actions.
 - **Transient deploy error.** The first Card Orders deploy failed once with `provider_rejected` and succeeded on `atrax deploy` resume. If a live deploy fails, say "it resumes" and rerun.
 - **Old apps.** The Atrax workspace still holds `launch-inventory` and `launch-orders`. There's no delete operation, so demo from Card Shop.
 
@@ -85,15 +85,7 @@ Hazards:
   - Guest invites show what each action does.
   - The quickstart uses the Inventory starter and says "Apps I manage."
 - **Same fixes on `feat/workspace-launch`.** Cherry-picked.
-- **CLI 0.2.2, prepared on `release/cli-0.2.2` in `/private/tmp/atrax-cli-022`.**
+- **CLI 0.2.2, published September 24.**
   - Fixes the chat starter copy and name substitution.
-  - Publishing needs `npm login`. Then run `npm run package:cli && npm publish ./dist-npm --access=public`.
-  - After publishing, bump the site pins (`node scripts/generate-agent-onboarding.mjs`, the three lines in `app/lib/docs.ts`, `node scripts/generate-docs.mjs`) and redeploy.
-
-## Questions for Joe
-
-1. Given what I've built, which track do you see fitting best, and how is that decided?
-2. How do Founder Track fellows handle being enrolled in school during Jan–Mar?
-3. My roommates are part of the business. How should co-founders who are students apply?
-4. What does support look like for finding the first customers outside our own network?
-5. What should I do before October 11 to make my application strongest?
+  - The site pins 0.2.2, and the onboarding tests pass against the registry.
+- **Open, needs the Cloudflare dashboard.** Email Address Obfuscation (Scrape Shield) rewrites `atrax-cloud@0.2.2` in docs HTML as "[email protected]". Browsers decode it with JavaScript. Raw HTML readers see the placeholder. The `.md` and `.txt` files are unaffected. Turn it off under atrax.run → Scrape Shield.
