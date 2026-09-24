@@ -43,7 +43,6 @@ export default async function ProductPage({ params }: PageProps) {
   return (
     <main className={styles.page}>
       <SupportHero
-        eyebrow={`${product.name} · ${product.availability}`}
         title={product.title}
         description={product.summary}
         artwork={product.slug === "access" ? "access" : product.slug === "library" ? "library" : product.slug === "apps" || product.slug === "database" ? "apps" : "threads"}

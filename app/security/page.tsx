@@ -37,7 +37,6 @@ export default function SecurityPage() {
   return (
     <main className={styles.page}>
       <SupportHero
-        eyebrow="Security"
         title="Your company’s apps start company-only."
         description="A new app is available to workspace members. Outside access is a separate decision. People, agents, and connected apps follow the same current permission checks."
         artwork="access"

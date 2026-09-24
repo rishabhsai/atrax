@@ -78,7 +78,6 @@ function CreateAppGuide({ workspaceName, workspaceSlug }: { workspaceName: strin
   return (
     <section className={views.createAppGuide} aria-labelledby="create-app-heading">
       <div className={views.guideIntroduction}>
-        <span className={views.eyebrow}>Build with your agent</span>
         <h2 id="create-app-heading">Your next app starts with an idea.</h2>
         <p>Describe what your business needs to Codex, Claude Code, or Cursor. Your agent builds the app; Atrax runs it for your team.</p>
         <Link href="/docs/quickstart/" className={views.rowLink}>Read the quickstart <span aria-hidden="true">↗</span></Link>

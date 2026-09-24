@@ -418,15 +418,6 @@ h3 {
   line-height: 1.25;
 }
 
-.eyebrow {
-  margin-bottom: 18px;
-  color: currentColor;
-  font-family: var(--font-mono);
-  font-size: var(--fs-micro);
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-
 .section {
   padding-block: var(--pad-section);
 }
@@ -904,7 +895,7 @@ h3 {
   align-items: end;
 }
 
-.agent-docs-grid > div:first-child p:not(.eyebrow) {
+.agent-docs-grid > div:first-child p {
   max-width: 640px;
   font-size: var(--fs-body);
   line-height: 1.7;
@@ -1190,7 +1181,7 @@ h3 {
   align-items: center;
 }
 
-.account-page-grid > div:first-child > p:not(.eyebrow) {
+.account-page-grid > div:first-child > p {
   max-width: 720px;
   color: var(--muted);
   font-size: var(--fs-lead);
@@ -1245,7 +1236,7 @@ h3 {
   font-size: 26px;
 }
 
-.account-login-card > p:not(.eyebrow) {
+.account-login-card > p {
   color: var(--muted);
   font-size: var(--fs-meta);
   line-height: 1.65;
@@ -1492,30 +1483,6 @@ h3 {
 .product-hero-grid > .product-console { width: 100%; max-width: 720px; min-height: 280px; text-align: left; box-shadow: none; }
 .product-hero .button-row { justify-content: center; }
 .product-hero .product-example-title { margin-block: 20px; }
-
-.product-kicker {
-  display: flex;
-  justify-content: center;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 14px;
-  margin-bottom: 26px;
-}
-
-.product-kicker .product-mark {
-  width: 38px;
-  height: 38px;
-  font-size: 16px;
-}
-
-.product-kicker > span {
-  font-family: var(--font-mono);
-  font-size: 11px;
-}
-
-.product-kicker .status {
-  color: var(--ink);
-}
 
 .product-hero p {
   max-width: 640px;
@@ -2829,7 +2796,7 @@ h3 {
   margin-bottom: clamp(36px, 4.6vw, 60px);
 }
 
-.fabric-intro > p:not(.eyebrow):not(.section-status) {
+.fabric-intro > p:not(.section-status) {
   max-width: 720px;
   color: var(--muted);
   font-size: var(--fs-body);
@@ -3088,7 +3055,7 @@ h3 {
   align-items: center;
 }
 
-.share-copy > p:not(.eyebrow):not(.section-status) {
+.share-copy > p:not(.section-status) {
   max-width: 520px;
   color: var(--muted);
   font-size: var(--fs-body);
@@ -3267,7 +3234,7 @@ h3 {
   color: var(--paper);
 }
 
-.loop-copy > p:not(.eyebrow):not(.section-status) {
+.loop-copy > p:not(.section-status) {
   max-width: 520px;
   color: color-mix(in oklch, var(--paper) 68%, var(--muted));
   font-size: var(--fs-body);
@@ -3379,7 +3346,7 @@ h3 {
   scroll-margin-top: 70px;
 }
 
-.products-stage-intro > p:not(.eyebrow) {
+.products-stage-intro > p {
   color: color-mix(in oklch, var(--paper) 66%, var(--muted));
   font-size: var(--fs-body);
   line-height: 1.7;
@@ -3492,16 +3459,16 @@ h3 {
   min-width: 0;
 }
 
-.split-copy > p:not(.eyebrow):not(.section-status):not(.microlabel) {
+.split-copy > p:not(.section-status):not(.microlabel) {
   max-width: 560px;
   color: var(--muted);
   font-size: var(--fs-body);
   line-height: 1.7;
 }
 
-.products-stage .split-copy > p:not(.eyebrow):not(.section-status),
-.loop-story .split-copy > p:not(.eyebrow):not(.section-status),
-.code-section .split-copy > p:not(.eyebrow):not(.section-status) {
+.products-stage .split-copy > p:not(.section-status),
+.loop-story .split-copy > p:not(.section-status),
+.code-section .split-copy > p:not(.section-status) {
   color: color-mix(in oklch, var(--paper) 66%, var(--muted));
 }
 
@@ -4240,7 +4207,6 @@ h3 {
 .recipe-steps strong { font-size: 17px; font-weight: 500; }
 .recipe-steps p { margin: 7px 0 0; color: var(--muted); font-size: 14px; line-height: 1.8; }
 .recipe-code { padding: 26px; border-radius: 12px; background: var(--ink); color: var(--paper); min-width: 0; }
-.recipe-code .eyebrow { color: var(--orange-light); }
 .recipe-code pre { margin-block: 24px; padding: 0; font-size: 12px; line-height: 1.9; overflow-x: auto; }
 .recipe-code > p:last-child { color: var(--muted-on-dark); font-size: 12px; line-height: 1.8; margin-bottom: 0; }
 .sharing-caveat { margin-top: 40px; padding-top: 24px; border-top: 1px solid var(--line-light); }
@@ -4332,7 +4298,7 @@ h3 {
   .product-art img { opacity: 0.65; }
   .product-hero-grid { text-align: left; gap: 36px; }
   .product-intro { width: 100%; }
-  .product-kicker, .product-hero .button-row { justify-content: flex-start; }
+  .product-hero .button-row { justify-content: flex-start; }
   .agent-handoff { margin-top: 28px; }
   .agent-terminal-bar { padding-inline: 12px; gap: 8px; }
   .agent-clients { gap: 12px; }

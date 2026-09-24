@@ -14,7 +14,6 @@ export default function PricingPage() {
   return (
     <main className={styles.page}>
       <SupportHero
-        eyebrow="Pricing"
         title="Try the workflow. Hosted pricing is coming."
         description="Build and run an app locally with the released CLI. Hosted deployment is available; commercial plans, pricing, and published allowances are still being defined."
       >

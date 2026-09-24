@@ -51,7 +51,7 @@ export function DocsShell({ doc }: { doc: DocPage }) {
         </aside>
         <article className={styles.article}>
           <header className={styles.header}>
-            <div className={styles.meta}><span>{doc.group}</span><span>{statusLabels[doc.status]}</span></div>
+            <p className={styles.status}>{statusLabels[doc.status]}</p>
             <h1>{doc.title}</h1>
             <p>{doc.description}</p>
             <a href={`/docs/${doc.slug}/index.md`}>Read as Markdown ↗</a>

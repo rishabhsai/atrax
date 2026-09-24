@@ -12,7 +12,6 @@ export default function CompanyPage() {
   return (
     <main className={styles.page}>
       <SupportHero
-        eyebrow="About Atrax"
         title="Your business has its own way of working."
         description="Your software should fit it. Atrax is a cloud for small businesses building and running their own internal tools with the agents they already use."
         artwork="threads"

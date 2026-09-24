@@ -4,7 +4,6 @@ export const products = {
     name: "Apps",
     number: "01",
     availability: "available",
-    eyebrow: "Build and deploy",
     cardTitle: "Build and deploy apps for your team.",
     title: "Build it locally. Put it to work.",
     summary:
@@ -45,7 +44,6 @@ export const products = {
     name: "Database",
     number: "02",
     availability: "available",
-    eyebrow: "SQL database included",
     cardTitle:
       "A SQL database comes with your app. No separate database service to set up.",
     title: "A SQL database that ships with your app.",
@@ -91,7 +89,6 @@ atrax deploy --json`,
     name: "Access",
     number: "03",
     availability: "available",
-    eyebrow: "Workspace access",
     cardTitle: "Company-only by default. Named guests when you need them.",
     title: "A link is useful. Knowing who can open it is better.",
     summary:
@@ -134,7 +131,6 @@ atrax deploy --json`,
     name: "Library",
     number: "04",
     availability: "available",
-    eyebrow: "Company knowledge",
     cardTitle:
       "Keep company guidance available for the people and agents who need it.",
     title: "Tell your agent once. Save it for the company.",
@@ -175,7 +171,6 @@ atrax deploy --json`,
     name: "Actions",
     number: "05",
     availability: "available",
-    eyebrow: "Named app operations",
     cardTitle: "Let your apps and agents call actions across your workspace.",
     title: "Apps that can work together.",
     summary:
@@ -215,7 +210,6 @@ atrax deploy --json`,
     name: "MCP",
     number: "06",
     availability: "available",
-    eyebrow: "Your existing agent",
     cardTitle:
       "Let your agent discover apps, call actions, and contribute company knowledge.",
     title: "Your agent. Your workspace. Your permissions.",
@@ -256,7 +250,6 @@ atrax deploy --json`,
     name: "Automation",
     number: "07",
     availability: "planned",
-    eyebrow: "Planned",
     cardTitle:
       "Hosted agents and scheduled automation are planned for a later release.",
     title: "Automation is planned for a later release.",
@@ -303,7 +296,6 @@ export const solutions = {
   "company-apps": {
     slug: "company-apps",
     name: "Company apps",
-    eyebrow: "For your team",
     short:
       "Give requests, handoffs, and everyday work a home your whole team can open.",
     title: "That spreadsheet deserves an app.",
@@ -328,7 +320,6 @@ export const solutions = {
   "private-sharing": {
     slug: "private-sharing",
     name: "Private reviews",
-    eyebrow: "For a named guest",
     short:
       "Send a working app to an outside reviewer without adding them to your team.",
     title: "Share the prototype with the person who needs it.",
@@ -353,7 +344,6 @@ export const solutions = {
   "connected-apps": {
     slug: "connected-apps",
     name: "Connected apps",
-    eyebrow: "For a business workflow",
     short:
       "Connect apps and agents through shared actions.",
     title: "Let your apps work together.",
@@ -377,7 +367,6 @@ export const solutions = {
   "agent-workspace": {
     slug: "agent-workspace",
     name: "Company knowledge",
-    eyebrow: "For your agent",
     short:
       "Give your apps and agents shared company context.",
     title: "Stop re-explaining how your company works.",

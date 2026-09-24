@@ -23,9 +23,7 @@
 .mobileDirectory { display: none; }
 .article { min-width: 0; }
 .header { padding-bottom: 34px; border-bottom: 1px solid var(--line); }
-.meta { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; font-size: 11px; margin-bottom: 20px; }
-.meta > span:first-child { color: var(--copper); font-weight: 600; text-transform: uppercase; letter-spacing: .07em; }
-.meta > span:last-child { padding: 4px 8px; border: 1px solid var(--line); border-radius: 5px; color: var(--muted); }
+.header .status { display: inline-block; margin: 0 0 20px; padding: 4px 8px; border: 1px solid var(--line); border-radius: 5px; color: var(--muted); font-size: 11px; line-height: 1.5; }
 .header h1 { margin: 0 0 20px; font-family: var(--font-sans); font-weight: 500; font-size: clamp(34px, 4vw, 48px); letter-spacing: -.045em; line-height: 1.1; }
 .header p { color: var(--muted); font-size: 17px; line-height: 1.8; margin: 0 0 22px; }
 .header > a, .footer a { font-size: 12px; color: var(--copper); text-decoration: underline; text-underline-offset: 4px; }
