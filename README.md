@@ -10,7 +10,7 @@ Atrax is a cloud for internal software at small businesses. A workspace holds yo
 Requires Node.js `>=22.13.0` and npm.
 
 ```bash
-npm install -g atrax-cloud@0.2.1
+npm install -g atrax-cloud@0.2.2
 atrax setup --client codex
 atrax new team-chat --template chat
 cd team-chat
