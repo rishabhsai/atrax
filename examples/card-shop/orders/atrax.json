@@ -1,0 +1,8 @@
+{
+  "version": 2,
+  "name": "card-orders",
+  "web": { "assets": "public", "fallback": "index.html" },
+  "actions": { "entry": "src/actions.js" },
+  "tables": { "migrations": "migrations" },
+  "dependencies": { "inventory": { "appId": "d93f17de-5b76-4b1a-8317-2b4913de18df" } }
+}

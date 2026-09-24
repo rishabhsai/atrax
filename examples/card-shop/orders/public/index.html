@@ -1,0 +1,8 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Card Orders</title><link rel="stylesheet" href="/style.css"><script type="module" src="/app.js"></script></head>
+<body><main><header><p>Card shop tools <span class="demo">Demo data</span></p><h1>Card Orders</h1><p>Record a sale and reserve the card from Card Inventory, so the same card is never sold twice.</p></header>
+<form id="create"><label class="wide">Item<select id="sku" required><option value="">Loading Card Inventory…</option></select></label><label>Quantity<input id="quantity" type="number" min="1" max="1000000" value="1" required></label><label>Buyer<input id="buyer" type="text" maxlength="120" placeholder="Name or handle" required></label><label>Sold on<select id="channel" required><option>eBay</option><option>Whatnot</option><option>TCGplayer</option><option>Local show</option></select></label><button type="submit" id="submit">Create order</button></form>
+<p id="error" role="alert"></p><p id="status" role="status"></p><button type="button" id="refresh">Refresh orders</button>
+<table><caption>Recent orders</caption><thead><tr><th scope="col">Order</th><th scope="col">Item</th><th scope="col" class="number">Qty</th><th scope="col">Buyer</th><th scope="col">Status</th><th scope="col">Reservation</th><th scope="col">Actions</th></tr></thead><tbody id="orders"></tbody></table>
+<section aria-labelledby="detail-title"><h2 id="detail-title">Reservation check</h2><p id="detail">Choose Check reservation on an order to ask Card Inventory for its current record.</p>
+<details id="technical" hidden><summary>Technical details</summary><pre id="raw"></pre></details></section></main></body></html>

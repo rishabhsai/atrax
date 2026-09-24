@@ -1,0 +1,1 @@
+{"name":"card-orders","private":true,"type":"module","scripts":{"dev":"atrax dev","deploy":"atrax deploy"}}

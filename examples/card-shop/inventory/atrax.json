@@ -1,0 +1,7 @@
+{
+  "version": 2,
+  "name": "card-inventory",
+  "web": { "assets": "public", "fallback": "index.html" },
+  "actions": { "entry": "src/actions.js" },
+  "tables": { "migrations": "migrations" }
+}
