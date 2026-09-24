@@ -38,7 +38,6 @@ export default async function SolutionPage({ params }: PageProps) {
   return (
     <main className={styles.page}>
       <SupportHero
-        eyebrow={solution.name}
         title={solution.title}
         description={solution.summary}
       >

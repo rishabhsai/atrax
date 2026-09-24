@@ -37,7 +37,6 @@ export default function DevelopersPage() {
   return (
     <main className={styles.page}>
       <SupportHero
-        eyebrow="Developers"
         title="Build locally. Run it for your company."
         description="Use the CLI to create, develop, deploy, and manage apps. Connect the agent you already use through MCP to work with the same workspace permissions."
       >

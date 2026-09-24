@@ -175,7 +175,7 @@ export function ExternalSharingPanel({ appId, appName, appUrl, activeReleaseId, 
   }
 
   return <section className={styles.panel} aria-labelledby="external-sharing-title">
-    <header className={styles.header}><div><p className={styles.eyebrow}>External access</p><h2 id="external-sharing-title">Guests and public web</h2></div><button className={consoleStyles.textButton} onClick={() => void refresh()} disabled={pending !== null}>Refresh</button></header>
+    <header className={styles.header}><h2 id="external-sharing-title">Guests and public web</h2><button className={consoleStyles.textButton} onClick={() => void refresh()} disabled={pending !== null}>Refresh</button></header>
     <p className={styles.copy}>Guests are verified people with access to this app only. Public web controls whether anyone can load <a href={appUrl}>{appUrl}</a> without signing in.</p>
     {failure && <ErrorNotice message={failure} />}
     <div className={styles.columns}>

@@ -33,7 +33,6 @@ export default function Home() {
         aria-labelledby="products-title"
       >
         <div>
-          <p className={styles["section-label"]}>Built to belong together</p>
           <h2 id="products-title">
             Everything around
             <br /> your app.
@@ -61,7 +60,6 @@ export default function Home() {
       >
         <div className={styles["apps-composition"]}>
           <div className={styles["apps-copy"]}>
-            <p className={styles["section-label"]}>01 / Apps</p>
             <h2 id="apps-title">
               Your idea,
               <br /> up and running.
@@ -96,10 +94,7 @@ export default function Home() {
           </Reveal>
         </div>
         <div className={styles["database-strip"]} id="database">
-          <div className={styles["database-name"]}>
-            <span className={styles["small-number"]}>02</span>
-            <h3>Database</h3>
-          </div>
+          <h3>Database</h3>
           <div>
             <h4>Its data stays with it.</h4>
             <p>
@@ -120,7 +115,6 @@ export default function Home() {
       >
         <div className={styles["shell"]}>
           <div className={styles["access-heading"]}>
-            <p className={styles["section-label"]}>03 / Access</p>
             <h2 id="access-title">
               Your team on the inside.
               <br /> Sharing on your terms.
@@ -220,7 +214,6 @@ export default function Home() {
             </figure>
           </Reveal>
           <div className={styles["library-copy"]}>
-            <p className={styles["section-label"]}>04 / Library</p>
             <h2 id="library-title">
               What your company
               <br /> knows, kept together.
@@ -254,7 +247,6 @@ export default function Home() {
         <div className={styles["shell"]}>
           <div className={styles["actions-heading"]}>
             <div>
-              <p className={styles["section-label"]}>05 / Actions</p>
               <h2 id="actions-title">
                 Separate apps.
                 <br /> Connected work.
@@ -294,9 +286,6 @@ export default function Home() {
       </section>
 
       <section className={styles["closing"] + " " + styles["shell"]}>
-        <p className={styles["section-label"]}>
-          Made with your agent. Used by your team.
-        </p>
         <h2>
           Put your first
           <br /> idea to work.

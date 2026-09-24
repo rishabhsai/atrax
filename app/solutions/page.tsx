@@ -16,7 +16,6 @@ export default function SolutionsPage() {
   return (
     <main className={styles.page}>
       <SupportHero
-        eyebrow="Use cases"
         title="Start with work your company needs now."
         description="Build the tool that fits your work, then give it a stable home, the right access, and data that stays with the company."
         artwork="apps"

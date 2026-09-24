@@ -3,7 +3,6 @@ import type { ReactNode } from "react";
 import styles from "./support.module.css";
 
 type SupportHeroProps = {
-  eyebrow: string;
   title: string;
   description: string;
   artwork?: "apps" | "library" | "access" | "threads";
@@ -17,12 +16,11 @@ const artworkPaths = {
   threads: "/images/home/woven-hero-800.webp",
 };
 
-export function SupportHero({ eyebrow, title, description, artwork, children }: SupportHeroProps) {
+export function SupportHero({ title, description, artwork, children }: SupportHeroProps) {
   return (
     <section className={`${styles.hero} ${artwork ? styles.illustratedHero : styles.compactHero}`}>
       <div className={styles.shell}>
         <div className={styles.heroCopy}>
-          <p className={styles.eyebrow}>{eyebrow}</p>
           <h1>{title}</h1>
           <p className={styles.lead}>{description}</p>
           {children ? <div className={styles.heroActions}>{children}</div> : null}

@@ -181,7 +181,6 @@ function EntryForm({
 
   return (
     <section className={styles.editor} aria-labelledby={existing ? "correct-entry" : "add-entry"}>
-      <p className={styles.eyebrow}>Library / {existing ? "Edit entry" : "New entry"}</p>
       <h1 id={existing ? "correct-entry" : "add-entry"}>{existing ? "Correct this entry" : "Add an entry"}</h1>
       <p className={styles.muted}>{existing ? "Save a new revision. Previous versions stay in history." : "Save a policy, decision, or guidance your team can refer to."}</p>
       <form className={styles.form} onSubmit={submit}>
@@ -274,7 +273,7 @@ function FileUploadForm({
     }
   }
   const accepted = capabilities.kind === "ready" ? capabilities.value.acceptedContentTypes : [];
-  return <section className={styles.editor} aria-labelledby="upload-file"><p className={styles.eyebrow}>Library / {detail ? "Replace file" : "New file"}</p><h1 id="upload-file">{detail ? "Replace file" : "Upload a file"}</h1><p className={styles.muted}>{detail ? "The new file becomes the current revision. Earlier files stay in history." : "Add a document for your team to read and download."}</p><form className={styles.form} onSubmit={submit}>
+  return <section className={styles.editor} aria-labelledby="upload-file"><h1 id="upload-file">{detail ? "Replace file" : "Upload a file"}</h1><p className={styles.muted}>{detail ? "The new file becomes the current revision. Earlier files stay in history." : "Add a document for your team to read and download."}</p><form className={styles.form} onSubmit={submit}>
     <div className={styles.field}>
       <label htmlFor="library-file">File</label>
       <input id="library-file" type="file" required accept={accepted.join(",")} disabled={capabilities.kind !== "ready" || saving} onChange={(event) => { setFile(event.target.files?.[0] ?? null); setError(null); }} />
@@ -334,7 +333,7 @@ function AccessEditor({
   }
   return (
     <section className={styles.editor} aria-labelledby="library-access">
-      <p className={styles.eyebrow}>Library / Access</p><h1 id="library-access">Who can read this item?</h1><p className={styles.itemContext}>{detail.item.title}</p>
+      <h1 id="library-access">Who can read this item?</h1><p className={styles.itemContext}>{detail.item.title}</p>
       <p className={styles.muted}>Source permissions still apply. A person must be allowed to read every cited source before they can read derived guidance.</p>
       <form className={styles.form} onSubmit={submit}>
         <div className={styles.choiceGroup}>
@@ -440,9 +439,8 @@ function Detail({
       <nav className={styles.breadcrumb} aria-label="Breadcrumb"><Link href={libraryUrl(workspace.id)}>← Library</Link><span aria-hidden="true">/</span><span>{revision.title}</span></nav>
       <header className={styles.pageHeader}>
         <div>
-          <p className={styles.eyebrow}>{item.kind === "knowledge" ? "Knowledge entry" : "File"} · Version {revision.number}</p>
           <h1>{revision.title}</h1>
-          <p>{audienceLabel(item.audience)} · Updated {dateTime(revision.createdAt)}</p>
+          <p>{item.kind === "knowledge" ? "Knowledge entry" : "File"} · Version {revision.number} · {audienceLabel(item.audience)} · Updated {dateTime(revision.createdAt)}</p>
         </div>
         <div className={styles.actions}>
           {item.kind === "knowledge" && current && item.status === "active" && <button className={styles.primary} onClick={() => setEditing(true)}>Edit entry</button>}
@@ -513,7 +511,7 @@ function Listing({ workspace }: { workspace: Workspace }) {
   return (
     <div className={styles.catalog}>
       <header className={styles.pageHeader}>
-        <div><p className={styles.eyebrow}>Company knowledge</p><h1>Library</h1><p>Files, decisions, and guidance your team shares.</p></div>
+        <div><h1>Library</h1><p>Files, decisions, and guidance your team shares.</p></div>
         <div className={styles.actions}><button className={styles.secondary} onClick={() => setAdding("file")}>Upload a file</button><button className={styles.primary} onClick={() => setAdding("entry")}>Add entry</button></div>
       </header>
       <section className={styles.catalogSurface} aria-label="Library catalog">

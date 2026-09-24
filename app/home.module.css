@@ -77,14 +77,6 @@
 .hero-note a {
   margin-left: 7px;
 }
-.section-label {
-  font-size: 12px;
-  line-height: 1.4;
-  letter-spacing: 0.045em;
-  font-weight: 550;
-  color: var(--copper);
-  margin-bottom: 21px;
-}
 .product-intro {
   padding-block: 64px 32px;
   display: grid;
@@ -186,16 +178,7 @@
   gap: 32px;
   align-items: center;
 }
-.database-name {
-  display: flex;
-  gap: 16px;
-  align-items: center;
-}
-.small-number {
-  font-size: 12px;
-  color: var(--copper);
-}
-.database-name h3 {
+.database-strip h3 {
   font-size: 25px;
 }
 .database-strip h4 {
@@ -222,9 +205,6 @@
   text-align: center;
   position: relative;
   z-index: 1;
-}
-.access-heading .section-label {
-  color: oklch(0.8 0.1 58);
 }
 .access-heading h2 {
   font-size: clamp(38px, 4.6vw, 64px);
@@ -414,7 +394,7 @@
   font-size: clamp(40px, 4.4vw, 63px);
 }
 .actions-heading .body-copy {
-  margin-top: 33px;
+  margin-top: 0;
 }
 .action-weave {
   height: 320px;
@@ -558,10 +538,6 @@
     display: block;
     margin: 5px 0 0;
   }
-  .section-label {
-    font-size: 11px;
-    margin-bottom: 17px;
-  }
   .product-intro {
     grid-template-columns: 1fr;
     gap: 25px;
@@ -617,7 +593,7 @@
     grid-column: auto;
     justify-self: start;
   }
-  .database-name h3 {
+  .database-strip h3 {
     font-size: 23px;
   }
   .database-strip h4 {
@@ -742,9 +718,6 @@
   .actions-heading h2 {
     font-size: 43px;
   }
-  .actions-heading .body-copy {
-    margin-top: 0;
-  }
   .action-weave {
     height: 195px;
     margin-top: 24px;
@@ -763,11 +736,6 @@
   }
   .closing h2 {
     font-size: 53px;
-  }
-  .closing .section-label {
-    max-width: 30ch;
-    margin-inline: auto;
-    line-height: 1.7;
   }
 }
 

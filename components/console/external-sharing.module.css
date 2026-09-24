@@ -1,7 +1,6 @@
 .panel { margin-top: 32px; display: grid; gap: 16px; }
 .header { display: flex; justify-content: space-between; align-items: start; gap: 16px; border-top: 1px solid var(--border); padding-top: 28px; }
 .header h2, .card h3 { margin: 0; }
-.eyebrow { margin: 0 0 5px; color: var(--accent); font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
 .copy { color: var(--muted); max-width: 70ch; margin: 0; }
 .columns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
 .card { display: grid; align-content: start; gap: 14px; padding: 18px; border: 1px solid var(--border); border-radius: 16px; background: var(--surface); }
