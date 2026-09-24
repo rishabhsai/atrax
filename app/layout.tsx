@@ -33,11 +33,11 @@ export const metadata: Metadata = {
     template: "%s | Atrax",
   },
   description:
-    "Build with your agent. Atrax runs your apps, keeps their data, and connects your team.",
+    "For small businesses building their own tools with AI. Atrax runs your apps, keeps their data, and connects your team.",
   openGraph: {
     title: "Atrax | A cloud for everyone.",
     description:
-      "Build with your agent. Atrax runs your apps, keeps their data, and connects your team.",
+      "For small businesses building their own tools with AI. Atrax runs your apps, keeps their data, and connects your team.",
     type: "website",
     siteName: "Atrax",
     images: [
@@ -53,7 +53,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Atrax | A cloud for everyone.",
     description:
-      "Build with your agent. Atrax runs your apps, keeps their data, and connects your team.",
+      "For small businesses building their own tools with AI. Atrax runs your apps, keeps their data, and connects your team.",
     images: ["/og.png"],
   },
 };

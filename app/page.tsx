@@ -13,8 +13,8 @@ export default function Home() {
         <div className={styles["hero-copy"]}>
           <h1 id="hero-title">A cloud for everyone.</h1>
           <p>
-            Build with your agent. Atrax runs your apps, keeps their data, and
-            connects your team.
+            For small businesses building their own tools with AI. Atrax runs
+            your apps, keeps their data, and connects your team.
           </p>
           <AgentCommand />
           <div className={styles["hero-note"]}>
