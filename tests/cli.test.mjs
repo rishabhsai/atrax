@@ -4,6 +4,7 @@ import {
   access,
   mkdir,
   mkdtemp,
+  readdir,
   readFile,
   realpath,
   rm,
@@ -111,6 +112,24 @@ test('new creates the supported chat app and its public build is deployable', as
   assert.equal(dryRun.hash, artifact.hash);
   assert.deepEqual(dryRun.migrations, ['0001_messages.sql']);
   assert.equal(dryRun.actions.length, 2);
+});
+
+test('new names every template file and describes chat as private to the workspace', async (t) => {
+  const parent = await temporaryDirectory(t);
+  for (const template of ['chat', 'static', 'inventory', 'orders']) {
+    const name = `named-${template}`;
+    successfulJson(await run(['new', name, '--template', template, '--json'], parent));
+    for (const entry of await readdir(join(parent, name), { recursive: true, withFileTypes: true })) {
+      if (!entry.isFile()) continue;
+      const file = join(entry.parentPath, entry.name);
+      assert.doesNotMatch(await readFile(file, 'utf8'), /__APP_NAME__/, file);
+    }
+  }
+  const html = await readFile(join(parent, 'named-chat', 'public', 'index.html'), 'utf8');
+  assert.match(html, /<title>named-chat<\/title>/);
+  assert.match(html, /<h1>named-chat<\/h1>/);
+  assert.match(html, /Private to your workspace/);
+  assert.doesNotMatch(html, /public|login-free|anyone with/i);
 });
 
 test('init supports a static app and an app with actions and migrations', async (t) => {
