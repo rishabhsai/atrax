@@ -1,4 +1,4 @@
-import {cp, readFile, writeFile, access} from 'node:fs/promises';
+import {cp, readdir, readFile, writeFile, access} from 'node:fs/promises';
 import {resolve,join,dirname} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {spawn} from 'node:child_process';
@@ -29,8 +29,11 @@ async function createApp(name,options) {
   const root = resolve(name);
   try {await access(root); throw new Error(`Directory already exists: ${name}`);} catch(error) {if(error.code !== 'ENOENT') throw error;}
   await cp(join(packageRoot,'templates',template),root,{recursive:true});
-  for (const file of ['atrax.json','package.json','README.md','AGENTS.md']) {
-    try {const source=await readFile(join(root,file),'utf8'); await writeFile(join(root,file),source.replaceAll('__APP_NAME__',name));} catch(error) {if(error.code !== 'ENOENT') throw error;}
+  for (const entry of await readdir(root,{recursive:true,withFileTypes:true})) {
+    if (!entry.isFile()) continue;
+    const file=join(entry.parentPath,entry.name);
+    const source=await readFile(file,'utf8');
+    if (source.includes('__APP_NAME__')) await writeFile(file,source.replaceAll('__APP_NAME__',name));
   }
   try {await cp(join(root,'gitignore'),join(root,'.gitignore'));} catch(error) {if(error.code !== 'ENOENT') throw error;}
   return {name,directory:root,next:`cd ${name} && atrax dev`};
