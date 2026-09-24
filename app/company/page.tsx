@@ -21,6 +21,26 @@ export default function CompanyPage() {
       </SupportHero>
       <section className={`${styles.section} ${styles.shell} ${styles.thesis}`}>
         <div className={styles.intro}>
+          <h2>Atrax started inside a small business.</h2>
+        </div>
+        <div>
+          <p>
+            We run a collectible card business with our college roommates,
+            buying and selling cards. We use AI to build the tools that run it.
+          </p>
+          <p>
+            Building a tool became the easy part. Sharing it with each other,
+            keeping its data, and running it somewhere other than one
+            person&apos;s laptop was still harder than it needed to be.
+          </p>
+          <p>
+            So we built the place those tools live. Every small business now
+            has the same opportunity and the same problem.
+          </p>
+        </div>
+      </section>
+      <section className={`${styles.section} ${styles.shell} ${styles.thesis} ${styles.rule}`}>
+        <div className={styles.intro}>
           <h2>The prototype is only the beginning.</h2>
         </div>
         <div>
