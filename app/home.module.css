@@ -280,18 +280,11 @@
   right: 1%;
   text-align: right;
 }
-.access-caption > span {
-  font-size: 10px;
-  letter-spacing: 0.025em;
-  color: var(--light-muted);
-  display: block;
-}
 .access-caption strong {
   display: block;
   font-size: 23px;
   font-weight: 500;
   letter-spacing: -0.03em;
-  margin-top: 8px;
 }
 .access-caption p {
   font-size: 13px;
@@ -361,15 +354,10 @@
   padding-top: 24px;
   border-top: 1px solid var(--line);
 }
-.knowledge-example > span {
-  font-size: 11px;
-  color: var(--muted);
-}
 .knowledge-example blockquote {
   font-size: 23px;
   line-height: 1.4;
   letter-spacing: -0.025em;
-  margin-top: 12px;
   max-width: 28ch;
 }
 .knowledge-example p {
@@ -658,9 +646,6 @@
   }
   .access-caption strong {
     font-size: 21px;
-  }
-  .access-caption > span {
-    font-size: 9px;
   }
   .access-caption p {
     font-size: 13px;

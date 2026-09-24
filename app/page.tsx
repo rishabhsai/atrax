@@ -154,7 +154,6 @@ export default function Home() {
                 styles["access-caption"] + " " + styles["team-caption"]
               }
             >
-              <span>Inside the boundary</span>
               <strong>Your team</strong>
               <p>
                 Workspace access
@@ -166,7 +165,6 @@ export default function Home() {
                 styles["access-caption"] + " " + styles["guest-caption"]
               }
             >
-              <span>A deliberate invitation</span>
               <strong>Your guests</strong>
               <p>
                 Access to the apps
@@ -227,12 +225,11 @@ export default function Home() {
               Explore Library <span aria-hidden="true">↗</span>
             </Link>
             <div className={styles["knowledge-example"]}>
-              <span>Example saved preference</span>
               <blockquote>
                 &ldquo;We don&apos;t use blue in our company designs.&rdquo;
               </blockquote>
               <p>
-                Deliberately saved. Available to permitted people and agents.
+                An example saved preference. Available to permitted people and agents.
               </p>
             </div>
           </div>
