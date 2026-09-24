@@ -73,10 +73,11 @@
 .guideIntroduction h2 { font-size:23px; line-height:1.25; max-width:20ch; }
 .guideIntroduction p { color:var(--muted); font-size:13px; }
 .guideSteps { min-width:0; }
-.guideSteps h3 { display:flex; align-items:center; gap:10px; margin:0 0 8px; font-size:14px; }
-.guideSteps h3 span { display:grid; place-items:center; width:23px; height:23px; border:1px solid var(--control-border); border-radius:50%; font-size:11px; }
+.guideSteps :is(h2, h3) { display:flex; align-items:center; gap:10px; margin:0 0 8px; font-size:14px; }
+.guideSteps :is(h2, h3) span { display:grid; place-items:center; width:23px; height:23px; border:1px solid var(--control-border); border-radius:50%; font-size:11px; }
 .guideSteps p { color:var(--muted); font-size:13px; margin:0 0 12px; }
 .guideSteps code { overflow-wrap:anywhere; }
+.guideSteps pre { margin:0 0 24px; padding:14px 16px; border-radius:10px; background:var(--olive); color:var(--on-olive); font:12px/1.7 var(--font-mono); white-space:pre-wrap; overflow-wrap:anywhere; }
 .guideSteps :global(.agent-handoff) { margin:16px 0 24px; }
 .guideSteps :global(.agent-terminal) { background:var(--olive); }
 .guideSteps :global(.agent-terminal-bar) { flex-wrap:wrap; padding:4px 12px; gap:4px 12px; }
