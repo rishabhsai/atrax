@@ -11,6 +11,7 @@ type Props = {
   appName: string;
   appUrl: string;
   activeReleaseId: string | null;
+  actions: { name: string; description: string; effect: string }[];
   role: string | undefined;
   onChange?: () => void;
 };
@@ -22,6 +23,11 @@ function parseRecord(value: unknown): Record<string, unknown> {
 }
 const error = (reason: unknown) => reason instanceof ApiError ? errorMessage(reason) : "Atrax couldn’t save that change. Please try again.";
 const isAdmin = (role: string | undefined) => role === "owner" || role === "admin";
+const publicWebEffect = "While public web is on, anyone can load this app’s web pages and assets, including anything built into them, without signing in. Protected actions and Library keep their current rules.";
+
+function ActionLabel({ name, action, note }: { name: string; action?: Props["actions"][number]; note?: string }) {
+  return <span><code>{name}</code>{note}{action && <small>{action.effect === "read" ? "Reads data" : "Changes data"}{action.description && ` · ${action.description}`}</small>}</span>;
+}
 
 function actionNames(value: unknown): string[] {
   if (!Array.isArray(value) || value.some((name) => typeof name !== "string"))
@@ -62,8 +68,9 @@ function asPublication(value: unknown): PublicPublication {
   return { public: publication.public, publicationRevision, activeReleaseId: publication.activeReleaseId };
 }
 
-export function ExternalSharingPanel({ appId, appName, appUrl, activeReleaseId, role, onChange }: Props) {
+export function ExternalSharingPanel({ appId, appName, appUrl, activeReleaseId, actions, role, onChange }: Props) {
   const canManage = isAdmin(role);
+  const actionsByName = new Map(actions.map((action) => [action.name, action]));
   const [guests, setGuests] = useState<ExternalGuestAccess | null>(null);
   const [publication, setPublication] = useState<PublicPublication | null>(null);
   const [email, setEmail] = useState("");
@@ -169,11 +176,11 @@ export function ExternalSharingPanel({ appId, appName, appUrl, activeReleaseId, 
 
   return <section className={styles.panel} aria-labelledby="external-sharing-title">
     <header className={styles.header}><div><p className={styles.eyebrow}>External access</p><h2 id="external-sharing-title">Guests and public web</h2></div><button className={consoleStyles.textButton} onClick={() => void refresh()} disabled={pending !== null}>Refresh</button></header>
-    <p className={styles.copy}>Guests are verified people with access to this app only. Public web serves static pages at <a href={appUrl}>{appUrl}</a>; app access, actions, and Library keep their current rules.</p>
+    <p className={styles.copy}>Guests are verified people with access to this app only. Public web controls whether anyone can load <a href={appUrl}>{appUrl}</a> without signing in.</p>
     {failure && <ErrorNotice message={failure} />}
     <div className={styles.columns}>
-      <div className={styles.card}><h3>Invite a guest</h3><form className={styles.form} onSubmit={invite}><label>Email address<input value={email} onChange={(event) => setEmail(event.target.value)} type="email" autoComplete="email" required placeholder="person@example.com" /></label><fieldset><legend>Actions they can use</legend>{guests?.grantableActionNames.length ? guests.grantableActionNames.map((name) => <label className={styles.check} key={name}><input type="checkbox" checked={selectedActions.includes(name)} onChange={() => toggleAction(name)} /><span><code>{name}</code></span></label>) : <p className={consoleStyles.muted}>This release has no actions. The guest can view the app only.</p>}</fieldset><button className={consoleStyles.primary} disabled={pending !== null}>{pending === "invite" ? "Sending invitation…" : "Send guest invitation"}</button></form></div>
-      <div className={styles.card}><h3>Public web</h3>{publication ? <><p className={styles.status}>{publication.public ? "Public web is on" : "Public web is off"}</p><p className={styles.copy}>{publication.public ? "Anyone can load the static web pages. App access, actions, and Library still require their current permissions." : "Static pages follow the app’s current access rules. Publishing does not change who can open the app or use its actions."}</p>{!activeReleaseId && <p className={styles.notice}>Deploy an active release before publishing this app.</p>}<label>Type <strong>{appName}</strong> to {publication.public ? "unpublish" : "publish"}<input value={confirm} onChange={(event) => setConfirm(event.target.value)} placeholder={appName} /></label><button className={publication.public ? consoleStyles.secondary : consoleStyles.primary} disabled={pending !== null || confirm !== appName || (!publication.public && !activeReleaseId)} onClick={() => void changePublication(!publication.public)}>{pending === "publish" ? "Publishing…" : pending === "unpublish" ? "Removing public access…" : publication.public ? "Unpublish web" : "Publish web"}</button></> : <p className={consoleStyles.muted}>Loading public web status…</p>}</div>
+      <div className={styles.card}><h3>Invite a guest</h3><form className={styles.form} onSubmit={invite}><label>Email address<input value={email} onChange={(event) => setEmail(event.target.value)} type="email" autoComplete="email" required placeholder="person@example.com" /></label><fieldset><legend>Actions they can use</legend>{guests?.grantableActionNames.length ? <><p className={consoleStyles.muted}>The app’s pages only work for the actions you grant. For example, a guest needs a read action to see the app’s data. Grant actions that change data only if they should make changes.</p>{guests.grantableActionNames.map((name) => <label className={styles.check} key={name}><input type="checkbox" checked={selectedActions.includes(name)} onChange={() => toggleAction(name)} /><ActionLabel name={name} action={actionsByName.get(name)} /></label>)}</> : <p className={consoleStyles.muted}>This release has no actions. The guest can view the app only.</p>}</fieldset><button className={consoleStyles.primary} disabled={pending !== null}>{pending === "invite" ? "Sending invitation…" : "Send guest invitation"}</button></form></div>
+      <div className={styles.card}><h3>Public web</h3>{publication ? <><p className={styles.status}>{publication.public ? "Public web is on" : "Public web is off"}</p><p className={styles.copy}>{publicWebEffect}</p>{!activeReleaseId && <p className={styles.notice}>Deploy an active release before publishing this app.</p>}<label>Type <strong>{appName}</strong> to {publication.public ? "unpublish" : "publish"}<input value={confirm} onChange={(event) => setConfirm(event.target.value)} placeholder={appName} /></label><button className={publication.public ? consoleStyles.secondary : consoleStyles.primary} disabled={pending !== null || confirm !== appName || (!publication.public && !activeReleaseId)} onClick={() => void changePublication(!publication.public)}>{pending === "publish" ? "Publishing…" : pending === "unpublish" ? "Removing public access…" : publication.public ? "Unpublish web" : "Publish web"}</button></> : <p className={consoleStyles.muted}>Loading public web status…</p>}</div>
     </div>
     <div className={styles.card}><h3>Current guests</h3>{guests ? <>
       {guests.guests.length ? <ul className={styles.guestList}>{guests.guests.map((guest) => <li key={guest.personId}>
@@ -200,7 +207,7 @@ export function ExternalSharingPanel({ appId, appName, appUrl, activeReleaseId, 
         <fieldset disabled={pending !== null}><legend>Allowed actions</legend>
           {[...new Set([...guests.grantableActionNames, ...edit.actionNames])].map((name) => <label className={styles.check} key={name}>
             <input type="checkbox" checked={edit.actionNames.includes(name)} onChange={() => setEdit({ ...edit, actionNames: edit.actionNames.includes(name) ? edit.actionNames.filter((item) => item !== name) : [...edit.actionNames, name] })} />
-            <span><code>{name}</code>{!guests.grantableActionNames.includes(name) && " (no longer published)"}</span>
+            <ActionLabel name={name} action={actionsByName.get(name)} note={guests.grantableActionNames.includes(name) ? undefined : " (no longer published)"} />
           </label>)}
           <p className={consoleStyles.muted}>Clear all actions to allow viewing the app only.</p>
         </fieldset>

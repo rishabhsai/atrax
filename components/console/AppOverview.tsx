@@ -176,6 +176,7 @@ function AppContent({ appId, session, view }: { appId: string; session: Session;
           appName={app.name}
           appUrl={app.url}
           activeReleaseId={app.activeReleaseId}
+          actions={release?.actions ?? []}
           role={workspace?.role}
           onChange={() => setAttempt((value) => value + 1)}
         /> : <section className={views.section}>
