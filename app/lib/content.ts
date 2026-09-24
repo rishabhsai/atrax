@@ -29,7 +29,7 @@ export const products = {
         "Run deploy again to resume saved work and inspect its progress.",
       ],
     ],
-    code: `atrax new team-chat --template chat\ncd team-chat\natrax dev\n# Stop the local server when ready to deploy.\natrax deploy --json`,
+    code: `atrax new inventory --template inventory\ncd inventory\natrax dev\n# Stop the local server when ready to deploy.\natrax deploy --json`,
     codeLabel: "Available workflow",
     spec: [
       { property: "Commands", value: "new, dev, build, deploy", code: true },

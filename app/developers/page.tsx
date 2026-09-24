@@ -12,7 +12,7 @@ export const metadata = {
 const commands = [
   [
     "Build and deploy",
-    "atrax new team-chat --template chat\ncd team-chat\natrax dev\n# Stop the local server when ready to deploy.\natrax deploy --json",
+    "atrax new inventory --template inventory\ncd inventory\natrax dev\n# Stop the local server when ready to deploy.\natrax deploy --json",
     "Create an app, run it locally, then publish it to your workspace. Sign-in begins when you first deploy.",
   ],
   [
