@@ -4,7 +4,7 @@ Credential storage and app bindings prepared for the next release.
 
 ## Release availability
 
-Secrets is implemented in the 0.3.0 source candidate and is not yet available on the hosted service. The public CLI remains 0.2.1. The commands and backend API on this page describe the upcoming release.
+Secrets is implemented in the 0.3.0 source candidate and is not yet available on the hosted service. The public CLI remains 0.2.2. The commands and backend API on this page describe the upcoming release.
 
 Use these instructions after the matching CLI and hosted rollout are published. Workspace credentials belong in Secrets, separately from company files and guidance in Library.
 

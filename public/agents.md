@@ -12,7 +12,7 @@ Use macOS or Linux with Node.js 22.13 or newer and npm. Choose the client that w
 curl -fsSL https://atrax.run/agents.sh | sh -s -- --client codex
 ```
 
-Replace `codex` with `claude-code` or `cursor` when needed. The installer uses `atrax-cloud@0.2.1`, then asks that exact CLI to install or repair its matching skill. Start a fresh client session after setup. If `atrax` is unavailable afterward, use the installed CLI path printed by setup or add its reported bin directory to your PATH.
+Replace `codex` with `claude-code` or `cursor` when needed. The installer uses `atrax-cloud@0.2.2`, then asks that exact CLI to install or repair its matching skill. Start a fresh client session after setup. If `atrax` is unavailable afterward, use the installed CLI path printed by setup or add its reported bin directory to your PATH.
 
 Library holds company knowledge and files. It does not hold shared secrets. Secrets and Automation are planned; hosted agents and automatic document synchronization are not available.
 

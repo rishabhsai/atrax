@@ -15,7 +15,7 @@ What you can use now, what is awaiting rollout, and what remains planned.
 
 ## Awaiting the 0.3.0 hosted rollout
 
-The public CLI is atrax-cloud@0.2.1. The following features are implemented and locally verified in the 0.3.0 source candidate. They are not yet available on the hosted service.
+The public CLI is atrax-cloud@0.2.2. The following features are implemented and locally verified in the 0.3.0 source candidate. They are not yet available on the hosted service.
 
 - Secrets: administrator-managed credentials, named app bindings, rotation, and revocation.
 - App operations: a consolidated console and apps.operations.get for recent deployments, releases, snapshots, and recorded action counts.

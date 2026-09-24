@@ -75,7 +75,7 @@ export const docs: Record<string, DocPage> = {
       {
         "heading": "Setup and discovery",
         "paragraphs": [
-          "Install through https://atrax.run/agents.sh or npm install -g atrax-cloud@0.2.1. Setup manages the matching skill for one selected local client. Recipes explain workflows; operation inspection returns the current input contract without loading the whole registry."
+          "Install through https://atrax.run/agents.sh or npm install -g atrax-cloud@0.2.2. Setup manages the matching skill for one selected local client. Recipes explain workflows; operation inspection returns the current input contract without loading the whole registry."
         ],
         "code": "atrax setup --client codex\natrax setup inspect --client codex --json\natrax recipes list\natrax recipes show deploy-share\natrax operations inspect apps.guests.invite --json"
       },
@@ -217,8 +217,7 @@ export const docs: Record<string, DocPage> = {
     "sections": [
       {
         "heading": "Run it",
-        "code": "atrax new team-chat --template chat\ncd team-chat\natrax dev",
-        "note": "In atrax-cloud 0.2.1, this starter's page shows __APP_NAME__ instead of your app name and wrongly describes the chat as public and login-free. A deployed app is company-only by default. For a first app, use the Inventory starter in the Quickstart until a corrected CLI is published."
+        "code": "atrax new team-chat --template chat\ncd team-chat\natrax dev"
       },
       {
         "heading": "Use it",
@@ -577,7 +576,7 @@ export const docs: Record<string, DocPage> = {
       {
         "heading": "Awaiting the 0.3.0 hosted rollout",
         "paragraphs": [
-          "The public CLI is atrax-cloud@0.2.1. The following features are implemented and locally verified in the 0.3.0 source candidate. They are not yet available on the hosted service."
+          "The public CLI is atrax-cloud@0.2.2. The following features are implemented and locally verified in the 0.3.0 source candidate. They are not yet available on the hosted service."
         ],
         "bullets": [
           "Secrets: administrator-managed credentials, named app bindings, rotation, and revocation.",
@@ -607,7 +606,7 @@ export const docs: Record<string, DocPage> = {
       {
         "heading": "Release availability",
         "paragraphs": [
-          "Secrets is implemented in the 0.3.0 source candidate and is not yet available on the hosted service. The public CLI remains 0.2.1. The commands and backend API on this page describe the upcoming release.",
+          "Secrets is implemented in the 0.3.0 source candidate and is not yet available on the hosted service. The public CLI remains 0.2.2. The commands and backend API on this page describe the upcoming release.",
           "Use these instructions after the matching CLI and hosted rollout are published. Workspace credentials belong in Secrets, separately from company files and guidance in Library."
         ]
       },
